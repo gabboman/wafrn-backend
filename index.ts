@@ -60,7 +60,13 @@ const Image = sequelize.define('images', {
     url: Sequelize.TEXT,
 });
 
-const PostDennounce = sequelize.define('dennounces', {
+const PostDennounce = sequelize.define('PostDennounces', {
+    resolved: Sequelize.BOOLEAN,
+    creationDate: Sequelize.DATE,
+    severity: Sequelize.INTEGER
+});
+
+const UserDennounce = sequelize.define('UserDennounces', {
     resolved: Sequelize.BOOLEAN,
     creationDate: Sequelize.DATE,
     severity: Sequelize.INTEGER
@@ -72,6 +78,10 @@ Post.belongsTo(Post);
 Image.belongsTo(User);
 Post.hasMany(Image);
 Post.hasMany(PostDennounce);
+PostDennounce.belongsTo(User);
+UserDennounce.belongsTo(User);
+User.hasMany(UserDennounce);
+
 
 
 
