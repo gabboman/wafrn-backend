@@ -59,7 +59,8 @@ const Image = sequelize.define('images', {
     creationDate: Sequelize.DATE,
     url: Sequelize.TEXT,
 });
-
+/*
+//TODO still unsure on how to do this
 const PostDennounce = sequelize.define('PostDennounces', {
     resolved: Sequelize.BOOLEAN,
     creationDate: Sequelize.DATE,
@@ -72,16 +73,19 @@ const UserDennounce = sequelize.define('UserDennounces', {
     severity: Sequelize.INTEGER
 });
 
+*/
+
 User.hasMany(Post);
 Post.belongsTo(User);
 Post.belongsTo(Post);
 Image.belongsTo(User);
 Post.hasMany(Image);
+/*
 Post.hasMany(PostDennounce);
 PostDennounce.belongsTo(User);
 UserDennounce.belongsTo(User);
 User.hasMany(UserDennounce);
-
+*/
 
 
 
@@ -94,14 +98,18 @@ sequelize.sync({
     force: environment.forceSync,
     logging: environment.prod
 })
-.then(async () => {
-    console.log(`Database & tables created!`);
-    if (environment.forceSync) {
-        console.log('CLEANING DATA');
-        // seeder();
+    .then(async () => {
+        console.log(`Database & tables created!`);
+        if (environment.forceSync) {
+            console.log('CLEANING DATA');
+            // seeder();
 
-    }
-});
+        }
+    });
+
+
+
+
 
 
 
