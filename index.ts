@@ -4,6 +4,7 @@
 import express from 'express';
 const Sequelize = require('sequelize');
 const environment = require('./environment');
+var crypto = require('crypto')
 import { BodyParser } from 'body-parser';
 
 import multer from 'multer';
@@ -11,8 +12,10 @@ const imageStorage = multer.diskStorage({
     // Destination to store image     
     destination: 'uploads',
     filename: (req, file, cb) => {
-        cb(null, file.fieldname + '_' + Date.now() + '_' +
-            file.originalname.replace(' ', '_'))
+        let originalNameArray = file.originalname.split('.');
+        let extension = originalNameArray[originalNameArray.length - 1];
+        let randomText = crypto.createHash('sha1').update(Math.random().toString()).digest("hex")
+        cb(null, Date.now() + '_' + randomText + '.' + extension);
 
     }
 });
@@ -29,11 +32,13 @@ const upload = multer({
         }
         cb(null, true)
     }
-})
+});
 
 // rest of the code remains same
 const app = express();
 const PORT = 8000;
+
+app.use(upload.any());
 
 const sequelize = new Sequelize(environment.databaseConnectionString);
 
@@ -43,20 +48,17 @@ const User = sequelize.define('users', {
     url: Sequelize.STRING,
     NSFW: Sequelize.BOOLEAN,
     avatar: Sequelize.STRING,
-    registrationDate: Sequelize.DATE,
     password: Sequelize.STRING,
     birthDate: Sequelize.DATE
 });
 
 const Post = sequelize.define('posts', {
     NSFW: Sequelize.BOOLEAN,
-    creationDate: Sequelize.DATE,
     content: Sequelize.TEXT
 });
 
 const Image = sequelize.define('images', {
     NSFW: Sequelize.BOOLEAN,
-    creationDate: Sequelize.DATE,
     url: Sequelize.TEXT,
 });
 /*
@@ -109,11 +111,25 @@ sequelize.sync({
 
 
 
+app.get('/', (req, res) => res.send('Welcome to WAFRN API.'));
+// serve static images
+app.use('/uploads', express.static('uploads'));
 
+app.post('/uploadPictures', async (req, res) => {
+    let files: any = req.files;
+    let picturesPromise: Array<any> = [];
+    if (files && files.length > 0) {
+        files.forEach((file: any) => {
+            picturesPromise.push(Image.create({
+                url: file.path,
+                NSFW: false
+            }))
+        });
+    }
+    let success = await Promise.all(picturesPromise)
+    res.send(success);
+});
 
-
-
-app.get('/', (req, res) => res.send('Express + TypeScript Server'));
 app.listen(PORT, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
 });
