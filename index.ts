@@ -3,6 +3,8 @@
 
 import express from 'express';
 const Sequelize = require('sequelize');
+// operators
+const { Op } = require("sequelize");
 const environment = require('./environment');
 var crypto = require('crypto');
 const bcrypt = require("bcrypt");
@@ -159,7 +161,17 @@ app.post('/register', async (req, res) => {
     // TODO: check captcha
     let success = false;
     if (req.body && req.body.email && req.files && req.files.length > 0 && validateEmail(req.body.email)) {
-        let emailExists = await User.findOne({ where: { email: req.body.email } });
+        let emailExists = await User.findOne({
+            where: {
+                [Op.or]: [
+
+                    { email: req.body.email },
+
+                    { url: req.body.url }
+
+                ]
+            }
+        });
         if (!emailExists) {
             let files: any = req.files;
             let user = {
@@ -184,10 +196,15 @@ app.post('/login', async (req, res) => {
     let success = false;
     if (req.body && req.body.email && req.body.password) {
         let userWithEmail = await User.findOne({ where: { email: req.body.email } });
-        if(userWithEmail) {
-            let correctPassword = bcrypt.compare(req.body.password, userWithEmail.password);
-            if(correctPassword) {
-                //TODO: login stuff
+        if (userWithEmail) {
+            let correctPassword = await bcrypt.compare(req.body.password, userWithEmail.password);
+            if (correctPassword) {
+                //TODO: token login stuff
+                success = true;
+                res.send({
+                    success: true,
+                    token: 'A'
+                });
             }
         }
 
