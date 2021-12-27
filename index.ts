@@ -103,13 +103,13 @@ User.belongsToMany(User, {
 PostDennounce.belongsTo(User);
 PostDennounce.belongsTo(Post);
 
-UserDennounce.belongsTo(User, {foreignKey: 'dennouncerId'})
-UserDennounce.belongsTo(User, {foreignKey: 'dennouncedId'})
+UserDennounce.belongsTo(User, { foreignKey: 'dennouncerId' })
+UserDennounce.belongsTo(User, { foreignKey: 'dennouncedId' })
 
 User.hasMany(Post);
 Post.belongsTo(User);
 Post.belongsTo(Post);
-Post.belongsTo(Post, {foreignKey: 'parentPostId'})
+Post.belongsTo(Post, { foreignKey: 'parentPostId' })
 Image.belongsTo(User);
 Post.hasMany(Image);
 Tag.belongsToMany(Post, {
@@ -153,31 +153,43 @@ app.use('/uploads', express.static('uploads'));
 function validateEmail(email: string) {
     const res = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return res.test(String(email).toLowerCase());
-  }
+}
 
 app.post('/register', async (req, res) => {
     // TODO: check captcha
     let success = false;
-    if(req.body  && req.body.email && req.files &&  req.files.length >0  &&  validateEmail(req.body.email)) {
-        // TODO: fix this function, get avatar and set it properly. Check fields are NOT empty
-        let files:any = req.files;
-        let user = {
-            email: req.body.email,
-            description: req.body.description,
-            url: req.body.url,
-            NSFW: req.body.nsfw === "true",
-            password: await bcrypt.hash(req.body.password, environment.saltRounds),
-            birthDate: new Date(req.body.birthDate),
-            avatar: files[0].path
-    
+    if (req.body && req.body.email && req.files && req.files.length > 0 && validateEmail(req.body.email)) {
+        let emailExists = await User.findAll({ where: { email: req.body.email } });
+        if (emailExists.length === 0) {
+            let files: any = req.files;
+            let user = {
+                email: req.body.email,
+                description: req.body.description,
+                url: req.body.url,
+                NSFW: req.body.nsfw === "true",
+                password: await bcrypt.hash(req.body.password, environment.saltRounds),
+                birthDate: new Date(req.body.birthDate),
+                avatar: files[0].path
+
+            }
+            success = await User.create(user);
         }
-        success = await User.create(user);
+
     }
     res.send(success);
 });
 
 app.post('/login', async (req, res) => {
     // TODO: check captcha
+    let success = false;
+    if (req.body && req.body.email && req.body.password) {
+
+    }
+
+    if (!success) {
+        res.statusCode = 401;
+        res.send({ success: false })
+    }
 
 });
 
