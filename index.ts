@@ -8,6 +8,7 @@ const { Op } = require("sequelize");
 const environment = require('./environment');
 var crypto = require('crypto');
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
 import { BodyParser } from 'body-parser';
 
 import multer from 'multer';
@@ -203,7 +204,7 @@ app.post('/login', async (req, res) => {
                 success = true;
                 res.send({
                     success: true,
-                    token: 'A'
+                    token: jwt.sign({userId: userWithEmail.id, email: userWithEmail.email}, environment.jwtSecret, { expiresIn: '31536000s' })
                 });
             }
         }

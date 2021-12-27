@@ -3,6 +3,7 @@
     "forceSync": true,
     "databaseConnectionString": "mariadb://root@127.0.0.1/wafrn",
     "port": 3000,
-    "saltRounds": 12
+    "saltRounds": 12,
+    "jwtSecret": ""
 
 }
