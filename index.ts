@@ -185,11 +185,20 @@ app.post('/register', async (req, res) => {
                 avatar: files[0].path
 
             }
-            success = await User.create(user);
+            let userWithEmail = await User.create(user);
+            success =  true;
+            res.send({
+                success: true,
+                token: jwt.sign({userId: userWithEmail.id, email: userWithEmail.email}, environment.jwtSecret, { expiresIn: '31536000s' })
+            });
+
         }
 
     }
-    res.send(success);
+    if(!success) {
+        res.statusCode = 401;
+        res.send({ success: false })
+    }
 });
 
 app.post('/login', async (req, res) => {
@@ -200,7 +209,6 @@ app.post('/login', async (req, res) => {
         if (userWithEmail) {
             let correctPassword = await bcrypt.compare(req.body.password, userWithEmail.password);
             if (correctPassword) {
-                //TODO: token login stuff
                 success = true;
                 res.send({
                     success: true,
