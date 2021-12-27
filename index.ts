@@ -245,7 +245,7 @@ app.post('/uploadPictures', authenticateToken,  async (req: any, res) => {
             picturesPromise.push(Image.create({
                 url: file.path,
                 NSFW: req.body.nsfw === 'true',
-                userId: req.jwtData.id
+                userId: req.jwtData.userId
             }))
         });
     }
