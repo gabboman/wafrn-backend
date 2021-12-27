@@ -101,6 +101,7 @@ UserDennounce.belongsTo(User, {foreignKey: 'dennouncedId'})
 User.hasMany(Post);
 Post.belongsTo(User);
 Post.belongsTo(Post);
+Post.belongsTo(Post, {foreignKey: 'parentPostId'})
 Image.belongsTo(User);
 Post.hasMany(Image);
 
