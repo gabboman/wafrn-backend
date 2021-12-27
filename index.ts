@@ -62,21 +62,17 @@ const Image = sequelize.define('images', {
     url: Sequelize.TEXT,
 });
 
-/*
 //TODO still unsure on how to do this
-const PostDennounce = sequelize.define('PostDennounces', {
+const PostDennounce = sequelize.define('postDennounces', {
     resolved: Sequelize.BOOLEAN,
-    creationDate: Sequelize.DATE,
     severity: Sequelize.INTEGER
 });
 
-const UserDennounce = sequelize.define('UserDennounces', {
+const UserDennounce = sequelize.define('userDennounces', {
     resolved: Sequelize.BOOLEAN,
-    creationDate: Sequelize.DATE,
     severity: Sequelize.INTEGER
 });
 
-*/
 
 
 User.belongsToMany(User, {
@@ -90,6 +86,12 @@ User.belongsToMany(User, {
     as: 'children',
     foreignKey: 'followerId'
 });
+
+PostDennounce.belongsTo(User);
+PostDennounce.belongsTo(Post);
+
+UserDennounce.belongsTo(User, {foreignKey: 'dennouncerId'})
+UserDennounce.belongsTo(User, {foreignKey: 'dennouncedId'})
 
 User.hasMany(Post);
 Post.belongsTo(User);
