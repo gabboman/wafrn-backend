@@ -125,12 +125,6 @@ Post.belongsToMany(Tag, {
 })
 
 
-
-
-
-
-
-
 sequelize.sync({
     force: environment.forceSync,
     logging: environment.prod
@@ -145,6 +139,22 @@ sequelize.sync({
     });
 
 
+function authenticateToken(req: any, res: any, next: any) {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    if (token == null) return res.sendStatus(401)
+
+    jwt.verify(token, environment.jwtSecret as string, (err: any, jwtData: any) => {
+        console.log(err)
+
+        if (err) return res.sendStatus(403)
+
+        req.jwtData = jwtData
+
+        next()
+    })
+}
 
 app.get('/', (req, res) => res.send('Welcome to WAFRN API.'));
 
@@ -185,16 +195,16 @@ app.post('/register', async (req, res) => {
 
             }
             let userWithEmail = await User.create(user);
-            success =  true;
+            success = true;
             res.send({
                 success: true,
-                token: jwt.sign({userId: userWithEmail.id, email: userWithEmail.email}, environment.jwtSecret, { expiresIn: '31536000s' })
+                token: jwt.sign({ userId: userWithEmail.id, email: userWithEmail.email }, environment.jwtSecret, { expiresIn: '31536000s' })
             });
 
         }
 
     }
-    if(!success) {
+    if (!success) {
         res.statusCode = 401;
         res.send({ success: false })
     }
@@ -211,7 +221,7 @@ app.post('/login', async (req, res) => {
                 success = true;
                 res.send({
                     success: true,
-                    token: jwt.sign({userId: userWithEmail.id, email: userWithEmail.email}, environment.jwtSecret, { expiresIn: '31536000s' })
+                    token: jwt.sign({ userId: userWithEmail.id, email: userWithEmail.email }, environment.jwtSecret, { expiresIn: '31536000s' })
                 });
             }
         }
@@ -227,14 +237,15 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.post('/uploadPictures', async (req, res) => {
+app.post('/uploadPictures', authenticateToken,  async (req: any, res) => {
     let files: any = req.files;
     let picturesPromise: Array<any> = [];
     if (files && files.length > 0) {
         files.forEach((file: any) => {
             picturesPromise.push(Image.create({
                 url: file.path,
-                NSFW: req.body.nsfw === 'true'
+                NSFW: req.body.nsfw === 'true',
+                userId: req.jwtData.id
             }))
         });
     }
