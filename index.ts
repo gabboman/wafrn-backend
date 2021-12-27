@@ -50,7 +50,10 @@ const User = sequelize.define('users', {
         unique: true,
     },
     description: Sequelize.TEXT,
-    url: Sequelize.STRING,
+    url: {
+        type: Sequelize.STRING,
+        unique: true,
+    },
     NSFW: Sequelize.BOOLEAN,
     avatar: Sequelize.STRING,
     password: Sequelize.STRING,
@@ -60,6 +63,11 @@ const User = sequelize.define('users', {
 const Post = sequelize.define('posts', {
     NSFW: Sequelize.BOOLEAN,
     content: Sequelize.TEXT
+});
+
+const Tag = sequelize.define('tags', {
+    // NSFW: Sequelize.BOOLEAN,
+    tagName: Sequelize.TEXT
 });
 
 const Image = sequelize.define('images', {
@@ -104,6 +112,15 @@ Post.belongsTo(Post);
 Post.belongsTo(Post, {foreignKey: 'parentPostId'})
 Image.belongsTo(User);
 Post.hasMany(Image);
+Tag.belongsToMany(Post, {
+    through: 'tagPostRelations',
+    as: 'children'
+});
+Post.belongsToMany(Tag, {
+    through: 'tagPostRelations',
+    as: 'parents'
+
+})
 
 
 
@@ -141,7 +158,7 @@ function validateEmail(email: string) {
 app.post('/register', async (req, res) => {
     // TODO: check captcha
     let success = false;
-    if(req.body.email && req.files &&  req.files.length >0 && validateEmail(req.body.email)) {
+    if(req.body  && req.body.email && req.files &&  req.files.length >0  &&  validateEmail(req.body.email)) {
         // TODO: fix this function, get avatar and set it properly. Check fields are NOT empty
         let files:any = req.files;
         let user = {
@@ -149,19 +166,14 @@ app.post('/register', async (req, res) => {
             description: req.body.description,
             url: req.body.url,
             NSFW: req.body.nsfw === "true",
-            password: await bcrypt.hash(req.body.password),
+            password: await bcrypt.hash(req.body.password, environment.saltRounds),
             birthDate: new Date(req.body.birthDate),
-            //avatar: files[0].path
+            avatar: files[0].path
     
         }
         success = await User.create(user);
     }
-
-
-
     res.send(success);
-
-
 });
 
 app.post('/login', async (req, res) => {
