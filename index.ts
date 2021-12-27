@@ -61,6 +61,7 @@ const Image = sequelize.define('images', {
     NSFW: Sequelize.BOOLEAN,
     url: Sequelize.TEXT,
 });
+
 /*
 //TODO still unsure on how to do this
 const PostDennounce = sequelize.define('PostDennounces', {
@@ -77,17 +78,24 @@ const UserDennounce = sequelize.define('UserDennounces', {
 
 */
 
+
+User.belongsToMany(User, {
+    through: 'followers',
+    as: 'parents',
+    foreignKey: 'followedId'
+});
+
+User.belongsToMany(User, {
+    through: 'followers',
+    as: 'children',
+    foreignKey: 'followerId'
+});
+
 User.hasMany(Post);
 Post.belongsTo(User);
 Post.belongsTo(Post);
 Image.belongsTo(User);
 Post.hasMany(Image);
-/*
-Post.hasMany(PostDennounce);
-PostDennounce.belongsTo(User);
-UserDennounce.belongsTo(User);
-User.hasMany(UserDennounce);
-*/
 
 
 
@@ -112,8 +120,22 @@ sequelize.sync({
 
 
 app.get('/', (req, res) => res.send('Welcome to WAFRN API.'));
+
 // serve static images
 app.use('/uploads', express.static('uploads'));
+
+
+app.post('/register', async (req, res) => {
+    // TODO: check captcha
+
+
+});
+
+app.post('/login', async (req, res) => {
+    // TODO: check captcha
+
+});
+
 
 app.post('/uploadPictures', async (req, res) => {
     let files: any = req.files;
@@ -122,13 +144,14 @@ app.post('/uploadPictures', async (req, res) => {
         files.forEach((file: any) => {
             picturesPromise.push(Image.create({
                 url: file.path,
-                NSFW: false
+                NSFW: req.body.nsfw === 'true'
             }))
         });
     }
     let success = await Promise.all(picturesPromise)
     res.send(success);
 });
+
 
 app.listen(PORT, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
