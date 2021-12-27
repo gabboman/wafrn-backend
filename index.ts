@@ -4,7 +4,8 @@
 import express from 'express';
 const Sequelize = require('sequelize');
 const environment = require('./environment');
-var crypto = require('crypto')
+var crypto = require('crypto');
+const bcrypt = require("bcrypt");
 import { BodyParser } from 'body-parser';
 
 import multer from 'multer';
@@ -43,7 +44,11 @@ app.use(upload.any());
 const sequelize = new Sequelize(environment.databaseConnectionString);
 
 const User = sequelize.define('users', {
-    username: Sequelize.STRING,
+    email: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+    },
     description: Sequelize.TEXT,
     url: Sequelize.STRING,
     NSFW: Sequelize.BOOLEAN,
@@ -127,8 +132,33 @@ app.get('/', (req, res) => res.send('Welcome to WAFRN API.'));
 app.use('/uploads', express.static('uploads'));
 
 
+function validateEmail(email: string) {
+    const res = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return res.test(String(email).toLowerCase());
+  }
+
 app.post('/register', async (req, res) => {
     // TODO: check captcha
+    let success = false;
+    if(req.body.email && req.files &&  req.files.length >0 && validateEmail(req.body.email)) {
+        // TODO: fix this function, get avatar and set it properly. Check fields are NOT empty
+        let files:any = req.files;
+        let user = {
+            email: req.body.email,
+            description: req.body.description,
+            url: req.body.url,
+            NSFW: req.body.nsfw === "true",
+            password: await bcrypt.hash(req.body.password),
+            birthDate: new Date(req.body.birthDate),
+            //avatar: files[0].path
+    
+        }
+        success = await User.create(user);
+    }
+
+
+
+    res.send(success);
 
 
 });
