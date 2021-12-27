@@ -114,7 +114,6 @@ Post.belongsTo(User);
 Post.belongsTo(Post);
 Post.belongsTo(Post, { foreignKey: 'parentPostId' })
 Image.belongsTo(User);
-Post.hasMany(Image);
 Tag.belongsToMany(Post, {
     through: 'tagPostRelations',
     as: 'children'
@@ -137,7 +136,7 @@ sequelize.sync({
     logging: environment.prod
 })
     .then(async () => {
-        console.log(`Database & tables created!`);
+        console.log(`Database & tables ready!`);
         if (environment.forceSync) {
             console.log('CLEANING DATA');
             // seeder();
