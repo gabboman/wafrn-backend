@@ -104,12 +104,15 @@ const Media = sequelize.define('medias', {
 
 const PostReport = sequelize.define('postReports', {
     resolved: Sequelize.BOOLEAN,
-    severity: Sequelize.INTEGER
+    severity: Sequelize.INTEGER,
+    description: Sequelize.TEXT
 });
 
 const UserReport = sequelize.define('userReports', {
     resolved: Sequelize.BOOLEAN,
-    severity: Sequelize.INTEGER
+    severity: Sequelize.INTEGER,
+    description: Sequelize.TEXT
+
 });
 
 
@@ -339,6 +342,32 @@ app.get('/myRecentMedia', authenticateToken, async (req: any, res) => {
 
     });
     res.send(recentMedia)
+});
+
+app.post('/reportPost', authenticateToken, async (req: any, res) => {
+    // we have to process the content of the post to find wafrnmedia
+    // and check that the user is only posting its own media. or should we?
+    let success = false;
+    let report;
+    const posterId = req.jwtData.userId;
+    if(req.body && req.body.postId && req.body.severity && req.body.description) {
+        report = await PostReport.create({
+            resolved: false,
+            severity: req.body.severity,
+            description: req.body.description,
+            userId: posterId,
+            postId: req.body.postId
+        });
+        success = true;
+        res.send(report);
+    }
+    if(!success) {
+        res.send({
+            success: false
+        })
+    }
+
+
 });
 
 
