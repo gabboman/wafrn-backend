@@ -283,6 +283,10 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
             NSFW: req.body.nsfw === 'true',
             userId: posterId
         });
+
+        if (req.body.parent) {
+            post.setParent(req.body.parent);
+        }
         success = !req.body.tags;
         if (req.body.tags) {
             let tagListString = req.body.tags.toLowerCase();
