@@ -475,6 +475,7 @@ app.post('/block', authenticateToken, async (req: any, res) => {
         });
 
         userBlocked.addBlocker(posterId);
+        userBlocked.removeFollowed(posterId);
         success = true;
     }
 
