@@ -296,7 +296,7 @@ app.post('/register', async (req, res) => {
 
                     { email: req.body.email },
 
-                    { url: req.body.url }
+                    sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', '%' + req.body.url.toLowerCase() + '%')
 
                 ]
             }
