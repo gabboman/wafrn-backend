@@ -2,7 +2,11 @@
 
 
 import express from 'express';
+
 const Sequelize = require('sequelize');
+//sequelize plugins
+require('sequelize-hierarchy-fork')(Sequelize);
+
 // operators
 const { Op } = require("sequelize");
 const environment = require('./environment');
@@ -52,7 +56,7 @@ const User = sequelize.define('users', {
         defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true
-      },
+    },
     email: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -75,7 +79,7 @@ const Post = sequelize.define('posts', {
         defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true
-      },
+    },
     NSFW: Sequelize.BOOLEAN,
     content: Sequelize.TEXT
 });
@@ -91,19 +95,19 @@ const Media = sequelize.define('medias', {
         defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true
-      },
+    },
     NSFW: Sequelize.BOOLEAN,
     type: Sequelize.INTEGER,
     description: Sequelize.TEXT,
     url: Sequelize.TEXT,
 });
 
-const PostDennounce = sequelize.define('postDennounces', {
+const PostReport = sequelize.define('postReports', {
     resolved: Sequelize.BOOLEAN,
     severity: Sequelize.INTEGER
 });
 
-const UserDennounce = sequelize.define('userDennounces', {
+const UserReport = sequelize.define('userReports', {
     resolved: Sequelize.BOOLEAN,
     severity: Sequelize.INTEGER
 });
@@ -122,24 +126,21 @@ User.belongsToMany(User, {
     foreignKey: 'followerId'
 });
 
-PostDennounce.belongsTo(User);
-PostDennounce.belongsTo(Post);
+PostReport.belongsTo(User);
+PostReport.belongsTo(Post);
 
-UserDennounce.belongsTo(User, { foreignKey: 'dennouncerId' })
-UserDennounce.belongsTo(User, { foreignKey: 'dennouncedId' })
+UserReport.belongsTo(User, { foreignKey: 'ReportrId' })
+UserReport.belongsTo(User, { foreignKey: 'ReportdId' })
 
 User.hasMany(Post);
 Post.belongsTo(User);
-Post.belongsTo(Post);
-Post.belongsTo(Post, { foreignKey: 'parentPostId' })
+Post.isHierarchy();
 Media.belongsTo(User);
 Tag.belongsToMany(Post, {
     through: 'tagPostRelations',
-    as: 'children'
 });
 Post.belongsToMany(Tag, {
     through: 'tagPostRelations',
-    as: 'parents'
 
 })
 
@@ -165,7 +166,6 @@ function authenticateToken(req: any, res: any, next: any) {
     if (token == null) return res.sendStatus(401)
 
     jwt.verify(token, environment.jwtSecret as string, (err: any, jwtData: any) => {
-        console.log(err)
 
         if (err) return res.sendStatus(403)
 
@@ -256,7 +256,7 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.post('/uploadPictures', authenticateToken,  async (req: any, res) => {
+app.post('/uploadPictures', authenticateToken, async (req: any, res) => {
     let files: any = req.files;
     let picturesPromise: Array<any> = [];
     if (files && files.length > 0) {
@@ -272,32 +272,60 @@ app.post('/uploadPictures', authenticateToken,  async (req: any, res) => {
     res.send(success);
 });
 
-app.post('/createPost', authenticateToken,  async (req: any, res) => { 
+app.post('/createPost', authenticateToken, async (req: any, res) => {
     // we have to process the content of the post to find wafrnmedia
     // and check that the user is only posting its own media. or should we?
     let success = false;
     const posterId = req.jwtData.userId;
-    if(req.body && req.body.content){
+    if (req.body && req.body.content) {
         let post = await Post.create({
             content: req.body.content,
             NSFW: req.body.nsfw === 'true',
             userId: posterId
         });
-        success = true;
-        if(req.body.tags){
-            let tagList = req.body.tags.split(',');
-            
+        success = !req.body.tags;
+        if (req.body.tags) {
+            let tagListString = req.body.tags.toLowerCase();
+            let tagList = tagListString.split(',');
+            tagList = tagList.map( (s: string) => s.trim());
+            let existingTags = await Tag.findAll({
+                where: {
+                    tagName: {
+                        [Op.in]: tagList
+                    }
+                }
+            });
+
+            const newTagPromises: Array<Promise<any>> = [];
+            if(existingTags) {
+                existingTags.forEach((existingTag: any) => {
+                    existingTag.addPost(post);
+                    tagList.splice(tagList.indexOf(existingTag.tagName),1)
+                });
+            }
+
+            tagList.forEach( (newTag: string) => {
+                newTagPromises.push(Tag.create({
+                    tagName: newTag
+                }));
+            });
+
+            let newTags = await Promise.all(newTagPromises);
+            newTags.forEach((newTag)=> {
+                newTag.addPost(post)
+            } )
+            success = true;
         }
         res.send(post);
-
     }
     if (!success) {
-        res.send( {success: false});
+        res.statusCode = 400;
+        res.send({ success: false });
     }
 
 });
 
-app.get('/myRecentMedia', authenticateToken,  async (req: any, res) => { 
+app.get('/myRecentMedia', authenticateToken, async (req: any, res) => {
     let recentMedia = await Media.findAll({
         where: {
             userId: req.jwtData.userId,
