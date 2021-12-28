@@ -439,6 +439,29 @@ app.post('/follow', authenticateToken, async (req: any, res) => {
 
 });
 
+app.post('/unfollow', authenticateToken, async (req: any, res) => {
+    // we have to process the content of the post to find wafrnmedia
+    // and check that the user is only posting its own media. or should we?
+    let success = false;
+    const posterId = req.jwtData.userId;
+    if (req.body && req.body.userId) {
+        let userUnfollowed = await User.findOne({
+            where: {
+                id: req.body.userId
+            }
+        });
+
+        userUnfollowed.removeFollower(posterId);
+        success = true;
+    }
+
+    res.send({
+        success: success
+    });
+
+
+});
+
 app.post('/block', authenticateToken, async (req: any, res) => {
     // we have to process the content of the post to find wafrnmedia
     // and check that the user is only posting its own media. or should we?
@@ -462,6 +485,29 @@ app.post('/block', authenticateToken, async (req: any, res) => {
 
 });
 
+
+app.post('/unblock', authenticateToken, async (req: any, res) => {
+    // we have to process the content of the post to find wafrnmedia
+    // and check that the user is only posting its own media. or should we?
+    let success = false;
+    const posterId = req.jwtData.userId;
+    if (req.body && req.body.userId) {
+        let userUnblocked = await User.findOne({
+            where: {
+                id: req.body.userId
+            }
+        });
+
+        userUnblocked.removeBlocker(posterId);
+        success = true;
+    }
+
+    res.send({
+        success: success
+    });
+
+
+});
 
 
 app.listen(PORT, () => {
