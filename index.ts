@@ -233,7 +233,7 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
             //date the user has started scrolling
             createdAt: { [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date() }
         },
-        ... getPostBaseQuery(req)
+        ...getPostBaseQuery(req)
     });
     res.send(rawPostsByFollowed)
 });
@@ -241,8 +241,8 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
 // TODO search users
 app.post('/search', async (req, res) => {
     let success = false;
-    let users: any[] = [];
-    let posts: any[] = [];
+    let users: any = [];
+    let posts: any = [];
     let promises: Promise<any>[] = [];
     if (req.body && req.body.term) {
         let searchTerm = req.body.term.toLowerCase().trim();
@@ -253,18 +253,35 @@ app.post('/search', async (req, res) => {
             }
         });
         if (tagSearch) {
-            posts = await tagSearch.getPosts({
+            posts = tagSearch.getPosts({
                 where: {
                     //date the user has started scrolling
                     createdAt: { [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date() }
                 },
-                ... getPostBaseQuery(req)
-            
-            })
+                ...getPostBaseQuery(req)
+
+            });
+            promises.push(posts);
         }
+        users = User.findAll({
+            limit: 20,
+            offset: req.body?.page ? req.body.page * 20 : 0,
+            where: {
+                [Op.or]: [
+                    sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', '%' + searchTerm + '%'),
+                    sequelize.where(sequelize.fn('LOWER', sequelize.col('description')), 'LIKE', '%' + searchTerm + '%')
+            ]
+            },
+            attributes: {
+                exclude: ['password', 'birthDate']
+            }
+            
+        });
+        promises.push(users)
     }
+    await Promise.all(promises)
     res.send({
-        users: users, posts: posts
+        users: await users, posts: await posts
     })
 });
 
