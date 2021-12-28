@@ -220,13 +220,19 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
     const usersFollowed = await getFollowersIds(posterId);
     const rawPostsByFollowed = await Post.findAll({
         where: {
-            userId: { [Op.in]: usersFollowed }
+            userId: { [Op.in]: usersFollowed },
+            //date the user has started scrolling
+            createdAt: { [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date() }
         },
-        include: [{ model: Post, as: 'ancestors' }],
-        order: [[{ model: Post, as: 'ancestors' }, 'hierarchyLevel']]
+        include: [{ model: Post, as: 'ancestors', include: {model: User, attributes: ['avatar', 'url', 'description'] } }, { model: User, attributes: ['avatar', 'url', 'description'] }],
+        order: [['createdAt', 'DESC']],
+        limit: 20,
+        offset: req.body?.page ? req.body.page * 20 : 0
     });
     res.send(rawPostsByFollowed)
-})
+});
+
+// TODO search endpoint using tags
 
 app.post('/register', async (req, res) => {
     // TODO: check captcha
@@ -299,6 +305,7 @@ app.post('/login', async (req, res) => {
 
 
 app.post('/uploadPictures', authenticateToken, async (req: any, res) => {
+    // TODO check captcha
     let files: any = req.files;
     let picturesPromise: Array<any> = [];
     if (files && files.length > 0) {
@@ -315,8 +322,7 @@ app.post('/uploadPictures', authenticateToken, async (req: any, res) => {
 });
 
 app.post('/createPost', authenticateToken, async (req: any, res) => {
-    // we have to process the content of the post to find wafrnmedia
-    // and check that the user is only posting its own media. or should we?
+    // TODO check captcha
     let success = false;
     const posterId = req.jwtData.userId;
     if (req.body && req.body.content) {
