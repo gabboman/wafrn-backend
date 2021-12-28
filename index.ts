@@ -47,6 +47,12 @@ app.use(upload.any());
 const sequelize = new Sequelize(environment.databaseConnectionString);
 
 const User = sequelize.define('users', {
+    id: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
+        allowNull: false,
+        primaryKey: true
+      },
     email: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -79,8 +85,16 @@ const Tag = sequelize.define('tags', {
     tagName: Sequelize.TEXT
 });
 
-const Image = sequelize.define('images', {
+const Media = sequelize.define('medias', {
+    id: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
+        allowNull: false,
+        primaryKey: true
+      },
     NSFW: Sequelize.BOOLEAN,
+    type: Sequelize.INTEGER,
+    description: Sequelize.TEXT,
     url: Sequelize.TEXT,
 });
 
@@ -118,7 +132,7 @@ User.hasMany(Post);
 Post.belongsTo(User);
 Post.belongsTo(Post);
 Post.belongsTo(Post, { foreignKey: 'parentPostId' })
-Image.belongsTo(User);
+Media.belongsTo(User);
 Tag.belongsToMany(Post, {
     through: 'tagPostRelations',
     as: 'children'
@@ -247,7 +261,7 @@ app.post('/uploadPictures', authenticateToken,  async (req: any, res) => {
     let picturesPromise: Array<any> = [];
     if (files && files.length > 0) {
         files.forEach((file: any) => {
-            picturesPromise.push(Image.create({
+            picturesPromise.push(Media.create({
                 url: file.path,
                 NSFW: req.body.nsfw === 'true',
                 userId: req.jwtData.userId
@@ -259,11 +273,32 @@ app.post('/uploadPictures', authenticateToken,  async (req: any, res) => {
 });
 
 app.post('/createPost', authenticateToken,  async (req: any, res) => { 
+    // we have to process the content of the post to find wafrnmedia
+    // and check that the user is only posting its own media. or should we?
+    let success = false;
+    const posterId = req.jwtData.userId;
+    if(req.body && req.body.content){
+        let post = await Post.create({
+            content: req.body.content,
+            NSFW: req.body.nsfw === 'true',
+            userId: posterId
+        });
+        success = true;
+        if(req.body.tags){
+            let tagList = req.body.tags.split(',');
+            
+        }
+        res.send(post);
+
+    }
+    if (!success) {
+        res.send( {success: false});
+    }
 
 });
 
 app.get('/myRecentMedia', authenticateToken,  async (req: any, res) => { 
-    let recentMedia = await Image.findAll({
+    let recentMedia = await Media.findAll({
         where: {
             userId: req.jwtData.userId,
         },
