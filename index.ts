@@ -64,6 +64,12 @@ const User = sequelize.define('users', {
 });
 
 const Post = sequelize.define('posts', {
+    id: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
+        allowNull: false,
+        primaryKey: true
+      },
     NSFW: Sequelize.BOOLEAN,
     content: Sequelize.TEXT
 });
@@ -78,7 +84,6 @@ const Image = sequelize.define('images', {
     url: Sequelize.TEXT,
 });
 
-//TODO still unsure on how to do this
 const PostDennounce = sequelize.define('postDennounces', {
     resolved: Sequelize.BOOLEAN,
     severity: Sequelize.INTEGER
@@ -251,6 +256,22 @@ app.post('/uploadPictures', authenticateToken,  async (req: any, res) => {
     }
     let success = await Promise.all(picturesPromise)
     res.send(success);
+});
+
+app.post('/createPost', authenticateToken,  async (req: any, res) => { 
+
+});
+
+app.get('/myRecentMedia', authenticateToken,  async (req: any, res) => { 
+    let recentMedia = await Image.findAll({
+        where: {
+            userId: req.jwtData.userId,
+        },
+        limit: 5,
+        order: [['createdAt', 'DESC']]
+
+    });
+    res.send(recentMedia)
 });
 
 
