@@ -191,9 +191,22 @@ function authenticateToken(req: any, res: any, next: any) {
 }
 
 
+function validateEmail(email: string) {
+    const res = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return res.test(String(email).toLowerCase());
+}
 
-async function getFollowers() {
-    // TODO
+
+async function getFollowersIds(userId: string): Promise<string[]> {
+    let usr = await User.findOne({
+        where: {
+            id: userId
+        }
+    });
+    let followed = await usr.getFollowed();
+    let result = followed.map((followed: any) => followed.id);
+    return result;
+
 
 }
 
@@ -202,11 +215,18 @@ app.get('/', (req, res) => res.send('Welcome to WAFRN API.'));
 // serve static images
 app.use('/uploads', express.static('uploads'));
 
-
-function validateEmail(email: string) {
-    const res = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return res.test(String(email).toLowerCase());
-}
+app.post('/dashboard', authenticateToken, async (req: any, res) => {
+    const posterId = req.jwtData.userId;
+    const usersFollowed = await getFollowersIds(posterId);
+    const rawPostsByFollowed = await Post.findAll({
+        where: {
+            userId: { [Op.in]: usersFollowed }
+        },
+        include: [{ model: Post, as: 'ancestors' }],
+        order: [[{ model: Post, as: 'ancestors' }, 'hierarchyLevel']]
+    });
+    res.send(rawPostsByFollowed)
+})
 
 app.post('/register', async (req, res) => {
     // TODO: check captcha
