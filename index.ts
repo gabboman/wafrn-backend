@@ -132,8 +132,8 @@ User.belongsToMany(User, {
 PostReport.belongsTo(User);
 PostReport.belongsTo(Post);
 
-UserReport.belongsTo(User, { foreignKey: 'ReportrId' })
-UserReport.belongsTo(User, { foreignKey: 'ReportdId' })
+UserReport.belongsTo(User, { foreignKey: 'ReporterId' })
+UserReport.belongsTo(User, { foreignKey: 'ReportedId' })
 
 User.hasMany(Post);
 Post.belongsTo(User);
@@ -369,6 +369,34 @@ app.post('/reportPost', authenticateToken, async (req: any, res) => {
 
 
 });
+
+
+app.post('/reportUser', authenticateToken, async (req: any, res) => {
+    // we have to process the content of the post to find wafrnmedia
+    // and check that the user is only posting its own media. or should we?
+    let success = false;
+    let report;
+    const posterId = req.jwtData.userId;
+    if(req.body && req.body.userId && req.body.severity && req.body.description) {
+        report = await PostReport.create({
+            resolved: false,
+            severity: req.body.severity,
+            description: req.body.description,
+            reporterId: posterId,
+            reportedId: req.body.userId
+        });
+        success = true;
+        res.send(report);
+    }
+    if(!success) {
+        res.send({
+            success: false
+        })
+    }
+
+
+});
+
 
 
 app.listen(PORT, () => {
