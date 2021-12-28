@@ -287,7 +287,7 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
         if (req.body.tags) {
             let tagListString = req.body.tags.toLowerCase();
             let tagList = tagListString.split(',');
-            tagList = tagList.map( (s: string) => s.trim());
+            tagList = tagList.map((s: string) => s.trim());
             let existingTags = await Tag.findAll({
                 where: {
                     tagName: {
@@ -297,23 +297,23 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
             });
 
             const newTagPromises: Array<Promise<any>> = [];
-            if(existingTags) {
+            if (existingTags) {
                 existingTags.forEach((existingTag: any) => {
                     existingTag.addPost(post);
-                    tagList.splice(tagList.indexOf(existingTag.tagName),1)
+                    tagList.splice(tagList.indexOf(existingTag.tagName), 1)
                 });
             }
 
-            tagList.forEach( (newTag: string) => {
+            tagList.forEach((newTag: string) => {
                 newTagPromises.push(Tag.create({
                     tagName: newTag
                 }));
             });
 
             let newTags = await Promise.all(newTagPromises);
-            newTags.forEach((newTag)=> {
+            newTags.forEach((newTag) => {
                 newTag.addPost(post)
-            } )
+            })
             success = true;
         }
         res.send(post);
