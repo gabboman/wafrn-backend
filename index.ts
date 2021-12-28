@@ -210,6 +210,15 @@ async function getFollowersIds(userId: string): Promise<string[]> {
 
 }
 
+function getPostBaseQuery(req: any) {
+    return {
+        include: [{ model: Post, as: 'ancestors', include: { model: User, attributes: ['avatar', 'url', 'description'] } }, { model: User, attributes: ['avatar', 'url', 'description'] }],
+        order: [['createdAt', 'DESC']],
+        limit: 20,
+        offset: req.body?.page ? req.body.page * 20 : 0
+    }
+}
+
 app.get('/', (req, res) => res.send('Welcome to WAFRN API.'));
 
 // serve static images
@@ -224,15 +233,41 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
             //date the user has started scrolling
             createdAt: { [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date() }
         },
-        include: [{ model: Post, as: 'ancestors', include: {model: User, attributes: ['avatar', 'url', 'description'] } }, { model: User, attributes: ['avatar', 'url', 'description'] }],
-        order: [['createdAt', 'DESC']],
-        limit: 20,
-        offset: req.body?.page ? req.body.page * 20 : 0
+        ... getPostBaseQuery(req)
     });
     res.send(rawPostsByFollowed)
 });
 
-// TODO search endpoint using tags
+// TODO search users
+app.post('/search', async (req, res) => {
+    let success = false;
+    let users: any[] = [];
+    let posts: any[] = [];
+    let promises: Promise<any>[] = [];
+    if (req.body && req.body.term) {
+        let searchTerm = req.body.term.toLowerCase().trim();
+        //we get the tag if exists then get posts from the tag, same way ass dashboard
+        let tagSearch = await Tag.findOne({
+            where: {
+                tagName: searchTerm
+            }
+        });
+        if (tagSearch) {
+            posts = await tagSearch.getPosts({
+                where: {
+                    //date the user has started scrolling
+                    createdAt: { [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date() }
+                },
+                ... getPostBaseQuery(req)
+            
+            })
+        }
+    }
+    res.send({
+        users: users, posts: posts
+    })
+});
+
 
 app.post('/register', async (req, res) => {
     // TODO: check captcha
