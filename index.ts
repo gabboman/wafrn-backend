@@ -118,15 +118,27 @@ const UserReport = sequelize.define('userReports', {
 
 
 User.belongsToMany(User, {
-    through: 'followers',
-    as: 'parents',
+    through: 'follows',
+    as: 'followed',
     foreignKey: 'followedId'
 });
 
 User.belongsToMany(User, {
-    through: 'followers',
-    as: 'children',
+    through: 'follows',
+    as: 'follower',
     foreignKey: 'followerId'
+});
+
+User.belongsToMany(User, {
+    through: 'blocks',
+    as: 'blocker',
+    foreignKey: 'blockerId'
+});
+
+User.belongsToMany(User, {
+    through: 'blocks',
+    as: 'blocked',
+    foreignKey: 'blockedId'
 });
 
 PostReport.belongsTo(User);
@@ -176,6 +188,13 @@ function authenticateToken(req: any, res: any, next: any) {
 
         next()
     })
+}
+
+
+
+async function getFollowers() {
+    // TODO
+
 }
 
 app.get('/', (req, res) => res.send('Welcome to WAFRN API.'));
@@ -350,7 +369,7 @@ app.post('/reportPost', authenticateToken, async (req: any, res) => {
     let success = false;
     let report;
     const posterId = req.jwtData.userId;
-    if(req.body && req.body.postId && req.body.severity && req.body.description) {
+    if (req.body && req.body.postId && req.body.severity && req.body.description) {
         report = await PostReport.create({
             resolved: false,
             severity: req.body.severity,
@@ -361,7 +380,7 @@ app.post('/reportPost', authenticateToken, async (req: any, res) => {
         success = true;
         res.send(report);
     }
-    if(!success) {
+    if (!success) {
         res.send({
             success: false
         })
@@ -377,7 +396,7 @@ app.post('/reportUser', authenticateToken, async (req: any, res) => {
     let success = false;
     let report;
     const posterId = req.jwtData.userId;
-    if(req.body && req.body.userId && req.body.severity && req.body.description) {
+    if (req.body && req.body.userId && req.body.severity && req.body.description) {
         report = await PostReport.create({
             resolved: false,
             severity: req.body.severity,
@@ -388,11 +407,57 @@ app.post('/reportUser', authenticateToken, async (req: any, res) => {
         success = true;
         res.send(report);
     }
-    if(!success) {
+    if (!success) {
         res.send({
             success: false
         })
     }
+
+
+});
+
+app.post('/follow', authenticateToken, async (req: any, res) => {
+    // we have to process the content of the post to find wafrnmedia
+    // and check that the user is only posting its own media. or should we?
+    let success = false;
+    const posterId = req.jwtData.userId;
+    if (req.body && req.body.userId) {
+        let userFollowed = await User.findOne({
+            where: {
+                id: req.body.userId
+            }
+        });
+
+        userFollowed.addFollower(posterId);
+        success = true;
+    }
+
+    res.send({
+        success: success
+    });
+
+
+});
+
+app.post('/block', authenticateToken, async (req: any, res) => {
+    // we have to process the content of the post to find wafrnmedia
+    // and check that the user is only posting its own media. or should we?
+    let success = false;
+    const posterId = req.jwtData.userId;
+    if (req.body && req.body.userId) {
+        let userBlocked = await User.findOne({
+            where: {
+                id: req.body.userId
+            }
+        });
+
+        userBlocked.addBlocker(posterId);
+        success = true;
+    }
+
+    res.send({
+        success: success
+    });
 
 
 });
