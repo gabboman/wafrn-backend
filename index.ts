@@ -13,7 +13,7 @@ const environment = require('./environment');
 var crypto = require('crypto');
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
-import { BodyParser } from 'body-parser';
+import bodyParser, { BodyParser } from 'body-parser';
 
 import multer from 'multer';
 const imageStorage = multer.diskStorage({
@@ -47,7 +47,6 @@ const app = express();
 const PORT = 8000;
 
 app.use(upload.any());
-
 const sequelize = new Sequelize(environment.databaseConnectionString);
 
 const User = sequelize.define('users', {
@@ -97,8 +96,7 @@ const Media = sequelize.define('medias', {
         primaryKey: true
     },
     NSFW: Sequelize.BOOLEAN,
-    type: Sequelize.INTEGER,
-    description: Sequelize.TEXT,
+        description: Sequelize.TEXT,
     url: Sequelize.TEXT,
 });
 
@@ -157,6 +155,9 @@ Tag.belongsToMany(Post, {
 Post.belongsToMany(Tag, {
     through: 'tagPostRelations',
 
+});
+Media.belongsToMany(Post, {
+    through: 'postMediaRelations'
 })
 
 
@@ -212,7 +213,7 @@ async function getFollowersIds(userId: string): Promise<string[]> {
 
 function getPostBaseQuery(req: any) {
     return {
-        include: [{ model: Post, as: 'ancestors', include: { model: User, attributes: ['avatar', 'url', 'description'] } }, { model: User, attributes: ['avatar', 'url', 'description'] }],
+        include: [{ model: Post, as: 'ancestors', include: [{ model: User, attributes: ['avatar', 'url', 'description'] }, { model: Media }] }, { model: User, attributes: ['avatar', 'url', 'description'] }, { model: Media }],
         order: [['createdAt', 'DESC']],
         limit: 20,
         offset: req.body?.page ? req.body.page * 20 : 0
@@ -270,12 +271,12 @@ app.post('/search', async (req, res) => {
                 [Op.or]: [
                     sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', '%' + searchTerm + '%'),
                     sequelize.where(sequelize.fn('LOWER', sequelize.col('description')), 'LIKE', '%' + searchTerm + '%')
-            ]
+                ]
             },
             attributes: {
                 exclude: ['password', 'birthDate']
             }
-            
+
         });
         promises.push(users)
     }
