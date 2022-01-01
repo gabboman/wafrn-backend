@@ -22,7 +22,7 @@ const imageStorage = multer.diskStorage({
     filename: (req, file, cb) => {
         let originalNameArray = file.originalname.split('.');
         let extension = originalNameArray[originalNameArray.length - 1];
-        let randomText = crypto.createHash('sha1').update(Math.random().toString()).digest("hex")
+        let randomText = generateRandomString();
         cb(null, Date.now() + '_' + randomText + '.' + extension);
 
     }
@@ -41,6 +41,11 @@ const upload = multer({
         cb(null, true)
     }
 });
+const nodemailer = require('nodemailer')
+
+const transporter = nodemailer.createTransport(
+    environment.emailConfig
+);
 
 // rest of the code remains same
 const app = express();
@@ -69,7 +74,15 @@ const User = sequelize.define('users', {
     NSFW: Sequelize.BOOLEAN,
     avatar: Sequelize.STRING,
     password: Sequelize.STRING,
-    birthDate: Sequelize.DATE
+    birthDate: Sequelize.DATE,
+    activated: Sequelize.BOOLEAN,
+    // we see the date that the user asked for a password reset. Valid for 2 hours
+    requestedPasswordReset: Sequelize.DATE,
+    // we use activationCode both for activating the account and for reseting the password
+    // could generate some mistakes but consider worth it
+    activationCode: Sequelize.STRING,
+    registerIp: Sequelize.STRING,
+    lastLoginIp: Sequelize.STRING,
 });
 
 const Post = sequelize.define('posts', {
@@ -197,6 +210,26 @@ function validateEmail(email: string) {
     return res.test(String(email).toLowerCase());
 }
 
+function generateRandomString() {
+    return crypto.createHash('sha1').update(Math.random().toString()).digest("hex");
+}
+
+function getPetitionIp(req: any): string {
+    let res = '';
+
+    return res;
+}
+
+async function sendActivationEmail(email: string, code: string, subject: string, contents: string) {
+    let activateLink = code;
+    return await transporter.sendMail({
+        from: environment.emailConfig.auth.user,
+        to: email,
+        subject: subject,
+        html: contents,
+    });
+
+}
 
 async function getFollowersIds(userId: string): Promise<string[]> {
     let usr = await User.findOne({
@@ -297,28 +330,37 @@ app.post('/register', async (req, res) => {
 
                     { email: req.body.email },
 
-                    sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', '%' + req.body.url.toLowerCase() + '%')
+                    sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', '%' + req.body.url.toLowerCase().trim() + '%')
 
                 ]
             }
         });
         if (!emailExists) {
             let files: any = req.files;
+            const activationCode = generateRandomString();
             let user = {
                 email: req.body.email,
-                description: req.body.description,
+                description: req.body.description.trim(),
                 url: req.body.url,
                 NSFW: req.body.nsfw === "true",
                 password: await bcrypt.hash(req.body.password, environment.saltRounds),
                 birthDate: new Date(req.body.birthDate),
-                avatar: files[0].path
+                avatar: files[0].path,
+                activated: false,
+                registerIp: getPetitionIp(req),
+                lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
+                activationCode: activationCode
 
-            }
-            let userWithEmail = await User.create(user);
+
+            };
+            let userWithEmail =  User.create(user);
+            let emailSent = sendActivationEmail(req.body.email, activationCode,
+                'Welcome to wafrn!', 
+                '<h1>Welcome to wafrn</h1> To activate your account <a href="'+ activationCode + '">click here!</a>');
+            await Promise.all([userWithEmail, emailSent]);
             success = true;
             res.send({
                 success: true,
-                token: jwt.sign({ userId: userWithEmail.id, email: userWithEmail.email }, environment.jwtSecret, { expiresIn: '31536000s' })
             });
 
         }
@@ -330,6 +372,17 @@ app.post('/register', async (req, res) => {
     }
 });
 
+app.post('/forgotPassword', async (req, res) => {
+    if(req.body && req.body.email && validateEmail(req.body.email)) {
+        
+        let email = await sendActivationEmail(req.body.email, '',
+        'So you forgot your wafrn password', 
+        '<h1>Use this link to reset your password</h1> Click <a href="' + 'aaaaaa' + '">here</a> to reset your password'
+        )
+    }
+
+});
+
 app.post('/login', async (req, res) => {
     // TODO: check captcha
     let success = false;
@@ -339,10 +392,19 @@ app.post('/login', async (req, res) => {
             let correctPassword = await bcrypt.compare(req.body.password, userWithEmail.password);
             if (correctPassword) {
                 success = true;
-                res.send({
-                    success: true,
-                    token: jwt.sign({ userId: userWithEmail.id, email: userWithEmail.email }, environment.jwtSecret, { expiresIn: '31536000s' })
-                });
+                if(userWithEmail.activated) {
+                    res.send({
+                        success: true,
+                        token: jwt.sign({ userId: userWithEmail.id, email: userWithEmail.email }, environment.jwtSecret, { expiresIn: '31536000s' })
+                    });
+                    userWithEmail.lastLoginIp = getPetitionIp(req);
+                    userWithEmail.save();
+                } else {
+                    res.send({
+                        success: false,
+                        errorMessage: 'Please activate your account! Check your email'
+                    })
+                }
             }
         }
 
@@ -350,8 +412,8 @@ app.post('/login', async (req, res) => {
     }
 
     if (!success) {
-        res.statusCode = 401;
-        res.send({ success: false })
+        //res.statusCode = 401;
+        res.send({ success: false, errorMessage: 'Please recheck your email and password' })
     }
 
 });
