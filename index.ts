@@ -109,7 +109,7 @@ const Media = sequelize.define('medias', {
         primaryKey: true
     },
     NSFW: Sequelize.BOOLEAN,
-        description: Sequelize.TEXT,
+    description: Sequelize.TEXT,
     url: Sequelize.TEXT,
 });
 
@@ -353,10 +353,10 @@ app.post('/register', async (req, res) => {
 
 
             };
-            let userWithEmail =  User.create(user);
+            let userWithEmail = User.create(user);
             let emailSent = sendActivationEmail(req.body.email, activationCode,
-                'Welcome to wafrn!', 
-                '<h1>Welcome to wafrn</h1> To activate your account <a href="'+ activationCode + '">click here!</a>');
+                'Welcome to wafrn!',
+                '<h1>Welcome to wafrn</h1> To activate your account <a href="' + activationCode + '">click here!</a>');
             await Promise.all([userWithEmail, emailSent]);
             success = true;
             res.send({
@@ -373,13 +373,76 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/forgotPassword', async (req, res) => {
-    if(req.body && req.body.email && validateEmail(req.body.email)) {
-        
-        let email = await sendActivationEmail(req.body.email, '',
-        'So you forgot your wafrn password', 
-        '<h1>Use this link to reset your password</h1> Click <a href="' + 'aaaaaa' + '">here</a> to reset your password'
-        )
+    let resetCode = generateRandomString();
+    if (req.body && req.body.email && validateEmail(req.body.email) && validateEmail(req.body.email)) {
+        let user = await User.findOne({
+            where: {
+                email: req.body.email
+            }
+        });
+        if (user) {
+
+            user.activationCode = resetCode;
+            user.requestedPasswordReset = new Date();
+            user.save();
+            let email = await sendActivationEmail(req.body.email, '',
+                'So you forgot your wafrn password',
+                '<h1>Use this link to reset your password</h1> Click <a href="' + 'LINK WITH CODE' + '">here</a> to reset your password'
+            );
+        }
+
     }
+
+    res.send({ status: true })
+
+});
+
+app.post('/activateUser', async (req, res) => {
+    let success = false;
+    if (req.body && req.body.email && validateEmail(req.body.email) && validateEmail(req.body.email) && req.body.code) {
+        let user = await User.findOne({
+            where: {
+                email: req.body.email,
+                activationCode: req.body.code
+            }
+        });
+        if (user) {
+            user.activated = true;
+            user.save();
+            success = true;
+        }
+    }
+
+    res.send({
+        success: success
+    })
+
+});
+
+app.post('/resetPassword', async (req, res) => {
+    let success = false;
+    if (req.body && req.body.email && validateEmail(req.body.email) && validateEmail(req.body.email) && req.body.code && req.body.password) {
+        const resetPasswordDeadline = new Date();
+        resetPasswordDeadline.setTime(resetPasswordDeadline.getTime() + 3600 * 2 * 1000);
+        let user = await User.findOne({
+            where: {
+                email: req.body.email,
+                activationCode: req.body.code,
+                requestedPasswordReset: { [Op.lt]: resetPasswordDeadline }
+
+            }
+        });
+        if (user) {
+            user.password = await bcrypt.hash(req.body.password, environment.saltRounds);
+            user.requestedPasswordReset = null;
+            user.save();
+            success = true;
+        }
+    }
+
+    res.send({
+        success: success
+    })
 
 });
 
@@ -392,7 +455,7 @@ app.post('/login', async (req, res) => {
             let correctPassword = await bcrypt.compare(req.body.password, userWithEmail.password);
             if (correctPassword) {
                 success = true;
-                if(userWithEmail.activated) {
+                if (userWithEmail.activated) {
                     res.send({
                         success: true,
                         token: jwt.sign({ userId: userWithEmail.id, email: userWithEmail.email }, environment.jwtSecret, { expiresIn: '31536000s' })
