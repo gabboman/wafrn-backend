@@ -458,7 +458,7 @@ app.post('/login', async (req, res) => {
                 if (userWithEmail.activated) {
                     res.send({
                         success: true,
-                        token: jwt.sign({ userId: userWithEmail.id, email: userWithEmail.email }, environment.jwtSecret, { expiresIn: '31536000s' })
+                        token: jwt.sign({ userId: userWithEmail.id, email: userWithEmail.email, birthDate: userWithEmail.birthDate }, environment.jwtSecret, { expiresIn: '31536000s' })
                     });
                     userWithEmail.lastLoginIp = getPetitionIp(req);
                     userWithEmail.save();
