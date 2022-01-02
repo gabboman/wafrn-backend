@@ -275,6 +275,25 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
     res.send(rawPostsByFollowed)
 });
 
+app.post('/singlePost', async (req: any, res) => {
+    let success = false;
+    if(req.body && req.body.id) {
+        const post = await Post.findOne({
+            where: {
+                id: req.body.id
+            },
+            ...getPostBaseQuery(req)
+        });
+        res.send(post);
+        success = true;
+    }
+
+    if(!success) {
+        res.send({success: false})
+    }
+    
+});
+
 // TODO search users
 app.post('/search', async (req, res) => {
     let success = false;
