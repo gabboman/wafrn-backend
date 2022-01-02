@@ -238,7 +238,8 @@ async function getFollowersIds(userId: string): Promise<string[]> {
     let usr = await User.findOne({
         where: {
             id: userId
-        }
+        },
+        attributes: ['id']
     });
     let followed = await usr.getFollowed();
     let result = followed.map((followed: any) => followed.id);
