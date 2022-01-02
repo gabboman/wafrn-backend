@@ -171,6 +171,9 @@ Post.belongsToMany(Tag, {
 });
 Media.belongsToMany(Post, {
     through: 'postMediaRelations'
+});
+Post.belongsToMany(Media, {
+    through: 'postMediaRelations'
 })
 
 
@@ -503,12 +506,33 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
     // TODO check captcha
     let success = false;
     const posterId = req.jwtData.userId;
+
     if (req.body && req.body.content) {
         let post = await Post.create({
             content: req.body.content,
             NSFW: req.body.nsfw === 'true',
             userId: posterId
         });
+
+        // detect media in post
+
+        const regex = /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
+        const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/
+        let mediaInPost = req.body.content.match(regex);
+        if (mediaInPost) {
+            const mediaToAdd: String[] = [];
+            mediaInPost.forEach((element: string) => {
+                let mediaUUIDs = element.match(uuidRegex);
+                if (mediaUUIDs) {
+                    const uuid = mediaUUIDs[0];
+                    if(mediaToAdd.indexOf(uuid) == -1) {
+                        mediaToAdd.push(uuid);
+                    }
+                }
+            });
+
+            post.addMedias(mediaToAdd);
+        }
 
         if (req.body.parent) {
             post.setParent(req.body.parent);
