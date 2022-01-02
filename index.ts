@@ -234,7 +234,7 @@ async function sendActivationEmail(email: string, code: string, subject: string,
 
 }
 
-async function getFollowersIds(userId: string): Promise<string[]> {
+async function getFollowedsIds(userId: string): Promise<string[]> {
     let usr = await User.findOne({
         where: {
             id: userId
@@ -245,6 +245,18 @@ async function getFollowersIds(userId: string): Promise<string[]> {
     let result = followed.map((followed: any) => followed.id);
     return result;
 
+
+}
+
+async function getAllPostsIds(userId: string): Promise<string[]> {
+    let postsId = await Post.findAll({
+        where: {
+            userId: userId
+        },
+        attributes: ['id']
+    });
+    let result = postsId.map((followed: any) => followed.id);
+    return result;
 
 }
 
@@ -264,7 +276,7 @@ app.use('/uploads', express.static('uploads'));
 
 app.post('/dashboard', authenticateToken, async (req: any, res) => {
     const posterId = req.jwtData.userId;
-    const usersFollowed = await getFollowersIds(posterId);
+    const usersFollowed = await getFollowedsIds(posterId);
     const rawPostsByFollowed = await Post.findAll({
         where: {
             userId: { [Op.in]: usersFollowed },
@@ -275,6 +287,33 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
     });
     res.send(rawPostsByFollowed)
 });
+
+app.post('/notifications', authenticateToken, async (req: any, res) => {
+    let userId = req.jwtData.userId;
+    let userPosts = await getAllPostsIds(userId);
+    let user = await User.findOne({
+        where: {
+            id: userId
+        }
+    });
+    let newReblogs = Post.findAll({
+        where: {
+            parentId: { [Op.in]: userPosts},
+            createdAt: { [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date() }
+        }
+    });
+    let newFollows = user.getFollower({
+        where: {
+            createdAt: { [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date() }
+
+        },
+        attributes: ['url', 'avatar'],
+    });
+    res.send({
+        follows: await newFollows,
+        reblogs: await newReblogs
+    });
+} )
 
 app.post('/singlePost', async (req: any, res) => {
     let success = false;
