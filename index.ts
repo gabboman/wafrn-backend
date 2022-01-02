@@ -294,6 +294,32 @@ app.post('/singlePost', async (req: any, res) => {
     
 });
 
+app.post('/blog', async (req: any, res) => {
+
+    let success = false;
+    if(req.body && req.body.id) {
+        let blogId = await (User.findOne({
+            url: req.body.id.toLowerCase()
+        })).id;
+        if(blogId){
+            const postsByBlog = await Post.findAll({
+                where: {
+                    userId:  blogId ,
+                    //date the user has started scrolling
+                    createdAt: { [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date() }
+                },
+                ...getPostBaseQuery(req)
+            });
+            res.send(postsByBlog);
+        }
+
+    }
+
+    if (!success) {
+        res.send({success: false});
+    }
+});
+
 // TODO search users
 app.post('/search', async (req, res) => {
     let success = false;
