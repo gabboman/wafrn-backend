@@ -262,7 +262,7 @@ async function getAllPostsIds(userId: string): Promise<string[]> {
 
 function getPostBaseQuery(req: any) {
     return {
-        include: [{ model: Post, as: 'ancestors', include: [{ model: User, attributes: ['avatar', 'url', 'description'] }, { model: Media }] }, { model: User, attributes: ['avatar', 'url', 'description'] }, { model: Media }, {model: Tag, attributes: ['tagName']}],
+        include: [{ model: Post, as: 'ancestors', include: [{ model: User, attributes: ['avatar', 'url', 'description'] }, { model: Media }] }, { model: User, attributes: ['avatar', 'url', 'description'] }, { model: Media }, { model: Tag, attributes: ['tagName'] }],
         order: [['createdAt', 'DESC']],
         limit: 20,
         offset: req.body?.page ? req.body.page * 20 : 0
@@ -298,7 +298,7 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
     });
     let newReblogs = Post.findAll({
         where: {
-            parentId: { [Op.in]: userPosts},
+            parentId: { [Op.in]: userPosts },
             createdAt: { [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date() }
         }
     });
@@ -313,11 +313,11 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
         follows: await newFollows,
         reblogs: await newReblogs
     });
-} )
+})
 
 app.post('/singlePost', async (req: any, res) => {
     let success = false;
-    if(req.body && req.body.id) {
+    if (req.body && req.body.id) {
         const post = await Post.findOne({
             where: {
                 id: req.body.id
@@ -328,23 +328,23 @@ app.post('/singlePost', async (req: any, res) => {
         success = true;
     }
 
-    if(!success) {
-        res.send({success: false})
+    if (!success) {
+        res.send({ success: false })
     }
-    
+
 });
 
 app.post('/blog', async (req: any, res) => {
 
     let success = false;
-    if(req.body && req.body.id) {
+    if (req.body && req.body.id) {
         let blogId = await (User.findOne({
             url: req.body.id.toLowerCase()
         })).id;
-        if(blogId){
+        if (blogId) {
             const postsByBlog = await Post.findAll({
                 where: {
-                    userId:  blogId ,
+                    userId: blogId,
                     //date the user has started scrolling
                     createdAt: { [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date() }
                 },
@@ -356,7 +356,7 @@ app.post('/blog', async (req: any, res) => {
     }
 
     if (!success) {
-        res.send({success: false});
+        res.send({ success: false });
     }
 });
 
@@ -610,7 +610,7 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
                 let mediaUUIDs = element.match(uuidRegex);
                 if (mediaUUIDs) {
                     const uuid = mediaUUIDs[0];
-                    if(mediaToAdd.indexOf(uuid) == -1) {
+                    if (mediaToAdd.indexOf(uuid) == -1) {
                         mediaToAdd.push(uuid);
                     }
                 }
