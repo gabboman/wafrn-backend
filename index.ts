@@ -262,7 +262,7 @@ async function getAllPostsIds(userId: string): Promise<string[]> {
 
 function getPostBaseQuery(req: any) {
     return {
-        include: [{ model: Post, as: 'ancestors', include: [{ model: User, attributes: ['avatar', 'url', 'description'] }, { model: Media }] }, { model: User, attributes: ['avatar', 'url', 'description'] }, { model: Media }],
+        include: [{ model: Post, as: 'ancestors', include: [{ model: User, attributes: ['avatar', 'url', 'description'] }, { model: Media }] }, { model: User, attributes: ['avatar', 'url', 'description'] }, { model: Media }, {model: Tag, attributes: ['tagName']}],
         order: [['createdAt', 'DESC']],
         limit: 20,
         offset: req.body?.page ? req.body.page * 20 : 0
