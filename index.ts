@@ -433,7 +433,7 @@ app.post('/register', async (req, res) => {
                 NSFW: req.body.nsfw === "true",
                 password: await bcrypt.hash(req.body.password, environment.saltRounds),
                 birthDate: new Date(req.body.birthDate),
-                avatar: files[0].path,
+                avatar: '/' + files[0].path,
                 activated: false,
                 registerIp: getPetitionIp(req),
                 lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
@@ -577,7 +577,7 @@ app.post('/uploadPictures', authenticateToken, async (req: any, res) => {
     if (files && files.length > 0) {
         files.forEach((file: any) => {
             picturesPromise.push(Media.create({
-                url: file.path,
+                url: '/' + file.path,
                 NSFW: req.body.nsfw === 'true',
                 userId: req.jwtData.userId
             }))
