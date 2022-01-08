@@ -14,6 +14,8 @@ var crypto = require('crypto');
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 import bodyParser, { BodyParser } from 'body-parser';
+var cors = require('cors');
+
 
 import multer from 'multer';
 const imageStorage = multer.diskStorage({
@@ -52,6 +54,7 @@ const app = express();
 const PORT = 8000;
 
 app.use(upload.any());
+app.use(cors())
 const sequelize = new Sequelize(environment.databaseConnectionString);
 
 const User = sequelize.define('users', {
@@ -824,6 +827,6 @@ app.post('/unblock', authenticateToken, async (req: any, res) => {
 });
 
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
 });
