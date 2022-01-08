@@ -657,6 +657,7 @@ app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
         url: '/' + file.path,
         NSFW: req.body.nsfw === 'true',
         userId: req.jwtData.userId,
+        description: req.body.description,
       }));
     });
   }
@@ -742,13 +743,14 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
   }
 });
 
-app.get('/myRecentMedia', authenticateToken, async (req: any, res) => {
+app.post('/myRecentMedia', authenticateToken, async (req: any, res) => {
   const recentMedia = await Media.findAll({
     where: {
       userId: req.jwtData.userId,
     },
-    limit: 5,
+    limit: 20,
     order: [['createdAt', 'DESC']],
+    offset: req.body?.page ? req.body.page * 20 : 0,
 
   });
   res.send(recentMedia);
