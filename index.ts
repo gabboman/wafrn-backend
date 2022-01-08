@@ -267,11 +267,15 @@ function getPostBaseQuery(req: any) {
       {
         model: Post,
         as: 'ancestors',
+        where: {
+          content: {
+            [Op.not]: '',
+          },
+        },
         include: [
           {
             model: User,
             attributes: ['avatar', 'url', 'description'],
-            where: {},
           },
           {
             model: Media,
@@ -665,7 +669,7 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
 
   if (req.body && req.body.content) {
     const post = await Post.create({
-      content: req.body.content,
+      content: req.body.content.trim(),
       NSFW: req.body.nsfw === 'true',
       userId: posterId,
     });
