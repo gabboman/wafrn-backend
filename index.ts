@@ -36,9 +36,16 @@ const upload = multer({
     fileSize: 10000000, // 10000000 Bytes = 10 MB.
   },
   fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(png|jpg|jpeg|gifv|gif|webp)$/)) {
-      // upload only png and jpg format
-      return cb(new Error('Please upload a Image'));
+    if (!(
+      req.files &&
+      req.files?.length <= 1 &&
+      (req.url === '/uploadMedia' || req.url === '/register' ) &&
+      req.method === 'POST' &&
+      file.originalname.match(/\.(png|jpg|jpeg|gifv|gif|webp)$/)
+    )
+    ) {
+      cb(null, false);
+      return cb(new Error('Please upload a Image in the apropiate route'));
     }
     cb(null, true);
   },
@@ -187,7 +194,7 @@ sequelize.sync({
       console.log(`Database & tables ready!`);
       if (environment.forceSync) {
         console.log('CLEANING DATA');
-        // seeder();
+      // seeder();
       }
     });
 
@@ -491,7 +498,7 @@ app.post('/register', async (req, res) => {
       const emailSent = sendActivationEmail(req.body.email, activationCode,
           'Welcome to wafrn!',
           '<h1>Welcome to wafrn</h1> To activate your account <a href="' +
-            activationCode + '">click here!</a>');
+        activationCode + '">click here!</a>');
       await Promise.all([userWithEmail, emailSent]);
       success = true;
       res.send({
@@ -526,8 +533,8 @@ app.post('/forgotPassword', async (req, res) => {
       const email = await sendActivationEmail(req.body.email, '',
           'So you forgot your wafrn password',
           '<h1>Use this link to reset your password</h1> Click <a href="' +
-          'LINK WITH CODE' +
-          '">here</a> to reset your password',
+        'LINK WITH CODE' +
+        '">here</a> to reset your password',
       );
     }
   }
@@ -585,7 +592,7 @@ app.post('/resetPassword', async (req, res) => {
     });
     if (user) {
       user.password =
-      await bcrypt.hash(req.body.password, environment.saltRounds);
+        await bcrypt.hash(req.body.password, environment.saltRounds);
       user.requestedPasswordReset = null;
       user.save();
       success = true;
@@ -604,7 +611,7 @@ app.post('/login', async (req, res) => {
     const userWithEmail = await User.findOne({where: {email: req.body.email}});
     if (userWithEmail) {
       const correctPassword =
-      await bcrypt.compare(req.body.password, userWithEmail.password);
+        await bcrypt.compare(req.body.password, userWithEmail.password);
       if (correctPassword) {
         success = true;
         if (userWithEmail.activated) {
@@ -640,7 +647,7 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.post('/uploadPictures', authenticateToken, async (req: any, res) => {
+app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
   // TODO check captcha
   const files: any = req.files;
   const picturesPromise: Array<any> = [];
