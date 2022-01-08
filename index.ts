@@ -267,11 +267,6 @@ function getPostBaseQuery(req: any) {
       {
         model: Post,
         as: 'ancestors',
-        where: {
-          content: {
-            [Op.not]: '',
-          },
-        },
         include: [
           {
             model: User,
