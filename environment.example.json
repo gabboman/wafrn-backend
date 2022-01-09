@@ -5,6 +5,8 @@
     "port": 3000,
     "saltRounds": 12,
     "jwtSecret": "",
+    "admin-id": "",
+    "captchaPrivateKey": "", 
     "emailConfig": {
         "host": "host",
         "port": 25,

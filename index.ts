@@ -16,7 +16,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 // import bodyParser, {BodyParser} from 'body-parser';
 const cors = require('cors');
-
+const request = require('request-promise');
 
 import multer from 'multer';
 const imageStorage = multer.diskStorage({
@@ -199,6 +199,18 @@ sequelize.sync({
     });
 
 
+async function checkCaptcha(response: string, ip: string): Promise<boolean> {
+  let res = false;
+  const secretKey = environment.captchaPrivateKey;
+  const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${response}&remoteip=${ip}`;
+  const googleResponse = await request(url);
+  res = JSON.parse(googleResponse).success;
+  return res;
+}
+
+function getIp(): string {
+  return '46.234.144.29';
+}
 function authenticateToken(req: any, res: any, next: any) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -504,7 +516,10 @@ app.post('/register', async (req, res) => {
     req.body.email &&
     req.files &&
     req.files.length > 0 &&
-    validateEmail(req.body.email)
+    validateEmail(req.body.email &&
+    req.body.captchaResponse &&
+    await checkCaptcha(req.body.captchaResponse, getIp())
+    )
   ) {
     const emailExists = await User.findOne({
       where: {
@@ -538,6 +553,15 @@ app.post('/register', async (req, res) => {
 
       };
       const userWithEmail = User.create(user);
+      const adminUser = await User.findOne({
+        where: {
+          id: environment.adminId,
+        },
+      });
+      // follow staff!
+      if (adminUser) {
+        adminUser.addFollower(userWithEmail);
+      }
       const emailSent = sendActivationEmail(req.body.email, activationCode,
           'Welcome to wafrn!',
           '<h1>Welcome to wafrn</h1> To activate your account <a href="' +
@@ -560,7 +584,9 @@ app.post('/forgotPassword', async (req, res) => {
   if (
     req.body &&
     req.body.email &&
-    validateEmail(req.body.email)
+    validateEmail(req.body.email) &&
+    req.body.captchaResponse &&
+    await checkCaptcha(req.body.captchaResponse, getIp())
   ) {
     const user = await User.findOne({
       where: {
@@ -648,7 +674,13 @@ app.post('/resetPassword', async (req, res) => {
 app.post('/login', async (req, res) => {
   // TODO: check captcha
   let success = false;
-  if (req.body && req.body.email && req.body.password) {
+  if (
+    req.body &&
+    req.body.email &&
+    req.body.password &&
+    req.body.captchaResponse &&
+    await checkCaptcha(req.body.captchaResponse, getIp())
+  ) {
     const userWithEmail = await User.findOne({where: {email: req.body.email}});
     if (userWithEmail) {
       const correctPassword =
@@ -712,7 +744,11 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
   let success = false;
   const posterId = req.jwtData.userId;
 
-  if (req.body) {
+  if (
+    req.body &&
+    req.body.captchaKey &&
+    await checkCaptcha(req.body.captchaKey, getIp() )
+  ) {
     const content = req.body.content ? req.body.content.trim() : '';
     const post = await Post.create({
       content: content,

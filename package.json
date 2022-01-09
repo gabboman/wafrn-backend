@@ -21,6 +21,7 @@
     "mariadb": "^2.5.5",
     "multer": "^1.4.4",
     "nodemailer": "^6.7.2",
+    "request-promise": "^4.2.6",
     "sequelize": "^6.12.3",
     "sequelize-hierarchy-fork": "^1.0.0",
     "ts-node": "^10.4.0",
