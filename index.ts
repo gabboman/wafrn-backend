@@ -39,7 +39,7 @@ const upload = multer({
     if (!(
       req.files &&
       req.files?.length <= 1 &&
-      (req.url === '/uploadMedia' || req.url === '/register' ) &&
+      (req.url === '/uploadMedia' || req.url === '/register') &&
       req.method === 'POST' &&
       file.originalname.match(/\.(png|jpg|jpeg|gifv|gif|webp)$/)
     )
@@ -254,6 +254,7 @@ async function getFollowedsIds(userId: string): Promise<string[]> {
   });
   const followed = await usr.getFollowed();
   const result = followed.map((followed: any) => followed.id);
+  result.push(userId);
   return result;
 }
 
@@ -321,6 +322,10 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
     ...getPostBaseQuery(req),
   });
   res.send(rawPostsByFollowed);
+});
+
+app.get('/getFollowedUsers', authenticateToken, async (req: any, res) => {
+  res.send(await getFollowedsIds(req.jwtData.userId));
 });
 
 app.post('/notifications', authenticateToken, async (req: any, res) => {
