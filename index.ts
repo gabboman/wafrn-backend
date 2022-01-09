@@ -517,7 +517,6 @@ app.post('/forgotPassword', async (req, res) => {
   if (
     req.body &&
     req.body.email &&
-    validateEmail(req.body.email) &&
     validateEmail(req.body.email)
   ) {
     const user = await User.findOne({
@@ -539,7 +538,7 @@ app.post('/forgotPassword', async (req, res) => {
     }
   }
 
-  res.send({status: true});
+  res.send({success: true});
 });
 
 app.post('/activateUser', async (req, res) => {
@@ -547,7 +546,6 @@ app.post('/activateUser', async (req, res) => {
   if (
     req.body &&
     req.body.email &&
-    validateEmail(req.body.email) &&
     validateEmail(req.body.email) &&
     req.body.code
   ) {
