@@ -378,11 +378,16 @@ app.post('/singlePost', async (req: any, res) => {
 });
 
 app.post('/blog', async (req: any, res) => {
-  const success = false;
+  let success = false;
   if (req.body && req.body.id) {
-    const blogId = await (User.findOne({
-      url: req.body.id.toLowerCase(),
-    })).id;
+    const blog = await (User.findOne({
+      where: {
+        url: sequelize.where(
+            sequelize.fn('LOWER', sequelize.col('url')),
+            'LIKE', req.body.id.toLowerCase()),
+      },
+    }));
+    const blogId = blog?.id;
     if (blogId) {
       const postsByBlog = await Post.findAll({
         where: {
@@ -394,8 +399,41 @@ app.post('/blog', async (req: any, res) => {
         },
         ...getPostBaseQuery(req),
       });
+      success = true;
       res.send(postsByBlog);
     }
+  }
+
+  if (!success) {
+    res.send({success: false});
+  }
+});
+
+app.post('/userDetails', async (req, res) => {
+  let success = false;
+  if (req.body && req.body.id) {
+    const blog = await (User.findOne({
+      attributes: {
+        exclude: [
+          'password',
+          'birthDate',
+          'email',
+          'lastLoginIp',
+          'registerIp',
+          'activated',
+          'activationCode',
+          'requestedPasswordReset',
+          'updatedAt',
+        ],
+      },
+      where: {
+        url: sequelize.where(
+            sequelize.fn('LOWER', sequelize.col('url')),
+            'LIKE', req.body.id.toLowerCase()),
+      },
+    }));
+    success = true;
+    res.send(blog);
   }
 
   if (!success) {
@@ -625,6 +663,7 @@ app.post('/login', async (req, res) => {
                   userId: userWithEmail.id,
                   email: userWithEmail.email,
                   birthDate: userWithEmail.birthDate,
+                  url: userWithEmail.url,
                 },
                 environment.jwtSecret, {expiresIn: '31536000s'}),
           });
@@ -673,9 +712,10 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
   let success = false;
   const posterId = req.jwtData.userId;
 
-  if (req.body && req.body.content) {
+  if (req.body) {
+    const content = req.body.content ? req.body.content.trim() : '';
     const post = await Post.create({
-      content: req.body.content.trim(),
+      content: content,
       NSFW: req.body.nsfw === 'true',
       userId: posterId,
     });
