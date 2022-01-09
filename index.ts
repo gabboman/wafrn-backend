@@ -241,11 +241,6 @@ function generateRandomString() {
       update(Math.random().toString()).digest('hex');
 }
 
-function getPetitionIp(req: any): string {
-  const res = '';
-
-  return res;
-}
 
 // eslint-disable-next-line max-len
 async function sendActivationEmail(email: string, code: string, subject: string, contents: string) {
@@ -556,7 +551,7 @@ app.post('/register', async (req, res) => {
         birthDate: new Date(req.body.birthDate),
         avatar: '/' + files[0].path,
         activated: false,
-        registerIp: getPetitionIp(req),
+        registerIp: getIp(req),
         lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
         activationCode: activationCode,
 
@@ -709,7 +704,7 @@ app.post('/login', async (req, res) => {
                 },
                 environment.jwtSecret, {expiresIn: '31536000s'}),
           });
-          userWithEmail.lastLoginIp = getPetitionIp(req);
+          userWithEmail.lastLoginIp = getIp(req);
           userWithEmail.save();
         } else {
           res.send({
