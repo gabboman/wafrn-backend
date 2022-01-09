@@ -453,7 +453,6 @@ app.post('/userDetails', async (req, res) => {
   }
 });
 
-// TODO search users
 app.post('/search', async (req, res) => {
   // const success = false;
   let users: any = [];
@@ -495,7 +494,17 @@ app.post('/search', async (req, res) => {
         ],
       },
       attributes: {
-        exclude: ['password', 'birthDate'],
+        exclude: [
+          'password',
+          'birthDate',
+          'email',
+          'lastLoginIp',
+          'registerIp',
+          'activated',
+          'activationCode',
+          'requestedPasswordReset',
+          'updatedAt',
+        ],
       },
 
     });
