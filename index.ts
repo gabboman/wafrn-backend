@@ -208,8 +208,9 @@ async function checkCaptcha(response: string, ip: string): Promise<boolean> {
   return res;
 }
 
-function getIp(): string {
-  return '46.234.144.29';
+function getIp(petition: any): string {
+  // eslint-disable-next-line max-len
+  return petition.header('x-forwarded-for') || petition.connection.remoteAddress;
 }
 function authenticateToken(req: any, res: any, next: any) {
   const authHeader = req.headers['authorization'];
@@ -315,7 +316,7 @@ function getPostBaseQuery(req: any) {
   };
 }
 
-app.get('/', (req, res) => res.send('Welcome to WAFRN API.'));
+app.get('/', (req, res) => res.send(getIp(req)));
 
 // serve static images
 app.use('/uploads', express.static('uploads'));
@@ -527,7 +528,7 @@ app.post('/register', async (req, res) => {
     req.files.length > 0 &&
     validateEmail(req.body.email &&
     req.body.captchaResponse &&
-    await checkCaptcha(req.body.captchaResponse, getIp())
+    await checkCaptcha(req.body.captchaResponse, getIp(req))
     )
   ) {
     const emailExists = await User.findOne({
@@ -595,7 +596,7 @@ app.post('/forgotPassword', async (req, res) => {
     req.body.email &&
     validateEmail(req.body.email) &&
     req.body.captchaResponse &&
-    await checkCaptcha(req.body.captchaResponse, getIp())
+    await checkCaptcha(req.body.captchaResponse, getIp(req))
   ) {
     const user = await User.findOne({
       where: {
@@ -688,7 +689,7 @@ app.post('/login', async (req, res) => {
     req.body.email &&
     req.body.password &&
     req.body.captchaResponse &&
-    await checkCaptcha(req.body.captchaResponse, getIp())
+    await checkCaptcha(req.body.captchaResponse, getIp(req))
   ) {
     const userWithEmail = await User.findOne({where: {email: req.body.email}});
     if (userWithEmail) {
@@ -756,7 +757,7 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
   if (
     req.body &&
     req.body.captchaKey &&
-    await checkCaptcha(req.body.captchaKey, getIp() )
+    await checkCaptcha(req.body.captchaKey, getIp(req) )
   ) {
     const content = req.body.content ? req.body.content.trim() : '';
     const post = await Post.create({
