@@ -576,7 +576,8 @@ app.post('/register', async (req, res) => {
       const emailSent = sendActivationEmail(req.body.email, activationCode,
           'Welcome to wafrn!',
           '<h1>Welcome to wafrn</h1> To activate your account <a href="' +
-          environment.frontendUrl + '/activate/' + req.body.email + '/' +
+          environment.frontendUrl + '/activate/' +
+          encodeURIComponent(req.body.email) + '/' +
         activationCode + '">click here!</a>');
       await Promise.all([userWithEmail, emailSent]);
       success = true;
@@ -613,7 +614,8 @@ app.post('/forgotPassword', async (req, res) => {
       const email = await sendActivationEmail(req.body.email, '',
           'So you forgot your wafrn password',
           '<h1>Use this link to reset your password</h1> Click <a href="' +
-        environment.frontendUrl + '/resetPassword/' + req.body.email + '/' +
+        environment.frontendUrl + '/resetPassword/' + 
+        encodeURIComponent(req.body.email) + '/' +
         resetCode + '">here</a> to reset your password',
       );
     }
