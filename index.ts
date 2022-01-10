@@ -521,9 +521,9 @@ app.post('/register', async (req, res) => {
     req.body.email &&
     req.files &&
     req.files.length > 0 &&
-    validateEmail(req.body.email &&
+    validateEmail(req.body.email) &&
     req.body.captchaResponse &&
-    await checkCaptcha(req.body.captchaResponse, getIp(req))
+    await checkCaptcha(req.body.captchaResponse, getIp(req),
     )
   ) {
     const emailExists = await User.findOne({
@@ -558,14 +558,16 @@ app.post('/register', async (req, res) => {
 
       };
       const userWithEmail = User.create(user);
-      const adminUser = await User.findOne({
-        where: {
-          id: environment.adminId,
-        },
-      });
-      // follow staff!
-      if (adminUser) {
-        adminUser.addFollower(userWithEmail);
+      if (environment.adminId) {
+        const adminUser = await User.findOne({
+          where: {
+            id: environment.adminId,
+          },
+        });
+        // follow staff!
+        if (adminUser) {
+          adminUser.addFollower(userWithEmail);
+        }
       }
       const emailSent = sendActivationEmail(req.body.email, activationCode,
           'Welcome to wafrn!',
