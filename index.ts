@@ -766,9 +766,9 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
   const posterId = req.jwtData.userId;
 
   if (
-    req.body
-    // req.body.captchaKey &&
-    // await checkCaptcha(req.body.captchaKey, getIp(req) )
+    req.body &&
+    req.body.captchaKey &&
+    await checkCaptcha(req.body.captchaKey, getIp(req) )
   ) {
     const content = req.body.content ? req.body.content.trim() : '';
     const post = await Post.create({
