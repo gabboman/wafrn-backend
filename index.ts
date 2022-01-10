@@ -62,7 +62,12 @@ const PORT = 8000;
 
 app.use(upload.any());
 app.use(cors());
-const sequelize = new Sequelize(environment.databaseConnectionString);
+const sequelize = new Sequelize(
+    environment.databaseConnectionString,
+    {
+      logging: false,
+    },
+);
 
 const User = sequelize.define('users', {
   id: {
@@ -188,7 +193,6 @@ Post.belongsToMany(Media, {
 
 sequelize.sync({
   force: environment.forceSync,
-  logging: environment.prod,
 })
     .then(async () => {
       console.log(`Database & tables ready!`);
