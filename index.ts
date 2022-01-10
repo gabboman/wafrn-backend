@@ -484,6 +484,7 @@ app.post('/search', async (req, res) => {
       limit: 20,
       offset: req.body?.page ? req.body.page * 20 : 0,
       where: {
+        activated: true,
         [Op.or]: [
           sequelize.where(
               sequelize.fn('LOWER', sequelize.col('url')),
