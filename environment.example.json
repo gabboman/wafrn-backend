@@ -7,6 +7,7 @@
     "jwtSecret": "",
     "admin-id": "",
     "captchaPrivateKey": "", 
+    "frontendUrl": "https://app.wafrn.net",
     "emailConfig": {
         "host": "host",
         "port": 25,
