@@ -544,7 +544,7 @@ app.post('/register', async (req, res) => {
       const activationCode = generateRandomString();
       let avatarURL = '/' + files[0].path;
       if (environment.removeFolderNameFromFileUploads) {
-        avatarURL = avatarURL.slice('/uploads'.length - 1);
+        avatarURL = avatarURL.slice('/uploads/'.length - 1);
       }
       const user = {
         email: req.body.email,
@@ -614,7 +614,7 @@ app.post('/forgotPassword', async (req, res) => {
       const email = await sendActivationEmail(req.body.email, '',
           'So you forgot your wafrn password',
           '<h1>Use this link to reset your password</h1> Click <a href="' +
-        environment.frontendUrl + '/resetPassword/' + 
+        environment.frontendUrl + '/resetPassword/' +
         encodeURIComponent(req.body.email) + '/' +
         resetCode + '">here</a> to reset your password',
       );
@@ -742,7 +742,7 @@ app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
     files.forEach((file: any) => {
       let fileUrl = '/' + file.path;
       if (environment.removeFolderNameFromFileUploads) {
-        fileUrl = fileUrl.slice('/uploads'.length - 1);
+        fileUrl = fileUrl.slice('/uploads/'.length - 1);
       }
       picturesPromise.push(Media.create({
         url: fileUrl,
