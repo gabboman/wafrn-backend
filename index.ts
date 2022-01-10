@@ -542,6 +542,10 @@ app.post('/register', async (req, res) => {
     if (!emailExists) {
       const files: any = req.files;
       const activationCode = generateRandomString();
+      let avatarURL = '/' + files[0].path;
+      if (environment.removeFolderNameFromFileUploads) {
+        avatarURL = avatarURL.slice('/uploads'.length - 1);
+      }
       const user = {
         email: req.body.email,
         description: req.body.description.trim(),
@@ -549,7 +553,7 @@ app.post('/register', async (req, res) => {
         NSFW: req.body.nsfw === 'true',
         password: await bcrypt.hash(req.body.password, environment.saltRounds),
         birthDate: new Date(req.body.birthDate),
-        avatar: '/' + files[0].path,
+        avatar: avatarURL,
         activated: false,
         registerIp: getIp(req),
         lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
@@ -730,13 +734,16 @@ app.post('/login', async (req, res) => {
 
 
 app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
-  // TODO check captcha
   const files: any = req.files;
   const picturesPromise: Array<any> = [];
   if (files && files.length > 0) {
     files.forEach((file: any) => {
+      let fileUrl = '/' + file.path;
+      if (environment.removeFolderNameFromFileUploads) {
+        fileUrl = fileUrl.slice('/uploads'.length - 1);
+      }
       picturesPromise.push(Media.create({
-        url: '/' + file.path,
+        url: fileUrl,
         NSFW: req.body.nsfw === 'true',
         userId: req.jwtData.userId,
         description: req.body.description,
