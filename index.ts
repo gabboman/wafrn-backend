@@ -328,7 +328,8 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
       userId: {[Op.in]: usersFollowed},
       // date the user has started scrolling
       createdAt: {
-        [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date(),
+        // eslint-disable-next-line max-len
+        [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
       },
     },
     ...getPostBaseQuery(req),
@@ -352,14 +353,16 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
     where: {
       parentId: {[Op.in]: userPosts},
       createdAt: {
-        [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date(),
+        // eslint-disable-next-line max-len
+        [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
       },
     },
   });
   const newFollows = user.getFollower({
     where: {
       createdAt: {
-        [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date(),
+        // eslint-disable-next-line max-len
+        [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
       },
 
     },
@@ -406,7 +409,8 @@ app.post('/blog', async (req: any, res) => {
           userId: blogId,
           // date the user has started scrolling
           createdAt: {
-            [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date(),
+            // eslint-disable-next-line max-len
+            [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
           },
         },
         ...getPostBaseQuery(req),
@@ -472,7 +476,8 @@ app.post('/search', async (req, res) => {
         where: {
           // date the user has started scrolling
           createdAt: {
-            [Op.lt]: req.body?.startScroll ? req.body.startScroll : new Date(),
+            // eslint-disable-next-line max-len
+            [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
           },
         },
         ...getPostBaseQuery(req),
