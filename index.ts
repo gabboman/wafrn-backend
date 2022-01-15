@@ -374,6 +374,31 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
   });
 });
 
+app.post('/postDetails', async (req: any, res) => {
+  let success = false;
+  try {
+    if (req.body && req.body.id) {
+      const post = await Post.findOne({
+        where: {
+          id: req.body.id,
+        },
+      });
+      if (post) {
+        const totalReblogs = await post.getDescendents();
+        res.send({reblogs: totalReblogs.length});
+        success = true;
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  if (!success) {
+    res.send({
+      success: false,
+    });
+  }
+});
+
 app.post('/singlePost', async (req: any, res) => {
   let success = false;
   if (req.body && req.body.id) {
@@ -718,6 +743,7 @@ app.post('/login', async (req, res) => {
         req.body.captchaResponse &&
         await checkCaptcha(req.body.captchaResponse, getIp(req))
     ) {
+      // eslint-disable-next-line max-len
       const userWithEmail = await User.findOne({where: {email: req.body.email}});
       if (userWithEmail) {
         const correctPassword =
