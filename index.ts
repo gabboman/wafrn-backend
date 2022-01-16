@@ -337,6 +337,20 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
   res.send(rawPostsByFollowed);
 });
 
+app.post('/explore', authenticateToken, async (req: any, res) => {
+  const rawPosts = await Post.findAll({
+    where: {
+      // date the user has started scrolling
+      createdAt: {
+        // eslint-disable-next-line max-len
+        [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
+      },
+    },
+    ...getPostBaseQuery(req),
+  });
+  res.send(rawPosts);
+});
+
 app.get('/getFollowedUsers', authenticateToken, async (req: any, res) => {
   res.send(await getFollowedsIds(req.jwtData.userId));
 });
