@@ -65,7 +65,7 @@ app.use(cors());
 const sequelize = new Sequelize(
     environment.databaseConnectionString,
     {
-      logging: false,
+      logging: !environment.prod,
     },
 );
 
@@ -126,6 +126,7 @@ const Media = sequelize.define('medias', {
   NSFW: Sequelize.BOOLEAN,
   description: Sequelize.TEXT,
   url: Sequelize.TEXT,
+  ipUpload: Sequelize.STRING,
 });
 
 const PostReport = sequelize.define('postReports', {
@@ -141,7 +142,19 @@ const UserReport = sequelize.define('userReports', {
 
 });
 
+const PostView = sequelize.define('postViews', {
+  postId: {
+    type: Sequelize.UUID,
+    allowNull: false,
+    references: {
+      model: 'posts',
+      key: 'id',
+    },
+    unique: false,
+  },
+});
 
+PostView.belongsTo(Post);
 User.belongsToMany(User, {
   through: 'follows',
   as: 'followed',
@@ -400,6 +413,11 @@ app.post('/postDetails', async (req: any, res) => {
       if (post) {
         const totalReblogs = await post.getDescendents();
         res.send({reblogs: totalReblogs.length});
+        PostView.create(
+            {
+              postId: req.body.id,
+            },
+        );
         success = true;
       }
     }
@@ -815,6 +833,7 @@ app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
         NSFW: req.body.nsfw === 'true',
         userId: req.jwtData.userId,
         description: req.body.description,
+        ipUpload: getIp(req),
       }));
     });
   }
@@ -823,7 +842,6 @@ app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
 });
 
 app.post('/createPost', authenticateToken, async (req: any, res) => {
-  // TODO check captcha
   let success = false;
   const posterId = req.jwtData.userId;
   try {

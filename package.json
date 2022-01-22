@@ -33,6 +33,8 @@
     "@typescript-eslint/parser": "^5.9.0",
     "eslint": "^8.6.0",
     "eslint-config-google": "^0.14.0",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "sequelize-cli": "^6.4.1",
+    "sequelize-typescript": "^2.1.2"
   }
 }
