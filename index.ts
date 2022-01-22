@@ -289,6 +289,21 @@ async function getFollowedsIds(userId: string): Promise<string[]> {
   return result;
 }
 
+async function getBlockedids(userId: string): Promise<string[]> {
+  const usr = await User.findOne({
+    where: {
+      id: userId,
+    },
+    attributes: ['id'],
+  });
+  const blocked = usr.getBlocked();
+  const blockedBy = usr.getBlocker();
+  await Promise.all([blocked, blockedBy]);
+  let result = (await blocked).map((blocked: any) => blocked.id);
+  result = result.concat((await blockedBy).map((blocker: any) => blocker.id));
+  return result;
+}
+
 async function getAllPostsIds(userId: string): Promise<string[]> {
   const postsId = await Post.findAll({
     where: {
@@ -371,7 +386,13 @@ app.post('/explore', authenticateToken, async (req: any, res) => {
 });
 
 app.get('/getFollowedUsers', authenticateToken, async (req: any, res) => {
-  res.send(await getFollowedsIds(req.jwtData.userId));
+  const followedUsers = getFollowedsIds(req.jwtData.userId);
+  const blockedUsers = getBlockedids(req.jwtData.userId);
+  await Promise.all([followedUsers, blockedUsers]);
+  res.send( {
+    followedUsers: await followedUsers,
+    blockedUsers: await blockedUsers,
+  } );
 });
 
 app.post('/notifications', authenticateToken, async (req: any, res) => {
@@ -1058,17 +1079,20 @@ app.post('/unfollow', authenticateToken, async (req: any, res) => {
 
 app.post('/block', authenticateToken, async (req: any, res) => {
   let success = false;
-  const posterId = req.jwtData.userId;
-  if (req.body && req.body.userId) {
-    const userBlocked = await User.findOne({
-      where: {
-        id: req.body.userId,
-      },
-    });
-
-    userBlocked.addBlocker(posterId);
-    userBlocked.removeFollowed(posterId);
-    success = true;
+  try {
+    const posterId = req.jwtData.userId;
+    if (req.body && req.body.userId) {
+      const userBlocked = await User.findOne({
+        where: {
+          id: req.body.userId,
+        },
+      });
+      userBlocked.addBlocker(posterId);
+      userBlocked.removeFollowed(posterId);
+      success = true;
+    }
+  } catch (error) {
+    console.error(error);
   }
 
   res.send({
@@ -1095,8 +1119,6 @@ app.post('/unblock', authenticateToken, async (req: any, res) => {
     success: success,
   });
 });
-
-
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
