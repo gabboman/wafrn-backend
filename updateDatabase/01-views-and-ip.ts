@@ -24,6 +24,12 @@ queryInterface.addColumn(
 );
 
 queryInterface.createTable('postViews', {
+  id: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    allowNull: false,
+    primaryKey: true,
+  },
   postId: {
     type: Sequelize.UUID,
     allowNull: false,

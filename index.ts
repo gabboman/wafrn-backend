@@ -143,6 +143,12 @@ const UserReport = sequelize.define('userReports', {
 });
 
 const PostView = sequelize.define('postViews', {
+  id: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    allowNull: false,
+    primaryKey: true,
+  },
   postId: {
     type: Sequelize.UUID,
     allowNull: false,
@@ -940,26 +946,31 @@ app.post('/myRecentMedia', authenticateToken, async (req: any, res) => {
   res.send(recentMedia);
 });
 
-app.post('/reportPost', authenticateToken, async (req: any, res) => {
+*/
 
+app.post('/reportPost', authenticateToken, async (req: any, res) => {
   let success = false;
   let report;
-  const posterId = req.jwtData.userId;
-  if (
-    req.body &&
-    req.body.postId &&
-    req.body.severity &&
-    req.body.description
-  ) {
-    report = await PostReport.create({
-      resolved: false,
-      severity: req.body.severity,
-      description: req.body.description,
-      userId: posterId,
-      postId: req.body.postId,
-    });
-    success = true;
-    res.send(report);
+  try {
+    const posterId = req.jwtData.userId;
+    if (
+      req.body &&
+      req.body.postId &&
+      req.body.severity &&
+      req.body.description
+    ) {
+      report = await PostReport.create({
+        resolved: false,
+        severity: req.body.severity,
+        description: req.body.description,
+        userId: posterId,
+        postId: req.body.postId,
+      });
+      success = true;
+      res.send(report);
+    }
+  } catch (error) {
+    console.error(error);
   }
   if (!success) {
     res.send({
@@ -968,7 +979,7 @@ app.post('/reportPost', authenticateToken, async (req: any, res) => {
   }
 });
 
-
+/*
 app.post('/reportUser', authenticateToken, async (req: any, res) => {
 
   let success = false;
@@ -1045,8 +1056,6 @@ app.post('/unfollow', authenticateToken, async (req: any, res) => {
 });
 
 
-/*
-
 app.post('/block', authenticateToken, async (req: any, res) => {
   let success = false;
   const posterId = req.jwtData.userId;
@@ -1087,7 +1096,7 @@ app.post('/unblock', authenticateToken, async (req: any, res) => {
   });
 });
 
-*/
+
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
