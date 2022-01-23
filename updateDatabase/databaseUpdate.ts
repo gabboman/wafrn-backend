@@ -16,10 +16,10 @@ const queryInterface = sequelize.getQueryInterface();
 // primera migración: añadir limite por extras
 queryInterface.addColumn(
     'users',
-    'ipUpload', {
-      type: Sequelize.STRING,
+    'lastTimeNotificationsCheck', {
+      type: Sequelize.DATE,
       allowNull: false,
-      defaultValue: 'PREVIOUS_TO_UPLOAD_IP_LOGGING',
+      defaultValue: '1970-01-01 00:00:00',
     },
 );
 

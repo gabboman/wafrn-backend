@@ -98,6 +98,11 @@ const User = sequelize.define('users', {
   activationCode: Sequelize.STRING,
   registerIp: Sequelize.STRING,
   lastLoginIp: Sequelize.STRING,
+  lastTimeNotificationsCheck: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: new Date().setTime(0),
+  },
 });
 
 const Post = sequelize.define('posts', {
@@ -405,28 +410,36 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
       id: userId,
     },
   });
+  const blockedUsers = await getBlockedids(userId);
   const newReblogs = Post.findAll({
     where: {
       parentId: {[Op.in]: userPosts},
       createdAt: {
-        // eslint-disable-next-line max-len
-        [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
+        [Op.gt]: new Date(user.lastTimeNotificationsCheck),
       },
     },
+    include: [
+      {
+        model: User,
+        attributes: ['id', 'avatar', 'url', 'description'],
+      },
+    ],
+    order: [['createdAt', 'DESC']],
+
   });
   const newFollows = user.getFollower({
     where: {
       createdAt: {
-        // eslint-disable-next-line max-len
-        [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
+        [Op.gt]: new Date(user.lastTimeNotificationsCheck),
       },
-
     },
     attributes: ['url', 'avatar'],
   });
   res.send({
-    follows: await newFollows,
-    reblogs: await newReblogs,
+    // eslint-disable-next-line max-len
+    follows: (await newFollows).filter((newFollow: any) => blockedUsers.indexOf(newFollow.id) == -1),
+    // eslint-disable-next-line max-len
+    reblogs: (await newReblogs).filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
   });
 });
 
