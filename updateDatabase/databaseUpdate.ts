@@ -15,7 +15,7 @@ const sequelize = new Sequelize(
 const queryInterface = sequelize.getQueryInterface();
 // primera migración: añadir limite por extras
 queryInterface.addColumn(
-    'medias',
+    'users',
     'ipUpload', {
       type: Sequelize.STRING,
       allowNull: false,
@@ -23,6 +23,7 @@ queryInterface.addColumn(
     },
 );
 
+/*
 queryInterface.createTable('postViews', {
   id: {
     type: Sequelize.UUID,
@@ -46,3 +47,5 @@ queryInterface.createTable('postViews', {
     type: Sequelize.DATE,
   },
 });
+
+*/
