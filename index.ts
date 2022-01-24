@@ -306,7 +306,7 @@ async function getBlockedids(userId: string): Promise<string[]> {
   await Promise.all([blocked, blockedBy]);
   let result = (await blocked).map((blocked: any) => blocked.id);
   result = result.concat((await blockedBy).map((blocker: any) => blocker.id));
-  return result;
+  return result.filter((elem: string) => elem != userId);
 }
 
 async function getAllPostsIds(userId: string): Promise<string[]> {
@@ -400,6 +400,26 @@ app.get('/getFollowedUsers', authenticateToken, async (req: any, res) => {
     followedUsers: await followedUsers,
     blockedUsers: await blockedUsers,
   } );
+});
+
+app.post('/readNotifications', authenticateToken, async (req: any, res) => {
+  try {
+    const userId = req.jwtData.userId;
+    const user = await User.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    if (req.body.time) {
+      user.lastTimeNotificationsCheck = new Date().setTime(req.body.time);
+      user.save();
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  res.send({
+    success: true,
+  });
 });
 
 app.post('/notifications', authenticateToken, async (req: any, res) => {
