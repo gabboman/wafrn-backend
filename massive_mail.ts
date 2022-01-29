@@ -288,6 +288,7 @@ User.findAll({
     '<h2>We promise that it\'s a lot better!</h2>' +
     '<h5>We also promise some bugs but what\'s life without a few bugs?</h5>';
     try {
+      console.log('sending email to' + user.email);
       await sendEmail(user.email, subject, emailBody);
     } catch (error) {
       console.error(error);
