@@ -261,14 +261,24 @@ async function getNotifications(userId: string) {
     reblogs: (await newReblogs).filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
   };
 }
+function delay(milliseconds: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
+}
 
+async function asyncForEach(array: any[], callback: any) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+}
 
 User.findAll({
   where: {
     activated: true,
   },
 }).then(async (users:any) => {
-  await users.forEach(async (user: any) => {
+  asyncForEach(users, async (user: any) => {
     const notifications = await getNotifications(user.id);
     // eslint-disable-next-line max-len
     const numberNotifications = notifications.follows.length + notifications.reblogs.length;
@@ -288,7 +298,8 @@ User.findAll({
     '<h2>We promise that it\'s a lot better!</h2>' +
     '<h5>We also promise some bugs but what\'s life without a few bugs?</h5>';
     try {
-      console.log('sending email to' + user.email);
+      console.log('sending email to ' + user.email);
+      await delay(15000);
       await sendEmail(user.email, subject, emailBody);
     } catch (error) {
       console.error(error);
