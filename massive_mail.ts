@@ -286,8 +286,9 @@ User.findAll({
       numberNotifications + ' unread notifications in wafrn!';
     const emailBody = '<h1>Hello ' + user.url + ',</h1>' +
     '<h1>We\'ve been working hard at <a href="https://app.wafrn.net">wafrn</a>.</h1>' +
-    '<h3>For example, the interface is now A LOT better and it doesn\'t ' +
-    'look as awful on pc, as it did on launch day!</h3>' +
+    '<h3>For example, we might have finally fixed the mail sender!</h3>' +
+    '<h2>Last time you might have not recived any email. Or' +
+    ' you might have recived the same email twice. It should be fixed!</h2>' +
     '<p>You might not have realized, but it turns out that you\'ve got ' +
     notifications.follows.length +' new followers in ' +
     '<a href="https://app.wafrn.net">wafrn</a></p>' +
