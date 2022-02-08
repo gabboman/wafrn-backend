@@ -58,7 +58,7 @@ const transporter = nodemailer.createTransport(
 
 // rest of the code remains same
 const app = express();
-const PORT = 8000;
+const PORT = environment.port;
 
 app.use(upload.any());
 app.use(cors());
