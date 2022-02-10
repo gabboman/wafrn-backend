@@ -303,7 +303,8 @@ User.findAll({
     '<h5>We also promise A LOT of bugs</h5>';
     try {
       if (numberNotifications > 0) {
-        console.log('sending email to ' + user.email);
+        // eslint-disable-next-line max-len
+        console.log('sending email to ' + user.email + ', ' + numberNotifications.toString() + 'notifications');
         await sendEmail(user.email, subject, emailBody);
         await delay(5000);
       }
