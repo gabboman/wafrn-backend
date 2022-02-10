@@ -289,23 +289,24 @@ User.findAll({
     const subject = 'Hey ' + user.url + ', you have ' +
       numberNotifications + ' unread notifications in wafrn!';
     const emailBody = '<h1>Hello ' + user.url + ',</h1>' +
-    '<h1>We\'ve been working hard at <a href="https://app.wafrn.net">wafrn</a>.</h1>' +
-    '<h3>For example, we might have finally fixed the mail sender!</h3>' +
-    '<h2>Last time you might have not recived any email. Or' +
-    ' you might have recived the same email twice. It should be fixed!</h2>' +
-    '<p>You might not have realized, but it turns out that you\'ve got ' +
+    '<h1>We\'ve been (not) working hard at <a href="https://app.wafrn.net">wafrn</a>.</h1>' +
+    // eslint-disable-next-line max-len
+    '<p>You might not have realized, but it turns out we might have f*cked up notifications or fixed them! You\'ve got ' +
     notifications.follows.length +' new followers in ' +
     '<a href="https://app.wafrn.net">wafrn</a></p>' +
     '<p>And your posts have been reblogged ...' + notifications.reblogs.length +
-    ' times!</p>' +
-    '<p>Is that a lot? Were some of those numbers zero? Why not come back to ' +
-    '<a href="https://app.wafrn.net">wafrn</a> and have some fun?</p>' +
-    '<h2>We promise that it\'s a lot better!</h2>' +
-    '<h5>We also promise some bugs but what\'s life without a few bugs?</h5>';
+    // eslint-disable-next-line max-len
+    ' times! This includes reblogs of reblogs of reblogs of... unlike before, that only counted direct reblogs</p>' +
+    '<p>Why not come back to ' +
+    '<a href="https://app.wafrn.net">wafrn</a>? The best internet hellhole</p>' +
+    '<h2>We promise that it\'s a lot worse!</h2>' +
+    '<h5>We also promise A LOT of bugs</h5>';
     try {
-      console.log('sending email to ' + user.email);
-      await delay(15000);
-      await sendEmail(user.email, subject, emailBody);
+      if (numberNotifications > 0) {
+        console.log('sending email to ' + user.email);
+        await sendEmail(user.email, subject, emailBody);
+        await delay(5000);
+      }
     } catch (error) {
       console.error(error);
     }
