@@ -230,22 +230,26 @@ async function getNotifications(userId: string) {
     },
   });
   const blockedUsers = await getBlockedids(userId);
-  const newReblogs = Post.findAll({
-    where: {
-      parentId: {[Op.in]: userPosts},
-      createdAt: {
-        [Op.gt]: new Date(user.lastTimeNotificationsCheck),
-      },
-    },
-    include: [
-      {
-        model: User,
-        attributes: ['id', 'avatar', 'url', 'description'],
-      },
-    ],
-    order: [['createdAt', 'DESC']],
-
-  });
+  const perPostReblogsPromises: Array<Promise<any>> = [];
+  try {
+    userPosts.forEach((post: any) => {
+      perPostReblogsPromises.push(post.getDescendents({
+        where: {
+          createdAt: {
+            [Op.gt]: new Date(user.lastTimeNotificationsCheck),
+          },
+        },
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'avatar', 'url', 'description'],
+          },
+        ],
+      }));
+    });
+  } catch (error) {
+    console.error(error);
+  }
   const newFollows = user.getFollower({
     where: {
       createdAt: {
@@ -258,7 +262,7 @@ async function getNotifications(userId: string) {
     // eslint-disable-next-line max-len
     follows: (await newFollows).filter((newFollow: any) => blockedUsers.indexOf(newFollow.id) == -1),
     // eslint-disable-next-line max-len
-    reblogs: (await newReblogs).filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
+    reblogs: (await Promise.all(perPostReblogsPromises)).flat().filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
   };
 }
 function delay(milliseconds: number) {

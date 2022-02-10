@@ -309,13 +309,18 @@ async function getBlockedids(userId: string): Promise<string[]> {
   return result.filter((elem: string) => elem != userId);
 }
 
-async function getAllPostsIds(userId: string): Promise<string[]> {
+async function getAllPostsByuser(userId: string): Promise<any> {
   const postsId = await Post.findAll({
     where: {
       userId: userId,
     },
     attributes: ['id'],
   });
+  return postsId;
+}
+
+async function getAllPostsIdsByUser(userId: string): Promise<string[]> {
+  const postsId = await getAllPostsByuser(userId);
   const result = postsId.map((followed: any) => followed.id);
   return result;
 }
@@ -424,29 +429,34 @@ app.post('/readNotifications', authenticateToken, async (req: any, res) => {
 
 app.post('/notifications', authenticateToken, async (req: any, res) => {
   const userId = req.jwtData.userId;
-  const userPosts = await getAllPostsIds(userId);
+  const userPosts = await getAllPostsByuser(userId);
   const user = await User.findOne({
     where: {
       id: userId,
     },
   });
   const blockedUsers = await getBlockedids(userId);
-  const newReblogs = Post.findAll({
-    where: {
-      parentId: {[Op.in]: userPosts},
-      createdAt: {
-        [Op.gt]: new Date(user.lastTimeNotificationsCheck),
-      },
-    },
-    include: [
-      {
-        model: User,
-        attributes: ['id', 'avatar', 'url', 'description'],
-      },
-    ],
-    order: [['createdAt', 'DESC']],
+  const perPostReblogsPromises: Array<Promise<any>> = [];
+  try {
+    userPosts.forEach((post: any) => {
+      perPostReblogsPromises.push(post.getDescendents({
+        where: {
+          createdAt: {
+            [Op.gt]: new Date(user.lastTimeNotificationsCheck),
+          },
+        },
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'avatar', 'url', 'description'],
+          },
+        ],
+      }));
+    });
+  } catch (error) {
+    console.error(error);
+  }
 
-  });
   const newFollows = user.getFollower({
     where: {
       createdAt: {
@@ -459,7 +469,7 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
     // eslint-disable-next-line max-len
     follows: (await newFollows).filter((newFollow: any) => blockedUsers.indexOf(newFollow.id) == -1),
     // eslint-disable-next-line max-len
-    reblogs: (await newReblogs).filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
+    reblogs: (await Promise.all(perPostReblogsPromises)).flat().filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
   });
 });
 
