@@ -210,20 +210,27 @@ async function getBlockedids(userId: string): Promise<string[]> {
   return result.filter((elem: string) => elem != userId);
 }
 
-async function getAllPostsIds(userId: string): Promise<string[]> {
+
+async function getAllPostsByuser(userId: string): Promise<any> {
   const postsId = await Post.findAll({
     where: {
       userId: userId,
     },
     attributes: ['id'],
   });
+  return postsId;
+}
+
+async function getAllPostsIdsByUser(userId: string): Promise<string[]> {
+  const postsId = await getAllPostsByuser(userId);
   const result = postsId.map((followed: any) => followed.id);
   return result;
 }
 
 
+
 async function getNotifications(userId: string) {
-  const userPosts = await getAllPostsIds(userId);
+  const userPosts = await getAllPostsByuser(userId);
   const user = await User.findOne({
     where: {
       id: userId,
