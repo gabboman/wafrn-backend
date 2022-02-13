@@ -427,19 +427,14 @@ app.post('/readNotifications', authenticateToken, async (req: any, res) => {
   });
 });
 
-app.post('/notifications', authenticateToken, async (req: any, res) => {
-  const userId = req.jwtData.userId;
-  const userPosts = await getAllPostsByuser(userId);
-  const user = await User.findOne({
-    where: {
-      id: userId,
-    },
-  });
-  const blockedUsers = await getBlockedids(userId);
-  const perPostReblogsPromises: Array<Promise<any>> = [];
-  try {
-    userPosts.forEach((post: any) => {
-      perPostReblogsPromises.push(post.getDescendents({
+
+async function getReblogs(user: any) {
+  const userId = user.id;
+  const userPostsWithReblogs = await Post.findAll({
+    include: [
+      {
+        model: Post,
+        as: 'descendents',
         where: {
           createdAt: {
             [Op.gt]: new Date(user.lastTimeNotificationsCheck),
@@ -448,15 +443,54 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
         include: [
           {
             model: User,
-            attributes: ['id', 'avatar', 'url', 'description'],
+            attributes: ['avatar', 'url', 'description'],
+          },
+          {
+            model: Media,
+            attributes: ['id', 'NSFW', 'description', 'url'],
           },
         ],
-      }));
-    });
-  } catch (error) {
-    console.error(error);
-  }
+      },
+      {
+        model: User,
+        attributes: ['avatar', 'url', 'description'],
+      },
+      {
+        model: Media,
+        attributes: ['id', 'NSFW', 'description', 'url'],
+      },
+      {
+        model: Tag,
+        attributes: ['tagName'],
+      },
+    ],
+    where: {
+      userId: userId,
+    },
+  });
+  const result: any[] = [];
+  userPostsWithReblogs.forEach((postWithReblogs: any) => {
+    try {
+      postWithReblogs.descendents.forEach((elem: any) => {
+        result.push(elem);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  });
+  return result;
+};
 
+
+app.post('/notifications', authenticateToken, async (req: any, res) => {
+  const userId = req.jwtData.userId;
+  const user = await User.findOne({
+    where: {
+      id: userId,
+    },
+  });
+  const blockedUsers = await getBlockedids(userId);
+  const perPostReblogs = getReblogs(user);
   const newFollows = user.getFollower({
     where: {
       createdAt: {
@@ -469,7 +503,7 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
     // eslint-disable-next-line max-len
     follows: (await newFollows).filter((newFollow: any) => blockedUsers.indexOf(newFollow.id) == -1),
     // eslint-disable-next-line max-len
-    reblogs: (await Promise.all(perPostReblogsPromises)).flat().filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
+    reblogs: (await perPostReblogs).filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
   });
 });
 
