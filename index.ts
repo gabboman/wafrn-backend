@@ -340,6 +340,10 @@ function getPostBaseQuery(req: any) {
             model: Media,
             attributes: ['id', 'NSFW', 'description', 'url'],
           },
+          {
+            model: Tag,
+            attributes: ['tagName'],
+          },
         ],
       },
       {
