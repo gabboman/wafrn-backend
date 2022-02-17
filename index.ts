@@ -472,7 +472,10 @@ async function getReblogs(user: any) {
   userPostsWithReblogs.forEach((postWithReblogs: any) => {
     try {
       postWithReblogs.descendents.forEach((elem: any) => {
-        result.push(elem);
+        // TODO fix dirty hack
+        const elemProcessed: any = JSON.parse(JSON.stringify(elem));
+        elemProcessed['createdAt'] = elem.createdAt.getTime();
+        result.push(elemProcessed);
       });
     } catch (error) {
       console.error(error);
