@@ -294,7 +294,8 @@ User.findAll({
     // eslint-disable-next-line max-len
     const numberNotifications = notifications.follows.length + notifications.reblogs.length;
     const subject = 'Hey ' + user.url + ', you have ' +
-      numberNotifications + ' unread notifications in wafrn!';
+      // eslint-disable-next-line max-len
+      numberNotifications + ' unread notifications in wafrn since we broke the notifications!';
     const emailBody = '<h1>Hello ' + user.url + ',</h1>' +
     '<h1>We\'ve been (not) working hard at <a href="https://app.wafrn.net">wafrn</a>.</h1>' +
     // eslint-disable-next-line max-len
@@ -303,9 +304,9 @@ User.findAll({
     '<a href="https://app.wafrn.net">wafrn</a></p>' +
     '<p>And your posts have been reblogged ...' + notifications.reblogs.length +
     // eslint-disable-next-line max-len
-    ' times! This includes reblogs of reblogs of reblogs of... unlike before, that only counted direct reblogs</p>' +
-    '<p>Why not come back to ' +
-    '<a href="https://app.wafrn.net">wafrn</a>? The best internet hellhole</p>' +
+    ' times! This includes reblogs of reblogs of reblogs of... unlike before, that only counted direct reblogs</p> <p> At least in theory, given the fact that we broke the notifications again but its worthy because its a lot faster now</p>' +
+    '<h1>Come back to  ' +
+    '<a href="https://app.wafrn.net">wafrn</a>? The best internet hellhole</h1>' +
     '<h2>We promise that it\'s a lot worse!</h2>' +
     '<h5>We also promise A LOT of bugs</h5>';
     try {
