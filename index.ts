@@ -443,7 +443,7 @@ async function getReblogs(user: any) {
         include: [
           {
             model: User,
-            attributes: ['avatar', 'url', 'description'],
+            attributes: ['avatar', 'url', 'description', 'id'],
           },
           {
             model: Media,

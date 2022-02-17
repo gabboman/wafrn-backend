@@ -312,7 +312,7 @@ User.findAll({
     try {
       if (numberNotifications > 0) {
         // eslint-disable-next-line max-len
-        console.log('sending email to ' + user.email + ', ' + numberNotifications.toString() + 'notifications');
+        console.log('sending email to ' + user.email + ', ' + numberNotifications.toString() + ' notifications');
         await sendEmail(user.email, subject, emailBody);
         await delay(5000);
       }
