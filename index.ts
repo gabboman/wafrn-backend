@@ -26,7 +26,7 @@ const imageStorage = multer.diskStorage({
     const originalNameArray = file.originalname.split('.');
     const extension = originalNameArray[originalNameArray.length - 1];
     const randomText = generateRandomString();
-    cb(null, Date.now() + '_' + randomText + '.' + extension);
+    cb(null, Date.now() + '_' + randomText + '.' + extension.toLowerCase());
   },
 });
 
@@ -41,7 +41,7 @@ const upload = multer({
       req.files?.length <= 1 &&
       (req.url === '/uploadMedia' || req.url === '/register') &&
       req.method === 'POST' &&
-      file.originalname.match(/\.(png|jpg|jpeg|gifv|gif|webp)$/)
+      file.originalname.toLowerCase().match(/\.(png|jpg|jpeg|gifv|gif|webp)$/)
     )
     ) {
       cb(null, false);
