@@ -291,7 +291,7 @@ async function asyncForEach(array: any[], callback: any) {
 User.findAll({
   where: {
     activated: true,
-    id: 'bd78a757-b69e-482c-b4a6-dd6ec62eb933',
+    // id: 'bd78a757-b69e-482c-b4a6-dd6ec62eb933',
   },
 }).then(async (users:any) => {
   asyncForEach(users, async (user: any) => {
