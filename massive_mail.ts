@@ -2,6 +2,7 @@
 'use strict';
 
 
+import e from 'express';
 import express from 'express';
 
 const Sequelize = require('sequelize');
@@ -188,7 +189,10 @@ sequelize.sync({
 async function sendEmail(email: string, subject: string, contents: string) {
   // const activateLink = code;
   return await transporter.sendMail({
-    from: environment.emailConfig.auth.user,
+    from: {
+      name: 'wafrn',
+      address: environment.emailConfig.auth.user,
+    },
     to: email,
     subject: subject,
     html: contents,
@@ -287,6 +291,7 @@ async function asyncForEach(array: any[], callback: any) {
 User.findAll({
   where: {
     activated: true,
+    id: 'bd78a757-b69e-482c-b4a6-dd6ec62eb933',
   },
 }).then(async (users:any) => {
   asyncForEach(users, async (user: any) => {
@@ -295,20 +300,21 @@ User.findAll({
     const numberNotifications = notifications.follows.length + notifications.reblogs.length;
     const subject = 'Hey ' + user.url + ', you have ' +
       // eslint-disable-next-line max-len
-      numberNotifications + ' unread notifications in wafrn since we broke the notifications!';
+      numberNotifications + ' unread notifications in wafrn!';
     const emailBody = '<h1>Hello ' + user.url + ',</h1>' +
-    '<h1>We\'ve been (not) working hard at <a href="https://app.wafrn.net">wafrn</a>.</h1>' +
+    '<h1>We\'ve been (kinda) working hard at <a href="https://app.wafrn.net">wafrn</a>.</h1>' +
     // eslint-disable-next-line max-len
-    '<p>You might not have realized, but it turns out we might have f*cked up notifications or fixed them! You\'ve got ' +
+    '<p>You\'ve got ' +
     notifications.follows.length +' new followers in ' +
     '<a href="https://app.wafrn.net">wafrn</a></p>' +
     '<p>And your posts have been reblogged ...' + notifications.reblogs.length +
     // eslint-disable-next-line max-len
-    ' times! This includes reblogs of reblogs of reblogs of... unlike before, that only counted direct reblogs</p> <p> At least in theory, given the fact that we broke the notifications again but its worthy because its a lot faster now</p>' +
+    ' times! This includes reblogs of reblogs of reblogs of... </p>' +
     '<h1>Come back to  ' +
-    '<a href="https://app.wafrn.net">wafrn</a>? The best internet hellhole</h1>' +
-    '<h2>We promise that it\'s a lot worse!</h2>' +
-    '<h5>We also promise A LOT of bugs</h5>';
+    '<a href="https://app.wafrn.net">wafrn</a>? The best worst internet hellhole</h1>' +
+    '<h2>We promise that it\'s kinda cool!</h2>' +
+    // eslint-disable-next-line max-len
+    '<h5>We also still use the same basic email template. We might change it. Later</h5>';
     try {
       if (numberNotifications > 0) {
         // eslint-disable-next-line max-len
