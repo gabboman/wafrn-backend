@@ -300,7 +300,7 @@ User.findAll({
     const numberNotifications = notifications.follows.length + notifications.reblogs.length;
     const subject = 'Hey ' + user.url + ', you have ' +
       // eslint-disable-next-line max-len
-      numberNotifications + ' unread notifications in wafrn!';
+      numberNotifications + ' unread notifications in wafrn! Also pizza';
     const emailBody = '<h1>Hello ' + user.url + ',</h1>' +
     '<h1>We\'ve been (kinda) working hard at <a href="https://app.wafrn.net">wafrn</a>.</h1>' +
     // eslint-disable-next-line max-len
@@ -311,10 +311,12 @@ User.findAll({
     // eslint-disable-next-line max-len
     ' times! This includes reblogs of reblogs of reblogs of... </p>' +
     '<h1>Come back to  ' +
-    '<a href="https://app.wafrn.net">wafrn</a>? The best worst internet hellhole</h1>' +
+    '<a href="https://app.wafrn.net">wafrn</a>? The best worst internet hellhole, we got some cool awful pizza post arround</h1>' +
     '<h2>We promise that it\'s kinda cool!</h2>' +
     // eslint-disable-next-line max-len
-    '<h5>We also still use the same basic email template. We might change it. Later</h5>';
+    '<h5>What? You haven\'t seen <a href="https://app.wafrn.net/post/638f3c46-9b72-4774-85c9-3a06121c5ffc">THE PIZZA POST</a>?</h5>' +
+    '<h6>It would be a great time to fix it :D';
+
     try {
       if (numberNotifications > 0) {
         // eslint-disable-next-line max-len
