@@ -298,11 +298,12 @@ User.findAll({
     const notifications = await getNotifications(user.id);
     // eslint-disable-next-line max-len
     const numberNotifications = notifications.follows.length + notifications.reblogs.length;
-    const subject = 'Hey ' + user.url + ', you have ' +
+    const subject = 'Hey ' + user.url +
+      ', we kind of have a minecraft server! Also you have ' +
       // eslint-disable-next-line max-len
-      numberNotifications + ' unread notifications in wafrn! Also pizza';
+      numberNotifications + ' unread notifications';
     const emailBody = '<h1>Hello ' + user.url + ',</h1>' +
-    '<h1>We\'ve been (kinda) working hard at <a href="https://app.wafrn.net">wafrn</a>.</h1>' +
+    '<h1>We\'ve been (not) working hard at <a href="https://app.wafrn.net">wafrn</a>.</h1>' +
     // eslint-disable-next-line max-len
     '<p>You\'ve got ' +
     notifications.follows.length +' new followers in ' +
@@ -310,12 +311,16 @@ User.findAll({
     '<p>And your posts have been reblogged ...' + notifications.reblogs.length +
     // eslint-disable-next-line max-len
     ' times! This includes reblogs of reblogs of reblogs of... </p>' +
+    // eslint-disable-next-line max-len
+    '<p>Bear in mind this number might be different than the one in the webpage, we are (not) working on it, and we are (totally not) aware of it</p>' +
     '<h1>Come back to  ' +
-    '<a href="https://app.wafrn.net">wafrn</a>? The best worst internet hellhole, we got some cool awful pizza post arround</h1>' +
+    '<a href="https://app.wafrn.net">wafrn</a>? The best worst internet hellhole</h1>' +
     '<h2>We promise that it\'s kinda cool!</h2>' +
     // eslint-disable-next-line max-len
-    '<h5>What? You haven\'t seen <a href="https://app.wafrn.net/post/638f3c46-9b72-4774-85c9-3a06121c5ffc">THE PIZZA POST</a>?</h5>' +
-    '<h6>It would be a great time to fix it :D';
+    '<h5>What? You haven\'t heard <a href="https://app.wafrn.net/post/ea7c5c26-46cb-4870-8e78-2d9a4fe6cf95">about the minecraft server</a>?</h5>' +
+    '<h6>It would be a great time to fix it :D</h6>' +
+    // eslint-disable-next-line max-len
+    '<p>Please bear in mind it\'s an anarchy server. The comunity is really small and tame, but we can not guarantee its a safe space</p>';
 
     try {
       if (numberNotifications > 0) {
