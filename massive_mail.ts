@@ -299,11 +299,12 @@ User.findAll({
     // eslint-disable-next-line max-len
     const numberNotifications = notifications.follows.length + notifications.reblogs.length;
     const subject = 'Hey ' + user.url +
-      ', we kind of have a minecraft server! Also you have ' +
+      ', we have NOT been bought by Elon Musk! Also you have ' +
       // eslint-disable-next-line max-len
       numberNotifications + ' unread notifications';
     const emailBody = '<h1>Hello ' + user.url + ',</h1>' +
     '<h1>We\'ve been (not) working hard at <a href="https://app.wafrn.net">wafrn</a>.</h1>' +
+    '<p>We have been really busy with real life and work, so we still do not have likes nor asks, but SOON</p>' +
     // eslint-disable-next-line max-len
     '<p>You\'ve got ' +
     notifications.follows.length +' new followers in ' +
@@ -318,6 +319,7 @@ User.findAll({
     '<h2>We promise that it\'s kinda cool!</h2>' +
     // eslint-disable-next-line max-len
     '<h5>What? You haven\'t heard <a href="https://app.wafrn.net/post/ea7c5c26-46cb-4870-8e78-2d9a4fe6cf95">about the minecraft server</a>?</h5>' +
+    '<h5>Nor <a href="https://app.wafrn.net/post/ad12dc31-4eab-403c-b383-574b8fd245ca">about the dark secret of the pizza</a>?</h5>' +
     '<h6>It would be a great time to fix it :D</h6>' +
     // eslint-disable-next-line max-len
     '<p>Please bear in mind it\'s an anarchy server. The comunity is really small and tame, but we can not guarantee its a safe space</p>';
