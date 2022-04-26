@@ -2,8 +2,6 @@
 'use strict';
 
 
-import e from 'express';
-import express from 'express';
 
 const Sequelize = require('sequelize');
 // sequelize plugins
