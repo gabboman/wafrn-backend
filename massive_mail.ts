@@ -296,8 +296,8 @@ User.findAll({
     const notifications = await getNotifications(user.id);
     // eslint-disable-next-line max-len
     const numberNotifications = notifications.follows.length + notifications.reblogs.length;
-    const subject = 'Hey ' + user.url +
-      ', we have NOT been bought by Elon Musk! Also you have ' +
+    const subject = 'Hello  ' + user.url +
+      ', we are still online! You have ' +
       // eslint-disable-next-line max-len
       numberNotifications + ' unread notifications';
     const emailBody = '<h1>Hello ' + user.url + ',</h1>' +

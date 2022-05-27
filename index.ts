@@ -8,7 +8,6 @@ import {
 } from './models';
 
 const Sequelize = require('sequelize');
-// sequelize plugins
 
 // operators
 const {Op} = require('sequelize');
