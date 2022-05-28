@@ -66,7 +66,7 @@ app.use(cors());
 const sequelize = new Sequelize(
     environment.databaseConnectionString,
     {
-      logging: !environment.prod,
+      logging: environment.prod ? false: console.log,
     },
 );
 
