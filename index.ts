@@ -243,7 +243,7 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
   res.send(rawPostsByFollowed);
 });
 
-app.post('/explore', authenticateToken, async (req: any, res) => {
+app.post('/explore', async (req: any, res) => {
   const rawPosts = await Post.findAll({
     where: {
       // date the user has started scrolling
