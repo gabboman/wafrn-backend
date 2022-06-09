@@ -17,7 +17,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 // import bodyParser, {BodyParser} from 'body-parser';
 const cors = require('cors');
-const request = require('request-promise');
+const axios = require('axios');
 
 import multer from 'multer';
 const imageStorage = multer.diskStorage({
@@ -82,14 +82,28 @@ sequelize.sync({
       }
     });
 
+export interface HCaptchaSiteVerifyResponse {
+      success: boolean;
+      'error-codes'?: string[];
+    }
+
 
 async function checkCaptcha(response: string, ip: string): Promise<boolean> {
-  let res = false;
-  const secretKey = environment.captchaPrivateKey;
-  const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${response}&remoteip=${ip}`;
-  const googleResponse = await request(url);
-  res = JSON.parse(googleResponse).success;
-  return res;
+  const siteVerifyUrl = 'https://hcaptcha.com/siteverify';
+  const secret = environment.captchaPrivateKey;
+  const params: Record<string, string> = ip ?
+    {
+      secret,
+      response,
+      ip,
+    } :
+    {secret, response};
+  const data = new URLSearchParams(params);
+  const result = await axios.post(
+      siteVerifyUrl,
+      data,
+  );
+  return result.data.success;
 }
 
 function getIp(petition: any): string {
@@ -173,12 +187,6 @@ async function getAllPostsByuser(userId: string): Promise<any> {
     attributes: ['id'],
   });
   return postsId;
-}
-
-async function getAllPostsIdsByUser(userId: string): Promise<string[]> {
-  const postsId = await getAllPostsByuser(userId);
-  const result = postsId.map((followed: any) => followed.id);
-  return result;
 }
 
 function getPostBaseQuery(req: any) {
