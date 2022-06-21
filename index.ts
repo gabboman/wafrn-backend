@@ -46,7 +46,7 @@ const upload = multer({
     )
     ) {
       cb(null, false);
-      return cb(new Error('Please upload a Image in the apropiate route'));
+      return cb(new Error('There was an error with the upload'));
     }
     cb(null, true);
   },
@@ -61,6 +61,7 @@ const transporter = nodemailer.createTransport(
 const app = express();
 const PORT = environment.port;
 
+// TODO fix this!
 app.use(upload.any());
 app.use(cors());
 const sequelize = new Sequelize(
@@ -728,6 +729,7 @@ app.post('/resetPassword', async (req, res) => {
       if (user) {
         user.password =
           await bcrypt.hash(req.body.password, environment.saltRounds);
+        user.activated = 1;
         user.requestedPasswordReset = null;
         user.save();
         success = true;
