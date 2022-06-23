@@ -14,7 +14,8 @@
         "port": 25,
         "auth": {
             "user": "user",
-            "pass": "password"
+            "pass": "password",
+            "from": "mail from"
         }
     }
 
