@@ -145,7 +145,7 @@ function generateRandomString() {
 async function sendActivationEmail(email: string, code: string, subject: string, contents: string) {
   // const activateLink = code;
   return await transporter.sendMail({
-    from: environment.emailConfig.auth.user.from,
+    from: environment.emailConfig.auth.from,
     to: email,
     subject: subject,
     html: contents,
