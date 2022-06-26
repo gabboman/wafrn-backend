@@ -820,6 +820,33 @@ app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
   res.send(success);
 });
 
+app.post('/updateMedia', authenticateToken, async (req: any, res) => {
+  let success = false;
+  try {
+    const posterId = req.jwtData.userId;
+    if (req.body && req.body.id) {
+      const mediaToUpdate = await Media.findOne({
+        where: {
+          id: req.body.id,
+          userId: posterId,
+        },
+      });
+      if (mediaToUpdate) {
+        mediaToUpdate.NSFW = req.body.nsfw;
+        mediaToUpdate.description = req.body.description;
+        await mediaToUpdate.save();
+        success = true;
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+
+  res.send({
+    success: success,
+  });
+});
+
 app.post('/createPost', authenticateToken, async (req: any, res) => {
   let success = false;
   const posterId = req.jwtData.userId;
