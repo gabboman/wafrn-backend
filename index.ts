@@ -42,7 +42,8 @@ const upload = multer({
       req.files?.length <= 1 &&
       (req.url === '/uploadMedia' || req.url === '/register') &&
       req.method === 'POST' &&
-      file.originalname.toLowerCase().match(/\.(png|jpg|jpeg|gifv|gif|webp)$/)
+      // eslint-disable-next-line max-len
+      file.originalname.toLowerCase().match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4)$/)
     )
     ) {
       cb(null, false);
