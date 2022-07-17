@@ -40,7 +40,8 @@ const upload = multer({
     if (!(
       req.files &&
       req.files?.length <= 1 &&
-      (req.url === '/uploadMedia' || req.url === '/register') &&
+      // eslint-disable-next-line max-len
+      (req.url === '/uploadMedia' || req.url === '/register' || req.url === '/editProfile') &&
       req.method === 'POST' &&
       // eslint-disable-next-line max-len
       file.originalname.toLowerCase().match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4)$/)
@@ -659,7 +660,7 @@ app.post('/editProfile', authenticateToken, async (req: any, res) => {
       if (req.body.description) {
         user.description = req.body.description;
       }
-      if (req.files) {
+      if (req.files?.length > 0) {
         let avatarURL = '/' + req.files[0].path;
         if (environment.removeFolderNameFromFileUploads) {
           avatarURL = avatarURL.slice('/uploads/'.length - 1);
