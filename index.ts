@@ -476,6 +476,8 @@ app.post('/userDetails', async (req, res) => {
           'activationCode',
           'requestedPasswordReset',
           'updatedAt',
+          'createdAt',
+          'lastTimeNotificationsCheck',
         ],
       },
       where: {
@@ -546,6 +548,8 @@ app.post('/search', async (req, res) => {
           'activationCode',
           'requestedPasswordReset',
           'updatedAt',
+          'createdAt',
+          'lastTimeNotificationsCheck',
         ],
       },
 
@@ -640,6 +644,38 @@ app.post('/register', async (req, res) => {
     res.statusCode = 401;
     res.send({success: false});
   }
+});
+
+app.post('/editProfile', authenticateToken, async (req: any, res) => {
+  let success = false;
+  try {
+    const posterId = req.jwtData.userId;
+    const user = await User.findOne({
+      where: {
+        id: posterId,
+      },
+    });
+    if (req.body) {
+      if (req.body.description) {
+        user.description = req.body.description;
+      }
+      if (req.files) {
+        let avatarURL = '/' + req.files[0].path;
+        if (environment.removeFolderNameFromFileUploads) {
+          avatarURL = avatarURL.slice('/uploads/'.length - 1);
+          user.avatar = avatarURL;
+        }
+      }
+      user.save();
+      success = true;
+    }
+  } catch (error) {
+    console.error(error);
+  }
+
+  res.send({
+    success: success,
+  });
 });
 
 app.post('/forgotPassword', async (req, res) => {
