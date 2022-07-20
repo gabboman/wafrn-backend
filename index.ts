@@ -17,8 +17,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 // import bodyParser, {BodyParser} from 'body-parser';
 const cors = require('cors');
-const axios = require('axios');
-
+const request = require('request-promise');
 import multer from 'multer';
 const imageStorage = multer.diskStorage({
   // Destination to store image
@@ -92,21 +91,12 @@ export interface HCaptchaSiteVerifyResponse {
 
 
 async function checkCaptcha(response: string, ip: string): Promise<boolean> {
-  const siteVerifyUrl = 'https://hcaptcha.com/siteverify';
-  const secret = environment.captchaPrivateKey;
-  const params: Record<string, string> = ip ?
-    {
-      secret,
-      response,
-      ip,
-    } :
-    {secret, response};
-  const data = new URLSearchParams(params);
-  const result = await axios.post(
-      siteVerifyUrl,
-      data,
-  );
-  return result.data.success;
+  let res = false;
+  const secretKey = environment.captchaPrivateKey;
+  const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${response}&remoteip=${ip}`;
+  const googleResponse = await request(url);
+  res = JSON.parse(googleResponse).success;
+  return res;
 }
 
 function getIp(petition: any): string {
