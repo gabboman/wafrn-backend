@@ -182,16 +182,6 @@ async function getBlockedids(userId: string): Promise<string[]> {
   return result.filter((elem: string) => elem != userId);
 }
 
-async function getAllPostsByuser(userId: string): Promise<any> {
-  const postsId = await Post.findAll({
-    where: {
-      userId: userId,
-    },
-    attributes: ['id'],
-  });
-  return postsId;
-}
-
 function getPostBaseQuery(req: any) {
   return {
     include: [
@@ -232,7 +222,11 @@ function getPostBaseQuery(req: any) {
   };
 }
 
-app.get('/', (req, res) => res.send(getIp(req)));
+app.get('/', (req, res) => res.send(
+    {
+      status: true,
+      readme: 'welcome to the wafrn api, you better check https://github.com/gabboman/wafrn to figure out where to poke :D',
+    }));
 
 // serve static images
 app.use('/uploads', express.static('uploads'));
@@ -411,12 +405,12 @@ app.post('/postDetails', async (req: any, res) => {
   }
 });
 
-app.post('/singlePost', async (req: any, res) => {
+app.get('/singlePost/:id', async (req: any, res) => {
   let success = false;
-  if (req.body && req.body.id) {
+  if (req.params && req.params.id) {
     const post = await Post.findOne({
       where: {
-        id: req.body.id,
+        id: req.params.id,
       },
       ...getPostBaseQuery(req),
     });
