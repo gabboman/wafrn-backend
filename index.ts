@@ -68,7 +68,7 @@ app.use(cors());
 const sequelize = new Sequelize(
     environment.databaseConnectionString,
     {
-      logging: environment.logSQLQueries ? false: console.log,
+      logging: environment.logSQLQueries ? console.log : false,
     },
 );
 
@@ -926,10 +926,13 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
       // detect media in post
 
       // eslint-disable-next-line max-len
-      const regex = /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
+      const wafrnMediaRegex = /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
+      // eslint-disable-next-line max-len
+      const mentionRegex = /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
       // eslint-disable-next-line max-len
       const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/;
-      const mediaInPost = req.body.content.match(regex);
+      const mediaInPost = req.body.content.match(wafrnMediaRegex);
+      const mentionsInPost = req.body.content.match(mentionRegex);
       if (mediaInPost) {
         const mediaToAdd: String[] = [];
         mediaInPost.forEach((element: string) => {
@@ -943,6 +946,19 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
         });
 
         post.addMedias(mediaToAdd);
+      }
+
+      if (mentionsInPost) {
+        const mentionsToAdd: String[] = [];
+        mentionsInPost.forEach((elem: string) => {
+          const mentionedUserUUID = elem.match(uuidRegex);
+          // eslint-disable-next-line max-len
+          if (mentionedUserUUID && mentionedUserUUID[0] !== null && mentionsToAdd.indexOf(mentionedUserUUID[0]) == -1) {
+            mentionsToAdd.push(mentionedUserUUID[0]);
+          }
+        });
+        // TODO add mentions heee heee
+        // post.addMention(mentionsToAdd);
       }
 
       if (req.body.parent) {

@@ -11,7 +11,7 @@ require('sequelize-hierarchy-fork')(Sequelize);
 
 const sequelize = new Sequelize(environment.databaseConnectionString,
     {
-      logging: environment.logSQLQueries ? false: console.log,
+      logging: environment.logSQLQueries ? console.log : false,
     });
 
 const User = sequelize.define('users', {
