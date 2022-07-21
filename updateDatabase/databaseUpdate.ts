@@ -13,7 +13,8 @@ const sequelize = new Sequelize(
 );
 
 const queryInterface = sequelize.getQueryInterface();
-// primera migración: añadir limite por extras
+// add column
+/*
 queryInterface.addColumn(
     'users',
     'lastTimeNotificationsCheck', {
@@ -22,14 +23,18 @@ queryInterface.addColumn(
       defaultValue: '1970-01-01 00:00:00',
     },
 );
+*/
 
-/*
-queryInterface.createTable('postViews', {
-  id: {
+// Add new table
+queryInterface.createTable('postMentionsUserRelations', {
+  userId: {
     type: Sequelize.UUID,
-    defaultValue: Sequelize.UUIDV4,
     allowNull: false,
-    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+    unique: false,
   },
   postId: {
     type: Sequelize.UUID,
@@ -48,4 +53,3 @@ queryInterface.createTable('postViews', {
   },
 });
 
-*/

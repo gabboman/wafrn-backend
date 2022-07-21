@@ -1,5 +1,8 @@
+/* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
 'use strict';
+
+import { userInfo } from "os";
 
 const environment = require('./environment');
 
@@ -93,15 +96,33 @@ const UserReport = sequelize.define('userReports', {
 });
 
 const PostView = sequelize.define('postViews', {
-  id: {
+  postId: {
     type: Sequelize.UUID,
-    defaultValue: Sequelize.UUIDV4,
     allowNull: false,
     primaryKey: true,
+    references: {
+      model: 'posts',
+      key: 'id',
+    },
+    unique: false,
+  },
+});
+
+const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {
+  userId: {
+    type: Sequelize.UUID,
+    allowNull: false,
+    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+    unique: false,
   },
   postId: {
     type: Sequelize.UUID,
     allowNull: false,
+    primaryKey: true,
     references: {
       model: 'posts',
       key: 'id',
@@ -159,7 +180,12 @@ Post.belongsToMany(Media, {
   through: 'postMediaRelations',
 });
 
+// mentions
+PostMentionsUserRelation.belongsTo(User);
+PostMentionsUserRelation.belongsTo(Post);
+User.hasMany(PostMentionsUserRelation);
+Post.hasMany(PostMentionsUserRelation);
 
 export {
-  User, Post, PostReport, PostView, UserReport, Tag, Media,
+  User, Post, PostReport, PostView, UserReport, Tag, Media, PostMentionsUserRelation,
 };

@@ -1,10 +1,11 @@
+/* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
 'use strict';
 
 
 import express from 'express';
 import {
-  User, Post, PostReport, PostView, Tag, Media,
+  User, Post, PostReport, PostView, Tag, Media, PostMentionsUserRelation,
 } from './models';
 
 const Sequelize = require('sequelize');
@@ -39,10 +40,10 @@ const upload = multer({
     if (!(
       req.files &&
       req.files?.length <= 1 &&
-      // eslint-disable-next-line max-len
+
       (req.url === '/uploadMedia' || req.url === '/register' || req.url === '/editProfile') &&
       req.method === 'POST' &&
-      // eslint-disable-next-line max-len
+
       file.originalname.toLowerCase().match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4)$/)
     )
     ) {
@@ -100,7 +101,6 @@ async function checkCaptcha(response: string, ip: string): Promise<boolean> {
 }
 
 function getIp(petition: any): string {
-  // eslint-disable-next-line max-len
   return petition.header('x-forwarded-for') || petition.connection.remoteAddress;
 }
 function authenticateToken(req: any, res: any, next: any) {
@@ -122,7 +122,6 @@ function authenticateToken(req: any, res: any, next: any) {
 
 
 function validateEmail(email: string) {
-  // eslint-disable-next-line max-len
   const res = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return res.test(String(email).toLowerCase());
 }
@@ -133,7 +132,6 @@ function generateRandomString() {
 }
 
 
-// eslint-disable-next-line max-len
 async function sendActivationEmail(email: string, code: string, subject: string, contents: string) {
   // const activateLink = code;
   return await transporter.sendMail({
@@ -205,6 +203,16 @@ function getPostBaseQuery(req: any) {
         model: Tag,
         attributes: ['tagName'],
       },
+      {
+        model: PostMentionsUserRelation,
+        attributes: ['userId'],
+        include: [
+          {
+            model: User,
+            attributes: ['avatar', 'url', 'description'],
+          },
+        ],
+      },
     ],
     order: [['createdAt', 'DESC']],
     limit: 20,
@@ -229,7 +237,7 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
       userId: {[Op.in]: usersFollowed},
       // date the user has started scrolling
       createdAt: {
-        // eslint-disable-next-line max-len
+
         [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
       },
     },
@@ -243,7 +251,7 @@ app.post('/explore', async (req: any, res) => {
     where: {
       // date the user has started scrolling
       createdAt: {
-        // eslint-disable-next-line max-len
+
         [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
       },
     },
@@ -357,11 +365,28 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
     },
     attributes: ['url', 'avatar'],
   });
+  const newMentions = user.getPostMentionsUserRelations({
+    where: {
+      createdAt: {
+        [Op.gt]: new Date(user.lastTimeNotificationsCheck),
+      },
+    },
+    attributes: ['userId'],
+    include: [
+      {
+        model: User,
+        attributes: ['avatar', 'url', 'description'],
+      },
+      {
+        model: Post,
+        attributes: ['userId'],
+      },
+    ],
+  });
   res.send({
-    // eslint-disable-next-line max-len
     follows: (await newFollows).filter((newFollow: any) => blockedUsers.indexOf(newFollow.id) == -1),
-    // eslint-disable-next-line max-len
     reblogs: (await perPostReblogs).filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
+    mentions: (await newMentions).filter((newMention: any) => blockedUsers.indexOf(newMention.post.userId) == -1),
   });
 });
 
@@ -430,7 +455,7 @@ app.post('/blog', async (req: any, res) => {
           userId: blogId,
           // date the user has started scrolling
           createdAt: {
-            // eslint-disable-next-line max-len
+
             [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
           },
         },
@@ -499,7 +524,7 @@ app.post('/search', async (req, res) => {
         where: {
           // date the user has started scrolling
           createdAt: {
-            // eslint-disable-next-line max-len
+
             [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
           },
         },
@@ -624,7 +649,7 @@ app.post('/register', async (req, res) => {
           description: req.body.description.trim(),
           url: req.body.url,
           NSFW: req.body.nsfw === 'true',
-          // eslint-disable-next-line max-len
+
           password: await bcrypt.hash(req.body.password, environment.saltRounds),
           birthDate: new Date(req.body.birthDate),
           avatar: avatarURL,
@@ -814,7 +839,6 @@ app.post('/login', async (req, res) => {
         req.body.captchaResponse &&
         await checkCaptcha(req.body.captchaResponse, getIp(req))
     ) {
-      // eslint-disable-next-line max-len
       const userWithEmail = await User.findOne({where: {email: req.body.email}});
       if (userWithEmail) {
         const correctPassword =
@@ -925,11 +949,11 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
 
       // detect media in post
 
-      // eslint-disable-next-line max-len
+
       const wafrnMediaRegex = /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
-      // eslint-disable-next-line max-len
+
       const mentionRegex = /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
-      // eslint-disable-next-line max-len
+
       const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/;
       const mediaInPost = req.body.content.match(wafrnMediaRegex);
       const mentionsInPost = req.body.content.match(mentionRegex);
@@ -952,7 +976,7 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
         const mentionsToAdd: String[] = [];
         mentionsInPost.forEach((elem: string) => {
           const mentionedUserUUID = elem.match(uuidRegex);
-          // eslint-disable-next-line max-len
+
           if (mentionedUserUUID && mentionedUserUUID[0] !== null && mentionsToAdd.indexOf(mentionedUserUUID[0]) == -1) {
             mentionsToAdd.push(mentionedUserUUID[0]);
           }
