@@ -575,36 +575,23 @@ app.post('/search', async (req, res) => {
 app.get('/userSearch/:term', async (req, res) => {
   // const success = false;
   let users: any = [];
-  if (req.body && req.body.term) {
-    const searchTerm = req.params.term.toLowerCase().trim();
-    users = User.findAll({
-      limit: 10,
-      where: {
-        activated: true,
-        [Op.or]: [
-          sequelize.where(
-              sequelize.fn('LOWER', sequelize.col('url')),
-              'LIKE', '%' + searchTerm + '%'),
-        ],
-      },
-      attributes: {
-        exclude: [
-          'password',
-          'birthDate',
-          'email',
-          'lastLoginIp',
-          'registerIp',
-          'activated',
-          'activationCode',
-          'requestedPasswordReset',
-          'updatedAt',
-          'createdAt',
-          'lastTimeNotificationsCheck',
-        ],
-      },
+  const searchTerm = req.params.term.toLowerCase().trim();
+  users = User.findAll({
+    limit: 10,
+    where: {
+      activated: true,
+      [Op.or]: [
+        sequelize.where(
+            sequelize.fn('LOWER', sequelize.col('url')),
+            'LIKE', '%' + searchTerm + '%'),
+      ],
+    },
+    attributes: [
+      'url',
+      'avatar',
+    ],
+  });
 
-    });
-  }
   res.send({
     users: await users,
   });
