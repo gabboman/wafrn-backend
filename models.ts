@@ -9,7 +9,10 @@ const {
 require('sequelize-hierarchy-fork')(Sequelize);
 
 
-const sequelize = new Sequelize(environment.databaseConnectionString);
+const sequelize = new Sequelize(environment.databaseConnectionString,
+    {
+      logging: environment.logSQLQueries ? false: console.log,
+    });
 
 const User = sequelize.define('users', {
   id: {

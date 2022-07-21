@@ -8,6 +8,7 @@
     "admin-id": "",
     "captchaPrivateKey": "", 
     "frontendUrl": "https://app.wafrn.net",
+    "logSQLQueries": false,
     "removeFolderNameFromFileUploads": false,
     "emailConfig": {
         "host": "host",

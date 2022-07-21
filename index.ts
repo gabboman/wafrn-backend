@@ -68,7 +68,7 @@ app.use(cors());
 const sequelize = new Sequelize(
     environment.databaseConnectionString,
     {
-      logging: environment.prod ? false: console.log,
+      logging: environment.logSQLQueries ? false: console.log,
     },
 );
 
@@ -544,6 +544,44 @@ app.post('/search', async (req, res) => {
   await Promise.all(promises);
   res.send({
     users: await users, posts: await posts,
+  });
+});
+
+app.get('/userSearch/:term', async (req, res) => {
+  // const success = false;
+  let users: any = [];
+  if (req.body && req.body.term) {
+    const searchTerm = req.params.term.toLowerCase().trim();
+    users = User.findAll({
+      limit: 10,
+      where: {
+        activated: true,
+        [Op.or]: [
+          sequelize.where(
+              sequelize.fn('LOWER', sequelize.col('url')),
+              'LIKE', '%' + searchTerm + '%'),
+        ],
+      },
+      attributes: {
+        exclude: [
+          'password',
+          'birthDate',
+          'email',
+          'lastLoginIp',
+          'registerIp',
+          'activated',
+          'activationCode',
+          'requestedPasswordReset',
+          'updatedAt',
+          'createdAt',
+          'lastTimeNotificationsCheck',
+        ],
+      },
+
+    });
+  }
+  res.send({
+    users: await users,
   });
 });
 
