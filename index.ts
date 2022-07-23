@@ -380,6 +380,7 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
       createdAt: {
         [Op.gt]: new Date(user.lastTimeNotificationsCheck),
       },
+      userId: userId,
     },
     include: [
       {
