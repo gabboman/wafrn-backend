@@ -375,28 +375,38 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
     },
     attributes: ['url', 'avatar'],
   });
-  const newMentions = user.getPostMentionsUserRelations({
+  const newMentions = PostMentionsUserRelation.findAll({
     where: {
       createdAt: {
         [Op.gt]: new Date(user.lastTimeNotificationsCheck),
       },
     },
-    attributes: ['userId'],
     include: [
       {
-        model: User,
-        attributes: ['avatar', 'url', 'description'],
-      },
-      {
         model: Post,
-        attributes: ['userId'],
+        include: [
+          {
+            model: User,
+            attributes: ['avatar', 'url', 'description', 'id'],
+          },
+        ],
       },
     ],
   });
   res.send({
     follows: (await newFollows).filter((newFollow: any) => blockedUsers.indexOf(newFollow.id) == -1),
     reblogs: (await perPostReblogs).filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
-    mentions: (await newMentions).filter((newMention: any) => blockedUsers.indexOf(newMention.post.userId) == -1),
+    mentions: (await newMentions).filter((newMention: any) => blockedUsers.indexOf(newMention.post.userId) == -1).map(
+        (mention: any) => {
+          return {
+            user: mention.post.user,
+            content: mention.post.content,
+            id: mention.post.id,
+            createdAt: mention.createdAt,
+            parentId: mention.post.parentId,
+          };
+        },
+    ),
   });
 });
 
