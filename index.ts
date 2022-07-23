@@ -189,6 +189,16 @@ function getPostBaseQuery(req: any) {
             model: Tag,
             attributes: ['tagName'],
           },
+          {
+            model: PostMentionsUserRelation,
+            attributes: ['userId'],
+            include: [
+              {
+                model: User,
+                attributes: ['avatar', 'url', 'description'],
+              },
+            ],
+          },
         ],
       },
       {
@@ -577,7 +587,7 @@ app.get('/userSearch/:term', async (req, res) => {
   let users: any = [];
   const searchTerm = req.params.term.toLowerCase().trim();
   users = User.findAll({
-    limit: 10,
+    limit: 5,
     where: {
       activated: true,
       [Op.or]: [
@@ -589,6 +599,7 @@ app.get('/userSearch/:term', async (req, res) => {
     attributes: [
       'url',
       'avatar',
+      'id',
     ],
   });
 
@@ -968,8 +979,12 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
             mentionsToAdd.push(mentionedUserUUID[0]);
           }
         });
-        // TODO add mentions heee heee
-        // post.addMention(mentionsToAdd);
+        mentionsToAdd.forEach((mention) => {
+          PostMentionsUserRelation.create({
+            userId: mention,
+            postId: post.id,
+          });
+        });
       }
 
       if (req.body.parent) {
