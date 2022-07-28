@@ -626,8 +626,8 @@ app.post('/register', async (req, res) => {
     if (
       req.body &&
       req.body.email &&
-      req.files &&
-      req.files.length > 0 &&
+      // req.files &&
+      // req.files.length > 0 &&
       validateEmail(req.body.email) &&
       req.body.captchaResponse &&
       await checkCaptcha(req.body.captchaResponse, getIp(req),
@@ -647,9 +647,12 @@ app.post('/register', async (req, res) => {
         },
       });
       if (!emailExists) {
-        const files: any = req.files;
+        let avatarURL = '/uploads/default.png';
         const activationCode = generateRandomString();
-        let avatarURL = '/' + files[0].path;
+        if (req.files && req.files.length > 0) {
+          const files: any = req.files;
+          avatarURL = '/' + files[0].path;
+        }
         if (environment.removeFolderNameFromFileUploads) {
           avatarURL = avatarURL.slice('/uploads/'.length - 1);
         }
