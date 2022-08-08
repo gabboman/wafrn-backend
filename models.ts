@@ -1,21 +1,14 @@
 /* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
-'use strict';
-
-import { userInfo } from "os";
 
 const environment = require('./environment');
 
-const {
-  Sequelize,
-} = require('sequelize');
+const {Sequelize} = require('sequelize');
 require('sequelize-hierarchy-fork')(Sequelize);
 
-
-const sequelize = new Sequelize(environment.databaseConnectionString,
-    {
-      logging: environment.logSQLQueries ? console.log : false,
-    });
+const sequelize = new Sequelize(environment.databaseConnectionString, {
+  logging: environment.logSQLQueries ? console.log : false,
+});
 
 const User = sequelize.define('users', {
   id: {
@@ -92,7 +85,6 @@ const UserReport = sequelize.define('userReports', {
   resolved: Sequelize.BOOLEAN,
   severity: Sequelize.INTEGER,
   description: Sequelize.TEXT,
-
 });
 
 const PostView = sequelize.define('postViews', {
@@ -171,7 +163,6 @@ Tag.belongsToMany(Post, {
 });
 Post.belongsToMany(Tag, {
   through: 'tagPostRelations',
-
 });
 Media.belongsToMany(Post, {
   through: 'postMediaRelations',
@@ -187,5 +178,12 @@ User.hasMany(PostMentionsUserRelation);
 Post.hasMany(PostMentionsUserRelation);
 
 export {
-  User, Post, PostReport, PostView, UserReport, Tag, Media, PostMentionsUserRelation,
+  User,
+  Post,
+  PostReport,
+  PostView,
+  UserReport,
+  Tag,
+  Media,
+  PostMentionsUserRelation,
 };

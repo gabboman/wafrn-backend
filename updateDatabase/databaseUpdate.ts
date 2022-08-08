@@ -1,16 +1,12 @@
 /* eslint-disable require-jsdoc */
-'use strict';
 const environment = require('../environment');
 
-const {Sequelize} = require('sequelize');// sequelize plugins
+const {Sequelize} = require('sequelize'); // sequelize plugins
 require('sequelize-hierarchy-fork')(Sequelize);
 
-const sequelize = new Sequelize(
-    environment.databaseConnectionString,
-    {
-      logging: !environment.prod,
-    },
-);
+const sequelize = new Sequelize(environment.databaseConnectionString, {
+  logging: !environment.prod,
+});
 
 const queryInterface = sequelize.getQueryInterface();
 // add column
@@ -52,4 +48,3 @@ queryInterface.createTable('postMentionsUserRelations', {
     type: Sequelize.DATE,
   },
 });
-

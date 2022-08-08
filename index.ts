@@ -1,11 +1,15 @@
 /* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
-'use strict';
-
 
 import express from 'express';
 import {
-  User, Post, PostReport, PostView, Tag, Media, PostMentionsUserRelation,
+  User,
+  Post,
+  PostReport,
+  PostView,
+  Tag,
+  Media,
+  PostMentionsUserRelation,
 } from './models';
 
 const Sequelize = require('sequelize');
@@ -37,15 +41,18 @@ const upload = multer({
     fileSize: 10000000, // 10000000 Bytes = 10 MB.
   },
   fileFilter(req, file, cb) {
-    if (!(
-      req.files &&
-      req.files?.length <= 1 &&
-
-      (req.url === '/uploadMedia' || req.url === '/register' || req.url === '/editProfile') &&
-      req.method === 'POST' &&
-
-      file.originalname.toLowerCase().match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4)$/)
-    )
+    if (
+      !(
+        req.files &&
+        req.files?.length <= 1 &&
+        (req.url === '/uploadMedia' ||
+          req.url === '/register' ||
+          req.url === '/editProfile') &&
+        req.method === 'POST' &&
+        file.originalname
+            .toLowerCase()
+            .match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4)$/)
+      )
     ) {
       cb(null, false);
       return cb(new Error('There was an error with the upload'));
@@ -55,9 +62,7 @@ const upload = multer({
 });
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport(
-    environment.emailConfig,
-);
+const transporter = nodemailer.createTransport(environment.emailConfig);
 
 // rest of the code remains same
 const app = express();
@@ -66,17 +71,14 @@ const PORT = environment.port;
 // TODO fix this!
 app.use(upload.any());
 app.use(cors());
-const sequelize = new Sequelize(
-    environment.databaseConnectionString,
-    {
-      logging: environment.logSQLQueries ? console.log : false,
-    },
-);
+const sequelize = new Sequelize(environment.databaseConnectionString, {
+  logging: environment.logSQLQueries ? console.log : false,
+});
 
-
-sequelize.sync({
-  force: environment.forceSync,
-})
+sequelize
+    .sync({
+      force: environment.forceSync,
+    })
     .then(async () => {
       console.log(`Database & tables ready!`);
       if (environment.forceSync) {
@@ -86,10 +88,9 @@ sequelize.sync({
     });
 
 export interface HCaptchaSiteVerifyResponse {
-      success: boolean;
-      'error-codes'?: string[];
-    }
-
+  success: boolean;
+  'error-codes'?: string[];
+}
 
 async function checkCaptcha(response: string, ip: string): Promise<boolean> {
   let res = false;
@@ -101,7 +102,9 @@ async function checkCaptcha(response: string, ip: string): Promise<boolean> {
 }
 
 function getIp(petition: any): string {
-  return petition.header('x-forwarded-for') || petition.connection.remoteAddress;
+  return (
+    petition.header('x-forwarded-for') || petition.connection.remoteAddress
+  );
 }
 function authenticateToken(req: any, res: any, next: any) {
   const authHeader = req.headers['authorization'];
@@ -111,28 +114,36 @@ function authenticateToken(req: any, res: any, next: any) {
 
   jwt.verify(
       token,
-    environment.jwtSecret as string, (err: any, jwtData: any) => {
+    environment.jwtSecret as string,
+    (err: any, jwtData: any) => {
       if (err) return res.sendStatus(403);
 
       req.jwtData = jwtData;
 
       next();
-    });
+    },
+  );
 }
 
-
 function validateEmail(email: string) {
-  const res = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  const res =
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return res.test(String(email).toLowerCase());
 }
 
 function generateRandomString() {
-  return crypto.createHash('sha1').
-      update(Math.random().toString()).digest('hex');
+  return crypto
+      .createHash('sha1')
+      .update(Math.random().toString())
+      .digest('hex');
 }
 
-
-async function sendActivationEmail(email: string, code: string, subject: string, contents: string) {
+async function sendActivationEmail(
+    email: string,
+    code: string,
+    subject: string,
+    contents: string,
+) {
   // const activateLink = code;
   return await transporter.sendMail({
     from: environment.emailConfig.auth.from,
@@ -230,11 +241,13 @@ function getPostBaseQuery(req: any) {
   };
 }
 
-app.get('/', (req, res) => res.send(
-    {
-      status: true,
-      readme: 'welcome to the wafrn api, you better check https://github.com/gabboman/wafrn to figure out where to poke :D',
-    }));
+app.get('/', (req, res) =>
+  res.send({
+    status: true,
+    readme:
+      'welcome to the wafrn api, you better check https://github.com/gabboman/wafrn to figure out where to poke :D',
+  }),
+);
 
 // serve static images
 app.use('/uploads', express.static('uploads'));
@@ -247,8 +260,9 @@ app.post('/dashboard', authenticateToken, async (req: any, res) => {
       userId: {[Op.in]: usersFollowed},
       // date the user has started scrolling
       createdAt: {
-
-        [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
+        [Op.lt]: req.body?.startScroll ?
+          new Date().setTime(req.body.startScroll) :
+          new Date(),
       },
     },
     ...getPostBaseQuery(req),
@@ -261,8 +275,9 @@ app.post('/explore', async (req: any, res) => {
     where: {
       // date the user has started scrolling
       createdAt: {
-
-        [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
+        [Op.lt]: req.body?.startScroll ?
+          new Date().setTime(req.body.startScroll) :
+          new Date(),
       },
     },
     ...getPostBaseQuery(req),
@@ -274,10 +289,10 @@ app.get('/getFollowedUsers', authenticateToken, async (req: any, res) => {
   const followedUsers = getFollowedsIds(req.jwtData.userId);
   const blockedUsers = getBlockedids(req.jwtData.userId);
   await Promise.all([followedUsers, blockedUsers]);
-  res.send( {
+  res.send({
     followedUsers: await followedUsers,
     blockedUsers: await blockedUsers,
-  } );
+  });
 });
 
 app.post('/readNotifications', authenticateToken, async (req: any, res) => {
@@ -299,7 +314,6 @@ app.post('/readNotifications', authenticateToken, async (req: any, res) => {
     success: true,
   });
 });
-
 
 async function getReblogs(user: any) {
   const userId = user.id;
@@ -355,8 +369,7 @@ async function getReblogs(user: any) {
     }
   });
   return result;
-};
-
+}
 
 app.post('/notifications', authenticateToken, async (req: any, res) => {
   const userId = req.jwtData.userId;
@@ -395,10 +408,17 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
     ],
   });
   res.send({
-    follows: (await newFollows).filter((newFollow: any) => blockedUsers.indexOf(newFollow.id) == -1),
-    reblogs: (await perPostReblogs).filter((newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1),
-    mentions: (await newMentions).filter((newMention: any) => blockedUsers.indexOf(newMention.post.userId) == -1).map(
-        (mention: any) => {
+    follows: (await newFollows).filter(
+        (newFollow: any) => blockedUsers.indexOf(newFollow.id) == -1,
+    ),
+    reblogs: (await perPostReblogs).filter(
+        (newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1,
+    ),
+    mentions: (await newMentions)
+        .filter(
+            (newMention: any) => blockedUsers.indexOf(newMention.post.userId) == -1,
+        )
+        .map((mention: any) => {
           return {
             user: mention.post.user,
             content: mention.post.content,
@@ -406,8 +426,7 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
             createdAt: mention.createdAt,
             parentId: mention.post.parentId,
           };
-        },
-    ),
+        }),
   });
 });
 
@@ -423,11 +442,9 @@ app.post('/postDetails', async (req: any, res) => {
       if (post) {
         const totalReblogs = await post.getDescendents();
         res.send({reblogs: totalReblogs.length});
-        PostView.create(
-            {
-              postId: req.body.id,
-            },
-        );
+        PostView.create({
+          postId: req.body.id,
+        });
         success = true;
       }
     }
@@ -462,13 +479,15 @@ app.get('/singlePost/:id', async (req: any, res) => {
 app.post('/blog', async (req: any, res) => {
   let success = false;
   if (req.body && req.body.id) {
-    const blog = await (User.findOne({
+    const blog = await User.findOne({
       where: {
         url: sequelize.where(
             sequelize.fn('LOWER', sequelize.col('url')),
-            'LIKE', req.body.id.toLowerCase()),
+            'LIKE',
+            req.body.id.toLowerCase(),
+        ),
       },
-    }));
+    });
     const blogId = blog?.id;
     if (blogId) {
       const postsByBlog = await Post.findAll({
@@ -476,8 +495,9 @@ app.post('/blog', async (req: any, res) => {
           userId: blogId,
           // date the user has started scrolling
           createdAt: {
-
-            [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
+            [Op.lt]: req.body?.startScroll ?
+              new Date().setTime(req.body.startScroll) :
+              new Date(),
           },
         },
         ...getPostBaseQuery(req),
@@ -495,7 +515,7 @@ app.post('/blog', async (req: any, res) => {
 app.post('/userDetails', async (req, res) => {
   let success = false;
   if (req.body && req.body.id) {
-    const blog = await (User.findOne({
+    const blog = await User.findOne({
       attributes: {
         exclude: [
           'password',
@@ -514,9 +534,11 @@ app.post('/userDetails', async (req, res) => {
       where: {
         url: sequelize.where(
             sequelize.fn('LOWER', sequelize.col('url')),
-            'LIKE', req.body.id.toLowerCase()),
+            'LIKE',
+            req.body.id.toLowerCase(),
+        ),
       },
-    }));
+    });
     success = true;
     res.send(blog);
   }
@@ -545,12 +567,12 @@ app.post('/search', async (req, res) => {
         where: {
           // date the user has started scrolling
           createdAt: {
-
-            [Op.lt]: req.body?.startScroll ? new Date().setTime(req.body.startScroll) : new Date(),
+            [Op.lt]: req.body?.startScroll ?
+              new Date().setTime(req.body.startScroll) :
+              new Date(),
           },
         },
         ...getPostBaseQuery(req),
-
       });
       promises.push(posts);
     }
@@ -562,10 +584,14 @@ app.post('/search', async (req, res) => {
         [Op.or]: [
           sequelize.where(
               sequelize.fn('LOWER', sequelize.col('url')),
-              'LIKE', '%' + searchTerm + '%'),
+              'LIKE',
+              '%' + searchTerm + '%',
+          ),
           sequelize.where(
               sequelize.fn('LOWER', sequelize.col('description')),
-              'LIKE', '%' + searchTerm + '%'),
+              'LIKE',
+              '%' + searchTerm + '%',
+          ),
         ],
       },
       attributes: {
@@ -583,13 +609,13 @@ app.post('/search', async (req, res) => {
           'lastTimeNotificationsCheck',
         ],
       },
-
     });
     promises.push(users);
   }
   await Promise.all(promises);
   res.send({
-    users: await users, posts: await posts,
+    users: await users,
+    posts: await posts,
   });
 });
 
@@ -604,21 +630,18 @@ app.get('/userSearch/:term', async (req, res) => {
       [Op.or]: [
         sequelize.where(
             sequelize.fn('LOWER', sequelize.col('url')),
-            'LIKE', '%' + searchTerm + '%'),
+            'LIKE',
+            '%' + searchTerm + '%',
+        ),
       ],
     },
-    attributes: [
-      'url',
-      'avatar',
-      'id',
-    ],
+    attributes: ['url', 'avatar', 'id'],
   });
 
   res.send({
     users: await users,
   });
 });
-
 
 app.post('/register', async (req, res) => {
   let success = false;
@@ -630,19 +653,18 @@ app.post('/register', async (req, res) => {
       // req.files.length > 0 &&
       validateEmail(req.body.email) &&
       req.body.captchaResponse &&
-      await checkCaptcha(req.body.captchaResponse, getIp(req),
-      )
+      (await checkCaptcha(req.body.captchaResponse, getIp(req)))
     ) {
       const emailExists = await User.findOne({
         where: {
           [Op.or]: [
-
             {email: req.body.email},
 
             sequelize.where(
                 sequelize.fn('LOWER', sequelize.col('url')),
-                'LIKE', '%' + req.body.url.toLowerCase().trim() + '%'),
-
+                'LIKE',
+                '%' + req.body.url.toLowerCase().trim() + '%',
+            ),
           ],
         },
       });
@@ -662,15 +684,16 @@ app.post('/register', async (req, res) => {
           url: req.body.url,
           NSFW: req.body.nsfw === 'true',
 
-          password: await bcrypt.hash(req.body.password, environment.saltRounds),
+          password: await bcrypt.hash(
+              req.body.password,
+              environment.saltRounds,
+          ),
           birthDate: new Date(req.body.birthDate),
           avatar: avatarURL,
           activated: false,
           registerIp: getIp(req),
           lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
           activationCode: activationCode,
-
-
         };
         const userWithEmail = User.create(user);
         if (environment.adminId) {
@@ -684,12 +707,18 @@ app.post('/register', async (req, res) => {
             adminUser.addFollower(userWithEmail);
           }
         }
-        const emailSent = sendActivationEmail(req.body.email, activationCode,
+        const emailSent = sendActivationEmail(
+            req.body.email,
+            activationCode,
             'Welcome to wafrn!',
             '<h1>Welcome to wafrn</h1> To activate your account <a href="' +
-            environment.frontendUrl + '/activate/' +
-            encodeURIComponent(req.body.email) + '/' +
-          activationCode + '">click here!</a>');
+            environment.frontendUrl +
+            '/activate/' +
+            encodeURIComponent(req.body.email) +
+            '/' +
+            activationCode +
+            '">click here!</a>',
+        );
         await Promise.all([userWithEmail, emailSent]);
         success = true;
         res.send({
@@ -746,7 +775,7 @@ app.post('/forgotPassword', async (req, res) => {
       req.body.email &&
       validateEmail(req.body.email) &&
       req.body.captchaResponse &&
-      await checkCaptcha(req.body.captchaResponse, getIp(req))
+      (await checkCaptcha(req.body.captchaResponse, getIp(req)))
     ) {
       const user = await User.findOne({
         where: {
@@ -758,12 +787,17 @@ app.post('/forgotPassword', async (req, res) => {
         user.requestedPasswordReset = new Date();
         user.save();
         // eslint-disable-next-line no-unused-vars
-        const email = await sendActivationEmail(req.body.email, '',
+        const email = await sendActivationEmail(
+            req.body.email,
+            '',
             'So you forgot your wafrn password',
             '<h1>Use this link to reset your password</h1> Click <a href="' +
-          environment.frontendUrl + '/resetPassword/' +
-          encodeURIComponent(req.body.email) + '/' +
-          resetCode + '">here</a> to reset your password',
+            environment.frontendUrl +
+            '/resetPassword/' +
+            encodeURIComponent(req.body.email) +
+            '/' +
+            resetCode +
+            '">here</a> to reset your password',
         );
       }
     }
@@ -820,12 +854,13 @@ app.post('/resetPassword', async (req, res) => {
           email: req.body.email,
           activationCode: req.body.code,
           requestedPasswordReset: {[Op.lt]: resetPasswordDeadline},
-
         },
       });
       if (user) {
-        user.password =
-          await bcrypt.hash(req.body.password, environment.saltRounds);
+        user.password = await bcrypt.hash(
+            req.body.password,
+            environment.saltRounds,
+        );
         user.activated = 1;
         user.requestedPasswordReset = null;
         user.save();
@@ -846,15 +881,19 @@ app.post('/login', async (req, res) => {
   try {
     if (
       req.body &&
-        req.body.email &&
-        req.body.password &&
-        req.body.captchaResponse &&
-        await checkCaptcha(req.body.captchaResponse, getIp(req))
+      req.body.email &&
+      req.body.password &&
+      req.body.captchaResponse &&
+      (await checkCaptcha(req.body.captchaResponse, getIp(req)))
     ) {
-      const userWithEmail = await User.findOne({where: {email: req.body.email}});
+      const userWithEmail = await User.findOne({
+        where: {email: req.body.email},
+      });
       if (userWithEmail) {
-        const correctPassword =
-            await bcrypt.compare(req.body.password, userWithEmail.password);
+        const correctPassword = await bcrypt.compare(
+            req.body.password,
+            userWithEmail.password,
+        );
         if (correctPassword) {
           success = true;
           if (userWithEmail.activated) {
@@ -867,7 +906,9 @@ app.post('/login', async (req, res) => {
                     birthDate: userWithEmail.birthDate,
                     url: userWithEmail.url,
                   },
-                  environment.jwtSecret, {expiresIn: '31536000s'}),
+                  environment.jwtSecret,
+                  {expiresIn: '31536000s'},
+              ),
             });
             userWithEmail.lastLoginIp = getIp(req);
             userWithEmail.save();
@@ -893,7 +934,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-
 app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
   const files: any = req.files;
   const picturesPromise: Array<any> = [];
@@ -903,13 +943,15 @@ app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
       if (environment.removeFolderNameFromFileUploads) {
         fileUrl = fileUrl.slice('/uploads/'.length - 1);
       }
-      picturesPromise.push(Media.create({
-        url: fileUrl,
-        NSFW: req.body.nsfw === 'true',
-        userId: req.jwtData.userId,
-        description: req.body.description,
-        ipUpload: getIp(req),
-      }));
+      picturesPromise.push(
+          Media.create({
+            url: fileUrl,
+            NSFW: req.body.nsfw === 'true',
+            userId: req.jwtData.userId,
+            description: req.body.description,
+            ipUpload: getIp(req),
+          }),
+      );
     });
   }
   const success = await Promise.all(picturesPromise);
@@ -950,7 +992,7 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
     if (
       req.body &&
       req.body.captchaKey &&
-      await checkCaptcha(req.body.captchaKey, getIp(req) )
+      (await checkCaptcha(req.body.captchaKey, getIp(req)))
     ) {
       const content = req.body.content ? req.body.content.trim() : '';
       const post = await Post.create({
@@ -961,12 +1003,14 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
 
       // detect media in post
 
+      const wafrnMediaRegex =
+        /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
 
-      const wafrnMediaRegex = /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
+      const mentionRegex =
+        /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
 
-      const mentionRegex = /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
-
-      const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/;
+      const uuidRegex =
+        /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/;
       const mediaInPost = req.body.content.match(wafrnMediaRegex);
       const mentionsInPost = req.body.content.match(mentionRegex);
       if (mediaInPost) {
@@ -989,7 +1033,11 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
         mentionsInPost.forEach((elem: string) => {
           const mentionedUserUUID = elem.match(uuidRegex);
 
-          if (mentionedUserUUID && mentionedUserUUID[0] !== null && mentionsToAdd.indexOf(mentionedUserUUID[0]) == -1) {
+          if (
+            mentionedUserUUID &&
+            mentionedUserUUID[0] !== null &&
+            mentionsToAdd.indexOf(mentionedUserUUID[0]) == -1
+          ) {
             mentionsToAdd.push(mentionedUserUUID[0]);
           }
         });
@@ -1026,9 +1074,11 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
         }
 
         tagList.forEach((newTag: string) => {
-          newTagPromises.push(Tag.create({
-            tagName: newTag,
-          }));
+          newTagPromises.push(
+              Tag.create({
+                tagName: newTag,
+              }),
+          );
         });
 
         const newTags = await Promise.all(newTagPromises);
@@ -1047,7 +1097,6 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
     res.send({success: false});
   }
 });
-
 
 app.post('/reportPost', authenticateToken, async (req: any, res) => {
   let success = false;
@@ -1126,7 +1175,6 @@ app.post('/unfollow', authenticateToken, async (req: any, res) => {
   });
 });
 
-
 app.post('/block', authenticateToken, async (req: any, res) => {
   let success = false;
   try {
@@ -1149,7 +1197,6 @@ app.post('/block', authenticateToken, async (req: any, res) => {
     success: success,
   });
 });
-
 
 app.post('/unblock', authenticateToken, async (req: any, res) => {
   let success = false;
