@@ -1,4 +1,3 @@
-/* eslint-disable require-jsdoc */
 const environment = require('../environment');
 
 const {Sequelize} = require('sequelize'); // sequelize plugins

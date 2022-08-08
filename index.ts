@@ -1,6 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable require-jsdoc */
-
 import express from 'express';
 import {
   User,
@@ -12,68 +9,31 @@ import {
   PostMentionsUserRelation,
 } from './models';
 
-const Sequelize = require('sequelize');
-
 // operators
 const {Op} = require('sequelize');
 const environment = require('./environment');
-const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-// import bodyParser, {BodyParser} from 'body-parser';
 const cors = require('cors');
-const request = require('request-promise');
-import multer from 'multer';
-const imageStorage = multer.diskStorage({
-  // Destination to store image
-  destination: 'uploads',
-  filename: (req, file, cb) => {
-    const originalNameArray = file.originalname.split('.');
-    const extension = originalNameArray[originalNameArray.length - 1];
-    const randomText = generateRandomString();
-    cb(null, Date.now() + '_' + randomText + '.' + extension.toLowerCase());
-  },
-});
-
-const upload = multer({
-  storage: imageStorage,
-  limits: {
-    fileSize: 10000000, // 10000000 Bytes = 10 MB.
-  },
-  fileFilter(req, file, cb) {
-    if (
-      !(
-        req.files &&
-        req.files?.length <= 1 &&
-        (req.url === '/uploadMedia' ||
-          req.url === '/register' ||
-          req.url === '/editProfile') &&
-        req.method === 'POST' &&
-        file.originalname
-            .toLowerCase()
-            .match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4)$/)
-      )
-    ) {
-      cb(null, false);
-      return cb(new Error('There was an error with the upload'));
-    }
-    cb(null, true);
-  },
-});
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport(environment.emailConfig);
+import sequelize from './db';
+import generateRandomString from './utils/generateRandomString';
+import uploads from './uploads';
+import authenticateToken from './utils/authenticateToken';
+import getFollowedsIds from './utils/getFollowedsIds';
+import getPostBaseQuery from './utils/getPostBaseQuery';
+import getBlockedIds from './utils/getBlockedIds';
+import validateEmail from './utils/validateEmail';
+import checkCaptcha from './utils/checkCaptcha';
+import getIp from './utils/getIP';
+import sendActivationEmail from './utils/sendActivationEmail';
 
 // rest of the code remains same
 const app = express();
 const PORT = environment.port;
 
 // TODO fix this!
-app.use(upload.any());
+app.use(uploads.any());
 app.use(cors());
-const sequelize = new Sequelize(environment.databaseConnectionString, {
-  logging: environment.logSQLQueries ? console.log : false,
-});
 
 sequelize
     .sync({
@@ -86,160 +46,6 @@ sequelize
       // seeder();
       }
     });
-
-export interface HCaptchaSiteVerifyResponse {
-  success: boolean;
-  'error-codes'?: string[];
-}
-
-async function checkCaptcha(response: string, ip: string): Promise<boolean> {
-  let res = false;
-  const secretKey = environment.captchaPrivateKey;
-  const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${response}&remoteip=${ip}`;
-  const googleResponse = await request(url);
-  res = JSON.parse(googleResponse).success;
-  return res;
-}
-
-function getIp(petition: any): string {
-  return (
-    petition.header('x-forwarded-for') || petition.connection.remoteAddress
-  );
-}
-function authenticateToken(req: any, res: any, next: any) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (token == null) return res.sendStatus(401);
-
-  jwt.verify(
-      token,
-    environment.jwtSecret as string,
-    (err: any, jwtData: any) => {
-      if (err) return res.sendStatus(403);
-
-      req.jwtData = jwtData;
-
-      next();
-    },
-  );
-}
-
-function validateEmail(email: string) {
-  const res =
-    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return res.test(String(email).toLowerCase());
-}
-
-function generateRandomString() {
-  return crypto
-      .createHash('sha1')
-      .update(Math.random().toString())
-      .digest('hex');
-}
-
-async function sendActivationEmail(
-    email: string,
-    code: string,
-    subject: string,
-    contents: string,
-) {
-  // const activateLink = code;
-  return await transporter.sendMail({
-    from: environment.emailConfig.auth.from,
-    to: email,
-    subject: subject,
-    html: contents,
-  });
-}
-
-async function getFollowedsIds(userId: string): Promise<string[]> {
-  const usr = await User.findOne({
-    where: {
-      id: userId,
-    },
-    attributes: ['id'],
-  });
-  const followed = await usr.getFollowed();
-  const result = followed.map((followed: any) => followed.id);
-  result.push(userId);
-  return result;
-}
-
-async function getBlockedids(userId: string): Promise<string[]> {
-  const usr = await User.findOne({
-    where: {
-      id: userId,
-    },
-    attributes: ['id'],
-  });
-  const blocked = usr.getBlocked();
-  const blockedBy = usr.getBlocker();
-  await Promise.all([blocked, blockedBy]);
-  let result = (await blocked).map((blocked: any) => blocked.id);
-  result = result.concat((await blockedBy).map((blocker: any) => blocker.id));
-  return result.filter((elem: string) => elem != userId);
-}
-
-function getPostBaseQuery(req: any) {
-  return {
-    include: [
-      {
-        model: Post,
-        as: 'ancestors',
-        include: [
-          {
-            model: User,
-            attributes: ['avatar', 'url', 'description'],
-          },
-          {
-            model: Media,
-            attributes: ['id', 'NSFW', 'description', 'url'],
-          },
-          {
-            model: Tag,
-            attributes: ['tagName'],
-          },
-          {
-            model: PostMentionsUserRelation,
-            attributes: ['userId'],
-            include: [
-              {
-                model: User,
-                attributes: ['avatar', 'url', 'description'],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        model: User,
-        attributes: ['avatar', 'url', 'description'],
-      },
-      {
-        model: Media,
-        attributes: ['id', 'NSFW', 'description', 'url'],
-      },
-      {
-        model: Tag,
-        attributes: ['tagName'],
-      },
-      {
-        model: PostMentionsUserRelation,
-        attributes: ['userId'],
-        include: [
-          {
-            model: User,
-            attributes: ['avatar', 'url', 'description'],
-          },
-        ],
-      },
-    ],
-    order: [['createdAt', 'DESC']],
-    limit: 20,
-    offset: req.body?.page ? req.body.page * 20 : 0,
-  };
-}
 
 app.get('/', (req, res) =>
   res.send({
@@ -287,7 +93,7 @@ app.post('/explore', async (req: any, res) => {
 
 app.get('/getFollowedUsers', authenticateToken, async (req: any, res) => {
   const followedUsers = getFollowedsIds(req.jwtData.userId);
-  const blockedUsers = getBlockedids(req.jwtData.userId);
+  const blockedUsers = getBlockedIds(req.jwtData.userId);
   await Promise.all([followedUsers, blockedUsers]);
   res.send({
     followedUsers: await followedUsers,
@@ -378,7 +184,7 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
       id: userId,
     },
   });
-  const blockedUsers = await getBlockedids(userId);
+  const blockedUsers = await getBlockedIds(userId);
   const perPostReblogs = getReblogs(user);
   const newFollows = user.getFollower({
     where: {
@@ -415,9 +221,9 @@ app.post('/notifications', authenticateToken, async (req: any, res) => {
         (newReblog: any) => blockedUsers.indexOf(newReblog.user.id) == -1,
     ),
     mentions: (await newMentions)
-        .filter(
-            (newMention: any) => blockedUsers.indexOf(newMention.post.userId) == -1,
-        )
+        .filter((newMention: any) => {
+          return blockedUsers.indexOf(newMention.post.userId) == -1;
+        })
         .map((mention: any) => {
           return {
             user: mention.post.user,
@@ -1001,16 +807,17 @@ app.post('/createPost', authenticateToken, async (req: any, res) => {
         userId: posterId,
       });
 
-      // detect media in post
+      // detect media in posts using regexes
 
-      const wafrnMediaRegex =
-        /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
+      // eslint-disable-next-line max-len
+      const wafrnMediaRegex = /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
 
-      const mentionRegex =
-        /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
+      // eslint-disable-next-line max-len
+      const mentionRegex = /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm;
 
-      const uuidRegex =
-        /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/;
+      // eslint-disable-next-line max-len
+      const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/;
+
       const mediaInPost = req.body.content.match(wafrnMediaRegex);
       const mentionsInPost = req.body.content.match(mentionRegex);
       if (mediaInPost) {

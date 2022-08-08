@@ -1,14 +1,4 @@
-/* eslint-disable max-len */
-/* eslint-disable require-jsdoc */
-
-const environment = require('./environment');
-
-const {Sequelize} = require('sequelize');
-require('sequelize-hierarchy-fork')(Sequelize);
-
-const sequelize = new Sequelize(environment.databaseConnectionString, {
-  logging: environment.logSQLQueries ? console.log : false,
-});
+import sequelize from './db';
 
 const User = sequelize.define('users', {
   id: {
