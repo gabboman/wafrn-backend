@@ -19,9 +19,14 @@ import mediaRoutes from './routes/media';
 import postsRoutes from './routes/posts';
 import searchRoutes from './routes/search';
 
+const swagger = require('swagger-ui-express');
+const swaggerJSON = require('./swagger.json');
+
 // rest of the code remains same
 const app = express();
 const PORT = environment.port;
+
+app.use('/apidocs', swagger.serve, swagger.setup(swaggerJSON));
 
 // TODO fix this!
 app.use(uploads.any());
