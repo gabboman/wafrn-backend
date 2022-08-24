@@ -2,6 +2,7 @@ import {Application} from 'express';
 import {Media} from '../models';
 import authenticateToken from '../utils/authenticateToken';
 import getIp from '../utils/getIP';
+const environment = require('../environment');
 
 export default function mediaRoutes(app: Application) {
   app.post('/uploadMedia', authenticateToken, async (req: any, res) => {

@@ -1,5 +1,7 @@
 const nodemailer = require('nodemailer');
+const environment = require('../environment');
 const transporter = nodemailer.createTransport(environment.emailConfig);
+
 
 export default async function sendActivationEmail(
     email: string,

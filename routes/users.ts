@@ -9,6 +9,10 @@ import sendActivationEmail from '../utils/sendActivationEmail';
 import validateEmail from '../utils/validateEmail';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import sequelize from '../db';
+const environment = require('../environment');
+
+
 
 export default function userRoutes(app: Application) {
   app.post('/register', async (req, res) => {

@@ -12,6 +12,7 @@ import authenticateToken from '../utils/authenticateToken';
 import checkCaptcha from '../utils/checkCaptcha';
 import getIp from '../utils/getIP';
 import getPostBaseQuery from '../utils/getPostBaseQuery';
+import sequelize from '../db';
 
 export default function postsRoutes(app: Application) {
   app.post('/postDetails', async (req: any, res) => {

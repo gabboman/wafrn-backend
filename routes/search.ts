@@ -2,6 +2,7 @@ import {Application} from 'express';
 import {Op} from 'sequelize';
 import {Tag, User} from '../models';
 import getPostBaseQuery from '../utils/getPostBaseQuery';
+import sequelize from '../db';
 
 export default function searchRoutes(app: Application) {
   app.post('/search', async (req, res) => {

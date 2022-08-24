@@ -1,4 +1,5 @@
 const request = require('request-promise');
+const environment = require('../environment');
 
 export interface HCaptchaSiteVerifyResponse {
   success: boolean;

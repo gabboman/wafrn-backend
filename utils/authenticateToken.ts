@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 import {Request, Response, NextFunction} from 'express';
+const environment = require('../environment');
 
 export default function authenticateToken(
     req: Request,
