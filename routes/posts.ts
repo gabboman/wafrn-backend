@@ -177,26 +177,21 @@ export default function postsRoutes(app: Application) {
               },
             },
           });
-
-          const newTagPromises: Array<Promise<any>> = [];
-          if (existingTags) {
-            existingTags.forEach((existingTag: any) => {
-              existingTag.addPost(post);
-              tagList.splice(tagList.indexOf(existingTag.tagName), 1);
-            });
-          }
-
-          tagList.forEach((newTag: string) => {
-            newTagPromises.push(
-                Tag.create({
-                  tagName: newTag,
-                }),
-            );
-          });
-
-          const newTags = await Promise.all(newTagPromises);
-          newTags.forEach((newTag) => {
-            newTag.addPost(post);
+          // eslint-disable-next-line max-len
+          const existingTagsString = existingTags.map((tag: any) => tag.tagName);
+          tagList.forEach(async (tag: string) => {
+            const existingTagIndex = existingTagsString.indexOf(tag);
+            if (existingTagIndex === -1 ) {
+              // new tag, so we create the tag and then relationship
+              const newTag = await Tag.create({
+                tagName: tag,
+              });
+              await newTag.addPost(post);
+            } else {
+              // eslint-disable-next-line max-len
+              // existing tag! so we just get the index and associate to the post
+              await existingTags[existingTagIndex].addPost(post);
+            }
           });
           success = true;
         }
