@@ -176,6 +176,7 @@ export default function postsRoutes(app: Application) {
                 [Op.in]: tagList,
               },
             },
+            group: ['tagName'],
           });
           // eslint-disable-next-line max-len
           const existingTagsString = existingTags.map((tag: any) => tag.tagName);
