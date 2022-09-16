@@ -1,19 +1,32 @@
-import {Application} from 'express';
-import {Media} from '../models';
+/* eslint-disable max-len */
+import {
+  Application,
+} from 'express';
+import {
+  Media,
+} from '../models';
 import authenticateToken from '../utils/authenticateToken';
 import getIp from '../utils/getIP';
+import optimizeMedia from '../utils/optimizeMedia';
 const environment = require('../environment');
 
 export default function mediaRoutes(app: Application) {
   app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
     const files: any = req.files;
-    const picturesPromise: Array<any> = [];
+    const picturesPromise: Array < any > = [];
     if (files && files.length > 0) {
-      files.forEach((file: any) => {
+      for (const file of files) {
         let fileUrl = '/' + file.path;
+        const originalNameArray = fileUrl.split('.');
+        const extension = originalNameArray[originalNameArray.length - 1].toLowerCase();
+        const formatsToNotConvert = ['webp', 'mp4'];
+        if ( formatsToNotConvert.indexOf(extension) == -1) {
+          fileUrl = '/' + await optimizeMedia(file.path);
+        }
         if (environment.removeFolderNameFromFileUploads) {
           fileUrl = fileUrl.slice('/uploads/'.length - 1);
         }
+
         picturesPromise.push(
             Media.create({
               url: fileUrl,
@@ -23,7 +36,7 @@ export default function mediaRoutes(app: Application) {
               ipUpload: getIp(req),
             }),
         );
-      });
+      }
     }
     const success = await Promise.all(picturesPromise);
     res.send(success);
