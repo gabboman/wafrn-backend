@@ -122,7 +122,7 @@ export default function userRoutes(app: Application) {
           user.description = req.body.description;
         }
         if (req.files?.length > 0) {
-          let avatarURL = '/' + req.files[0].path;
+          let avatarURL ='/' + await optimizeMedia(req.files[0].path);
           if (environment.removeFolderNameFromFileUploads) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1);
             user.avatar = avatarURL;
