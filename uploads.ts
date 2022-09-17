@@ -28,7 +28,7 @@ const uploadHandler = multer({
         req.method === 'POST' &&
         file.originalname
             .toLowerCase()
-            .match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4)$/)
+            .match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm)$/)
       )
     ) {
       cb(null, false);

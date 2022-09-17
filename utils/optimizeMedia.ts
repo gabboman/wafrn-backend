@@ -1,13 +1,13 @@
 /* eslint-disable max-len */
-const webp = require('webp-converter');
-//import VideoConverter from 'convert-video'
 const fs = require('fs');
+const webp = require('webp-converter');
+const FfmpegCommand = require('fluent-ffmpeg');
 
 export default function optimizeMedia(inputPath: string): string {
   const fileAndExtension = inputPath.split('.');
   const originalExtension = fileAndExtension[1].toLowerCase();
   fileAndExtension[1] = 'webp';
-  const outputPath = fileAndExtension.join('.');
+  let outputPath = fileAndExtension.join('.');
   switch (originalExtension) {
     case 'gif':
       webp.gwebp(inputPath, outputPath, '-q 85').then(()=> {
@@ -15,7 +15,18 @@ export default function optimizeMedia(inputPath: string): string {
       });
       break;
     case 'webm': case 'mov':
-      // VideoConverter.convert(inputPath, 'mp4');
+      fileAndExtension[1] = 'mp4';
+      outputPath = fileAndExtension.join('.');
+      // eslint-disable-next-line no-unused-vars
+      const command = new FfmpegCommand(inputPath)
+          .inputOptions('-t 420')
+          .videoCodec('libx264')
+          .audioCodec('libmp3lame')
+          .save(outputPath)
+          .on('end', () => {
+            fs.unlinkSync(inputPath, ()=> {});
+          });
+      break;
     default:
       webp.cwebp(inputPath, outputPath, '-q 90').then(()=> {
         fs.unlinkSync(inputPath, ()=> {});
