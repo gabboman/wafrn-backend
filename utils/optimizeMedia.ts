@@ -9,6 +9,8 @@ export default function optimizeMedia(inputPath: string): string {
   fileAndExtension[1] = 'webp';
   let outputPath = fileAndExtension.join('.');
   switch (originalExtension) {
+    case 'webp':
+      break;
     case 'gif':
       webp.gwebp(inputPath, outputPath, '-q 85').then(()=> {
         fs.unlinkSync(inputPath, ()=> {});
