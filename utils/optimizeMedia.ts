@@ -24,12 +24,24 @@ export default function optimizeMedia(inputPath: string): string {
           .audioCodec('libmp3lame')
           .save(outputPath)
           .on('end', () => {
-            fs.unlinkSync(inputPath, ()=> {});
+            try {
+              fs.unlinkSync(inputPath, ()=> {});
+            } catch (exc) {
+              console.warn(exc);
+            }
           });
+      break;
+    case 'mp4':
+      fileAndExtension[1] = 'mp4';
+      outputPath = fileAndExtension.join('.');
       break;
     default:
       webp.cwebp(inputPath, outputPath, '-q 90').then(()=> {
-        fs.unlinkSync(inputPath, ()=> {});
+        try {
+          fs.unlinkSync(inputPath, ()=> {});
+        } catch (exc) {
+          console.warn(exc);
+        }
       });
   }
   return outputPath;
