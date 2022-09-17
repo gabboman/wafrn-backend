@@ -10,6 +10,7 @@ import validateEmail from '../utils/validateEmail';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import sequelize from '../db';
+import optimizeMedia from '../utils/optimizeMedia';
 const environment = require('../environment');
 
 
@@ -45,7 +46,7 @@ export default function userRoutes(app: Application) {
           const activationCode = generateRandomString();
           if (req.files && req.files.length > 0) {
             const files: any = req.files;
-            avatarURL = '/' + files[0].path;
+            avatarURL = '/' + await optimizeMedia(files[0].path);
           }
           if (environment.removeFolderNameFromFileUploads) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1);
