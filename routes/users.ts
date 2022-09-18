@@ -42,7 +42,7 @@ export default function userRoutes(app: Application) {
           },
         });
         if (!emailExists) {
-          let avatarURL = '/uploads/default.png';
+          let avatarURL = '/uploads/default.webp';
           const activationCode = generateRandomString();
           if (req.files && req.files.length > 0) {
             const files: any = req.files;
