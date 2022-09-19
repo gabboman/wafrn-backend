@@ -23,7 +23,7 @@ export default function optimizeMedia(inputPath: string): string {
       const command = new FfmpegCommand(inputPath)
           .inputOptions('-t 420')
           .videoCodec('libx264')
-          .audioCodec('libmp3lame')
+          .audioCodec('libfaac')
           .save(outputPath)
           .on('end', () => {
             try {
