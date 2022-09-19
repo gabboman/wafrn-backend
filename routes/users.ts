@@ -14,7 +14,6 @@ import optimizeMedia from '../utils/optimizeMedia';
 const environment = require('../environment');
 
 
-
 export default function userRoutes(app: Application) {
   app.post('/register', async (req, res) => {
     let success = false;
@@ -31,7 +30,7 @@ export default function userRoutes(app: Application) {
         const emailExists = await User.findOne({
           where: {
             [Op.or]: [
-              {email: req.body.email},
+              {email: req.body.email.toLowerCase()},
 
               sequelize.where(
                   sequelize.fn('LOWER', sequelize.col('url')),
@@ -52,7 +51,7 @@ export default function userRoutes(app: Application) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1);
           }
           const user = {
-            email: req.body.email,
+            email: req.body.email.toLowerCase(),
             description: req.body.description.trim(),
             url: req.body.url,
             NSFW: req.body.nsfw === 'true',
@@ -81,13 +80,13 @@ export default function userRoutes(app: Application) {
             }
           }
           const emailSent = sendActivationEmail(
-              req.body.email,
+              req.body.email.toLowerCase(),
               activationCode,
               'Welcome to wafrn!',
               '<h1>Welcome to wafrn</h1> To activate your account <a href="' +
               environment.frontendUrl +
               '/activate/' +
-              encodeURIComponent(req.body.email) +
+              encodeURIComponent(req.body.email.toLowerCase()) +
               '/' +
               activationCode +
               '">click here!</a>',
@@ -152,7 +151,7 @@ export default function userRoutes(app: Application) {
       ) {
         const user = await User.findOne({
           where: {
-            email: req.body.email,
+            email: req.body.email.toLowerCase(),
           },
         });
         if (user) {
@@ -161,13 +160,13 @@ export default function userRoutes(app: Application) {
           user.save();
           // eslint-disable-next-line no-unused-vars
           const email = await sendActivationEmail(
-              req.body.email,
+              req.body.email.toLowerCase(),
               '',
               'So you forgot your wafrn password',
               '<h1>Use this link to reset your password</h1> Click <a href="' +
               environment.frontendUrl +
               '/resetPassword/' +
-              encodeURIComponent(req.body.email) +
+              encodeURIComponent(req.body.email.toLowerCase()) +
               '/' +
               resetCode +
               '">here</a> to reset your password',
@@ -191,7 +190,7 @@ export default function userRoutes(app: Application) {
     ) {
       const user = await User.findOne({
         where: {
-          email: req.body.email,
+          email: req.body.email.toLowerCase(),
           activationCode: req.body.code,
         },
       });
@@ -224,7 +223,7 @@ export default function userRoutes(app: Application) {
         );
         const user = await User.findOne({
           where: {
-            email: req.body.email,
+            email: req.body.email.toLowerCase(),
             activationCode: req.body.code,
             requestedPasswordReset: {[Op.lt]: resetPasswordDeadline},
           },
@@ -260,7 +259,7 @@ export default function userRoutes(app: Application) {
         (await checkCaptcha(req.body.captchaResponse, getIp(req)))
       ) {
         const userWithEmail = await User.findOne({
-          where: {email: req.body.email},
+          where: {email: req.body.email.toLowerCase()},
         });
         if (userWithEmail) {
           const correctPassword = await bcrypt.compare(
@@ -275,7 +274,7 @@ export default function userRoutes(app: Application) {
                 token: jwt.sign(
                     {
                       userId: userWithEmail.id,
-                      email: userWithEmail.email,
+                      email: userWithEmail.email.toLowerCase(),
                       birthDate: userWithEmail.birthDate,
                       url: userWithEmail.url,
                     },
