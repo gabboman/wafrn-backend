@@ -10,6 +10,7 @@
     "frontendUrl": "https://app.wafrn.net",
     "logSQLQueries": false,
     "removeFolderNameFromFileUploads": false,
+    "uploadLimit": "50",
     "emailConfig": {
         "host": "host",
         "port": 25,

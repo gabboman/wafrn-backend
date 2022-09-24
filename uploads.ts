@@ -15,7 +15,7 @@ const imageStorage = multer.diskStorage({
 const uploadHandler = multer({
   storage: imageStorage,
   limits: {
-    fileSize: 15 * 1024 * 1024, // 15 MB.
+    fileSize: environment.uploadSize * 1024 * 1024, // 15 MB.
   },
   fileFilter(req, file, cb) {
     if (
