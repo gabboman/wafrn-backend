@@ -1,5 +1,6 @@
 import multer from 'multer';
 import generateRandomString from './utils/generateRandomString';
+const environment = require('./environment');
 
 const imageStorage = multer.diskStorage({
   // Destination to store image
