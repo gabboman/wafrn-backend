@@ -23,7 +23,7 @@ export default function optimizeMedia(inputPath: string): string {
       outputPath = fileAndExtension.join('.');
       // eslint-disable-next-line no-unused-vars
       const command = new FfmpegCommand(inputPath)
-          .inputOptions('-t 420')
+          // .inputOptions('-t 420') // no need to limit to 7 minutes. hopefully
           .videoCodec('libx264')
           .audioCodec('aac')
           .save(outputPath)
