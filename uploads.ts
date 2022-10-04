@@ -22,14 +22,13 @@ const uploadHandler = multer({
     if (
       !(
         req.files &&
-        req.files?.length <= 1 &&
         (req.url === '/uploadMedia' ||
-          req.url === '/register' ||
-          req.url === '/editProfile') &&
+        (req.url === '/register' && req.files?.length <= 1) ||
+        (req.url === '/editProfile' && req.files?.length <= 1)) &&
         req.method === 'POST' &&
         file.originalname
             .toLowerCase()
-            .match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm)$/)
+            .match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv)$/)
       )
     ) {
       cb(null, false);

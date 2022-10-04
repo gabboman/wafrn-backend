@@ -16,7 +16,9 @@ export default function optimizeMedia(inputPath: string): string {
         fs.unlinkSync(inputPath, ()=> {});
       });
       break;
-    case 'webm': case 'mov':
+    case 'mp4':
+      fileAndExtension[0] = fileAndExtension[0] + '_processed';
+    case 'webm': case 'mov': case 'mkv':
       fileAndExtension[1] = 'mp4';
       outputPath = fileAndExtension.join('.');
       // eslint-disable-next-line no-unused-vars
@@ -32,10 +34,6 @@ export default function optimizeMedia(inputPath: string): string {
               console.warn(exc);
             }
           });
-      break;
-    case 'mp4':
-      fileAndExtension[1] = 'mp4';
-      outputPath = fileAndExtension.join('.');
       break;
     default:
       webp.cwebp(inputPath, outputPath, '-q 90').then(()=> {

@@ -28,7 +28,10 @@ const PORT = environment.port;
 
 app.use('/apidocs', swagger.serve, swagger.setup(swaggerJSON));
 
-// TODO fix this!
+// TODO: FIX THIS THING FOR THE LOVE OF GOD
+// SERIOUSLY WE SHOULD ONLY ACCEPT FILES IN THE APPROPIATE ROUTES
+// we should do that HERE and not in the multer as we are doing
+// because that thing is growing in complexity like  A LOT
 app.use(uploads.any());
 app.use(cors());
 

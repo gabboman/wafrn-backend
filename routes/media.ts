@@ -19,7 +19,7 @@ export default function mediaRoutes(app: Application) {
         let fileUrl = '/' + file.path;
         const originalNameArray = fileUrl.split('.');
         const extension = originalNameArray[originalNameArray.length - 1].toLowerCase();
-        const formatsToNotConvert = ['webp', 'mp4'];
+        const formatsToNotConvert = ['webp'];
         if ( formatsToNotConvert.indexOf(extension) == -1) {
           fileUrl = '/' + await optimizeMedia(file.path);
         }
