@@ -2,7 +2,7 @@
 const fs = require('fs');
 const webp = require('webp-converter');
 const FfmpegCommand = require('fluent-ffmpeg');
-
+const gm = require('gm');
 export default function optimizeMedia(inputPath: string): string {
   const fileAndExtension = inputPath.split('.');
   const originalExtension = fileAndExtension[1].toLowerCase();
@@ -36,13 +36,20 @@ export default function optimizeMedia(inputPath: string): string {
           });
       break;
     default:
-      webp.cwebp(inputPath, outputPath, '-q 90').then(()=> {
-        try {
-          fs.unlinkSync(inputPath, ()=> {});
-        } catch (exc) {
-          console.warn(exc);
-        }
-      });
+      gm(inputPath)
+          .autoOrient()
+          .quality(90)
+          .write(outputPath, (err: any) => {
+            if (!err) {
+              try {
+                fs.unlinkSync(inputPath, ()=> {});
+              } catch (exc) {
+                console.warn(exc);
+              }
+            } else {
+              console.log(err);
+            }
+          });
   }
   return outputPath;
 }
