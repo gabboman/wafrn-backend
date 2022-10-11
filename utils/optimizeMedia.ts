@@ -39,6 +39,7 @@ export default function optimizeMedia(inputPath: string): string {
       gm(inputPath)
           .autoOrient()
           .quality(90)
+          .noProfile()
           .write(outputPath, (err: any) => {
             if (!err) {
               try {
