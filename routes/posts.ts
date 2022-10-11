@@ -181,7 +181,6 @@ export default function postsRoutes(app: Application) {
           // eslint-disable-next-line max-len
           const existingTagsString = existingTags.map((tag: any) => tag.tagName);
           for (const tag of tagList) {
-            console.log(tag);
             const existingTagIndex = existingTagsString.indexOf(tag);
             if (existingTagIndex === -1 ) {
               // new tag, so we create the tag and then relationship
