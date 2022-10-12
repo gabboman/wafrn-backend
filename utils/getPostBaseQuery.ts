@@ -13,7 +13,7 @@ export default function getPostBaseQuery(req: any) {
           },
           {
             model: Media,
-            attributes: ['id', 'NSFW', 'description', 'url'],
+            attributes: ['id', 'NSFW', 'description', 'url', 'adultContent'],
           },
           {
             model: Tag,
@@ -37,7 +37,7 @@ export default function getPostBaseQuery(req: any) {
       },
       {
         model: Media,
-        attributes: ['id', 'NSFW', 'description', 'url'],
+        attributes: ['id', 'NSFW', 'description', 'url', 'adultContent'],
       },
       {
         model: Tag,
