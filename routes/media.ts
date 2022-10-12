@@ -30,10 +30,12 @@ export default function mediaRoutes(app: Application) {
         picturesPromise.push(
             Media.create({
               url: fileUrl,
-              NSFW: req.body.nsfw === 'true',
+              // if its marked as adult content it must be NSFW
+              NSFW: req.body.adultContent == 'true' ? true: req.body.nsfw === 'true',
               userId: req.jwtData.userId,
               description: req.body.description,
               ipUpload: getIp(req),
+              adultContent: req.body.adultContent == 'true',
             }),
         );
       }

@@ -9,18 +9,19 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
 
 const queryInterface = sequelize.getQueryInterface();
 // add column
-/*
+
 queryInterface.addColumn(
-    'users',
-    'lastTimeNotificationsCheck', {
-      type: Sequelize.DATE,
+    'medias',
+    'adultContent', {
+      type: Sequelize.BOOLEAN,
       allowNull: false,
-      defaultValue: '1970-01-01 00:00:00',
+      defaultValue: false,
     },
 );
-*/
+
 
 // Add new table
+/*
 queryInterface.createTable('postMentionsUserRelations', {
   userId: {
     type: Sequelize.UUID,
@@ -47,3 +48,5 @@ queryInterface.createTable('postMentionsUserRelations', {
     type: Sequelize.DATE,
   },
 });
+*/
+
