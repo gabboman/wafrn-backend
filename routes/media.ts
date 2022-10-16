@@ -31,7 +31,7 @@ export default function mediaRoutes(app: Application) {
             Media.create({
               url: fileUrl,
               // if its marked as adult content it must be NSFW
-              NSFW: req.body.adultContent == 'true' ? true: req.body.nsfw === 'true',
+              NSFW: req.body.adultContent == 'true' ? true : req.body.nsfw === 'true',
               userId: req.jwtData.userId,
               description: req.body.description,
               ipUpload: getIp(req),
@@ -56,8 +56,8 @@ export default function mediaRoutes(app: Application) {
           },
         });
         if (mediaToUpdate) {
-          mediaToUpdate.NSFW = req.body.adultContent? true : req.body.nsfw;
-          mediaToUpdate.adultContent = req.body.adultContent;
+          mediaToUpdate.NSFW = req.body.adultContent == 'true' ? true : req.body.nsfw === 'true';
+          mediaToUpdate.adultContent = req.body.adultContent == 'true';
           mediaToUpdate.description = req.body.description;
           await mediaToUpdate.save();
           success = true;
