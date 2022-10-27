@@ -15,20 +15,20 @@ import getPostBaseQuery from '../utils/getPostBaseQuery';
 import sequelize from '../db';
 
 export default function postsRoutes(app: Application) {
-  app.post('/postDetails', async (req: any, res) => {
+  app.get('/postDetails/:id', async (req: any, res) => {
     let success = false;
     try {
-      if (req.body && req.body.id) {
+      if (req.params && req.params.id) {
         const post = await Post.findOne({
           where: {
-            id: req.body.id,
+            id: req.params.id,
           },
         });
         if (post) {
           const totalReblogs = await post.getDescendents();
           res.send({reblogs: totalReblogs.length});
           PostView.create({
-            postId: req.body.id,
+            postId: req.params.id,
           });
           success = true;
         }
