@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
 const fs = require('fs');
-const webp = require('webp-converter');
 const FfmpegCommand = require('fluent-ffmpeg');
 const gm = require('gm');
 export default function optimizeMedia(inputPath: string): string {
@@ -12,9 +11,17 @@ export default function optimizeMedia(inputPath: string): string {
     case 'webp':
       break;
     case 'gif':
-      webp.gwebp(inputPath, outputPath, '-q 85').then(()=> {
-        fs.unlinkSync(inputPath, ()=> {});
-      });
+      // eslint-disable-next-line no-unused-vars
+      const gifConversion = new FfmpegCommand(inputPath)
+          .addOption('-loop', '0')
+          .save(outputPath)
+          .on('end', () => {
+            try {
+              fs.unlinkSync(inputPath, ()=> {});
+            } catch (exc) {
+              console.warn(exc);
+            }
+          });
       break;
     case 'mp4':
       fileAndExtension[0] = fileAndExtension[0] + '_processed';
@@ -23,7 +30,6 @@ export default function optimizeMedia(inputPath: string): string {
       outputPath = fileAndExtension.join('.');
       // eslint-disable-next-line no-unused-vars
       const command = new FfmpegCommand(inputPath)
-          // .inputOptions('-t 420') // no need to limit to 7 minutes. hopefully
           .videoCodec('libx264')
           .audioCodec('aac')
           .save(outputPath)
