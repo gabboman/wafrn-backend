@@ -53,7 +53,7 @@ app.get('/', (req, res) =>
     status: true,
     swagger: 'API docs at /apidocs',
     readme:
-      'welcome to the wafrn api, you better check https://github.com/gabboman/wafrn to figure out where to poke :D',
+      'welcome to the wafrn api, you better check https://github.com/gabboman/wafrn-backend and https://github.com/gabboman/wafrn to figure out where to poke :D',
   }),
 );
 
