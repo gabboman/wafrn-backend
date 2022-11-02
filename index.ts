@@ -18,13 +18,14 @@ import blockRoutes from './routes/blocks';
 import mediaRoutes from './routes/media';
 import postsRoutes from './routes/posts';
 import searchRoutes from './routes/search';
+import getStartScrollParam from './utils/getStartScrollParam';
 
 const swagger = require('swagger-ui-express');
 const swaggerJSON = require('./swagger.json');
 
 // rest of the code remains same
 const app = express();
-const PORT = environment.port;
+const PORT = process.env.PORT || environment.port;
 
 app.use('/apidocs', swagger.serve, swagger.setup(swaggerJSON));
 
@@ -50,6 +51,7 @@ sequelize
 app.get('/', (req, res) =>
   res.send({
     status: true,
+    swagger: 'API docs at /apidocs',
     readme:
       'welcome to the wafrn api, you better check https://github.com/gabboman/wafrn to figure out where to poke :D',
   }),
@@ -58,33 +60,25 @@ app.get('/', (req, res) =>
 // serve static images
 app.use('/uploads', express.static('uploads'));
 
-app.post('/dashboard', authenticateToken, async (req: any, res) => {
+app.get('/dashboard', authenticateToken, async (req: any, res) => {
   const posterId = req.jwtData.userId;
   const usersFollowed = await getFollowedsIds(posterId);
   const rawPostsByFollowed = await Post.findAll({
     where: {
-      userId: {[Op.in]: usersFollowed},
       // date the user has started scrolling
-      createdAt: {
-        [Op.lt]: req.body?.startScroll ?
-          new Date().setTime(req.body.startScroll) :
-          new Date(),
-      },
+      createdAt: {[Op.lt]: getStartScrollParam(req)},
+      userId: {[Op.in]: usersFollowed},
     },
     ...getPostBaseQuery(req),
   });
   res.send(rawPostsByFollowed);
 });
 
-app.post('/explore', async (req: any, res) => {
+app.get('/explore', async (req: any, res) => {
   const rawPosts = await Post.findAll({
     where: {
       // date the user has started scrolling
-      createdAt: {
-        [Op.lt]: req.body?.startScroll ?
-          new Date().setTime(req.body.startScroll) :
-          new Date(),
-      },
+      createdAt: {[Op.lt]: getStartScrollParam(req)},
     },
     ...getPostBaseQuery(req),
   });

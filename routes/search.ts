@@ -3,15 +3,18 @@ import {Op} from 'sequelize';
 import {Tag, User} from '../models';
 import getPostBaseQuery from '../utils/getPostBaseQuery';
 import sequelize from '../db';
+import getStartScrollParam from '../utils/getStartScrollParam';
 
 export default function searchRoutes(app: Application) {
-  app.post('/search', async (req, res) => {
+  app.get('/search/:term', async (req, res) => {
     // const success = false;
+    const searchTerm = (req.params.term || '').toLowerCase().trim();
+
     let users: any = [];
     let posts: any = [];
     const promises: Promise<any>[] = [];
-    if (req.body && req.body.term) {
-      const searchTerm = req.body.term.toLowerCase().trim();
+
+    if (searchTerm) {
       // we get the tag if exists then get posts from the tag
       // same way ass dashboard
       const tagSearch = await Tag.findOne({
@@ -19,23 +22,21 @@ export default function searchRoutes(app: Application) {
           tagName: searchTerm,
         },
       });
+
       if (tagSearch) {
         posts = tagSearch.getPosts({
           where: {
             // date the user has started scrolling
-            createdAt: {
-              [Op.lt]: req.body?.startScroll ?
-                new Date().setTime(req.body.startScroll) :
-                new Date(),
-            },
+            createdAt: {[Op.lt]: getStartScrollParam(req)},
           },
           ...getPostBaseQuery(req),
         });
         promises.push(posts);
       }
+
       users = User.findAll({
         limit: 20,
-        offset: req.body?.page ? req.body.page * 20 : 0,
+        offset: (Number(req.query.page || 0)) * 20,
         where: {
           activated: true,
           [Op.or]: [

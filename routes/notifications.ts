@@ -26,7 +26,7 @@ export default function notificationRoutes(app: Application) {
     });
   });
 
-  app.post('/notifications', authenticateToken, async (req: any, res) => {
+  app.get('/notifications', authenticateToken, async (req: any, res) => {
     const userId = req.jwtData.userId;
     const user = await User.findOne({
       where: {
