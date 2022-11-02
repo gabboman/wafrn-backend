@@ -13,6 +13,7 @@ import checkCaptcha from '../utils/checkCaptcha';
 import getIp from '../utils/getIP';
 import getPostBaseQuery from '../utils/getPostBaseQuery';
 import sequelize from '../db';
+import getStartScrollParam from '../utils/getStartScrollParam';
 
 export default function postsRoutes(app: Application) {
   app.get('/postDetails/:id', async (req: any, res) => {
@@ -61,15 +62,17 @@ export default function postsRoutes(app: Application) {
     }
   });
 
-  app.post('/blog', async (req: any, res) => {
+  app.get('/blog', async (req: any, res) => {
     let success = false;
-    if (req.body && req.body.id) {
+    const id = req.query.id;
+
+    if (id) {
       const blog = await User.findOne({
         where: {
           url: sequelize.where(
               sequelize.fn('LOWER', sequelize.col('url')),
               'LIKE',
-              req.body.id.toLowerCase(),
+              id.toLowerCase(),
           ),
         },
       });
@@ -79,11 +82,7 @@ export default function postsRoutes(app: Application) {
           where: {
             userId: blogId,
             // date the user has started scrolling
-            createdAt: {
-              [Op.lt]: req.body?.startScroll ?
-                new Date().setTime(req.body.startScroll) :
-                new Date(),
-            },
+            createdAt: {[Op.lt]: getStartScrollParam(req)},
           },
           ...getPostBaseQuery(req),
         });
