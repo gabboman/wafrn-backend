@@ -1,5 +1,5 @@
 import {Op} from 'sequelize';
-import {Post, User, Media, Tag} from '../models';
+import {Post, User} from '../models';
 
 export default async function getReblogs(user: any) {
   const userId = user.id;
@@ -18,23 +18,11 @@ export default async function getReblogs(user: any) {
             model: User,
             attributes: ['avatar', 'url', 'description', 'id'],
           },
-          {
-            model: Media,
-            attributes: ['id', 'NSFW', 'description', 'url'],
-          },
         ],
       },
       {
         model: User,
         attributes: ['avatar', 'url', 'description'],
-      },
-      {
-        model: Media,
-        attributes: ['id', 'NSFW', 'description', 'url'],
-      },
-      {
-        model: Tag,
-        attributes: ['tagName'],
       },
     ],
     where: {
