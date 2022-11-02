@@ -1,6 +1,10 @@
+import {Request} from 'express';
 import {Media, Post, PostMentionsUserRelation, Tag, User} from '../models';
 
-export default function getPostBaseQuery(req: any) {
+const POSTS_PER_PAGE = 20;
+
+export default function getPostBaseQuery(req: Request) {
+  const page = Number(req.query.page) || 0;
   return {
     include: [
       {
@@ -55,7 +59,7 @@ export default function getPostBaseQuery(req: any) {
       },
     ],
     order: [['createdAt', 'DESC']],
-    limit: 20,
-    offset: req.body?.page ? req.body.page * 20 : 0,
+    limit: POSTS_PER_PAGE,
+    offset: page * POSTS_PER_PAGE,
   };
 }
