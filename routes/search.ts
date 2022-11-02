@@ -6,9 +6,10 @@ import sequelize from '../db';
 import getStartScrollParam from '../utils/getStartScrollParam';
 
 export default function searchRoutes(app: Application) {
-  app.get('/search/:term', async (req, res) => {
+  app.get('/search/', async (req, res) => {
     // const success = false;
-    const searchTerm = (req.params.term || '').toLowerCase().trim();
+    // eslint-disable-next-line max-len
+    const searchTerm: string = (req.query.term || '').toString().toLowerCase().trim();
 
     let users: any = [];
     let posts: any = [];

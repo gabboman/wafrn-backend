@@ -62,9 +62,9 @@ export default function postsRoutes(app: Application) {
     }
   });
 
-  app.get('/blog/:id', async (req: any, res) => {
+  app.get('/blog', async (req: any, res) => {
     let success = false;
-    const id = req.params.id;
+    const id = req.query.id;
 
     if (id) {
       const blog = await User.findOne({
@@ -72,7 +72,7 @@ export default function postsRoutes(app: Application) {
           url: sequelize.where(
               sequelize.fn('LOWER', sequelize.col('url')),
               'LIKE',
-              req.body.id.toLowerCase(),
+              id.toLowerCase(),
           ),
         },
       });
