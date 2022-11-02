@@ -23,51 +23,23 @@
       }
     },
     "/dashboard": {
-      "post": {
+      "get": {
         "description": "",
         "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "startScroll": {
-                    "example": "any"
-                  }
-                }
-              }
-            }
           }
         }
       }
     },
     "/explore": {
-      "post": {
+      "get": {
         "description": "",
         "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "startScroll": {
-                    "example": "any"
-                  }
-                }
-              }
-            }
           }
         }
       }
@@ -198,6 +170,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "adultContent": {
+                    "example": "any"
+                  },
                   "nsfw": {
                     "example": "any"
                   },
@@ -227,6 +202,9 @@
                 "type": "object",
                 "properties": {
                   "id": {
+                    "example": "any"
+                  },
+                  "adultContent": {
                     "example": "any"
                   },
                   "nsfw": {
@@ -268,7 +246,7 @@
       }
     },
     "/notifications": {
-      "post": {
+      "get": {
         "description": "",
         "parameters": [],
         "responses": {
@@ -278,27 +256,22 @@
         }
       }
     },
-    "/postDetails": {
-      "post": {
+    "/postDetails/{id}": {
+      "get": {
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "example": "any"
-                  }
-                }
-              }
-            }
           }
         }
       }
@@ -323,30 +296,22 @@
         }
       }
     },
-    "/blog": {
-      "post": {
+    "/blog/{id}": {
+      "get": {
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "example": "any"
-                  },
-                  "startScroll": {
-                    "example": "any"
-                  }
-                }
-              }
-            }
           }
         }
       }
@@ -419,33 +384,29 @@
         }
       }
     },
-    "/search": {
-      "post": {
+    "/search/{term}": {
+      "get": {
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "term",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "term": {
-                    "example": "any"
-                  },
-                  "startScroll": {
-                    "example": "any"
-                  },
-                  "page": {
-                    "example": "any"
-                  }
-                }
-              }
-            }
           }
         }
       }
