@@ -1,5 +1,5 @@
 import {Application} from 'express';
-import {Post} from '../models';
+import {Post, PostMentionsUserRelation} from '../models';
 import authenticateToken from '../utils/authenticateToken';
 
 export default function deletePost(app: Application) {
@@ -16,12 +16,18 @@ export default function deletePost(app: Application) {
           },
         });
         const children = await postToDelete.getDescendents();
+        postToDelete.removeMedias(await postToDelete.getMedias());
+        postToDelete.removeTags(await postToDelete.getTags());
+        await PostMentionsUserRelation.destroy({
+          where: {
+            postId: postToDelete.id,
+          },
+        });
         if (children.length === 0) {
           await postToDelete.destroy();
           success = true;
         } else {
           postToDelete.content = '<p>This post has been deleted</p>';
-          await postToDelete.save();
           success = true;
         }
 
