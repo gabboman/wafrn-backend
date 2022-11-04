@@ -79,19 +79,6 @@ const UserReport = sequelize.define('userReports', {
   description: Sequelize.TEXT,
 });
 
-const PostView = sequelize.define('postViews', {
-  postId: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    primaryKey: true,
-    references: {
-      model: 'posts',
-      key: 'id',
-    },
-    unique: false,
-  },
-});
-
 const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {
   userId: {
     type: Sequelize.UUID,
@@ -115,7 +102,6 @@ const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {
   },
 });
 
-PostView.belongsTo(Post);
 User.belongsToMany(User, {
   through: 'follows',
   as: 'followed',
@@ -173,7 +159,6 @@ export {
   User,
   Post,
   PostReport,
-  PostView,
   UserReport,
   Tag,
   Media,

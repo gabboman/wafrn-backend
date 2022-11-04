@@ -19,6 +19,7 @@ import mediaRoutes from './routes/media';
 import postsRoutes from './routes/posts';
 import searchRoutes from './routes/search';
 import getStartScrollParam from './utils/getStartScrollParam';
+import deletePost from './routes/deletepost';
 
 const swagger = require('swagger-ui-express');
 const swaggerJSON = require('./swagger.json');
@@ -92,7 +93,8 @@ notificationRoutes(app);
 mediaRoutes(app);
 postsRoutes(app);
 searchRoutes(app);
+deletePost(app);
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
+  console.log(`⚡️Server is running at https://localhost:${PORT}`);
 });

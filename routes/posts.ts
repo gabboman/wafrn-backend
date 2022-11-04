@@ -4,7 +4,6 @@ import {
   Post,
   PostMentionsUserRelation,
   PostReport,
-  PostView,
   Tag,
   User,
 } from '../models';
@@ -28,9 +27,6 @@ export default function postsRoutes(app: Application) {
         if (post) {
           const totalReblogs = await post.getDescendents();
           res.send({reblogs: totalReblogs.length});
-          PostView.create({
-            postId: req.params.id,
-          });
           success = true;
         }
       }
@@ -111,6 +107,9 @@ export default function postsRoutes(app: Application) {
           NSFW: req.body.nsfw === 'true',
           userId: posterId,
         });
+        if (req.body.parent) {
+          post.setParent(req.body.parent);
+        }
 
         // detect media in posts using regexes
 
@@ -159,10 +158,6 @@ export default function postsRoutes(app: Application) {
               postId: post.id,
             });
           });
-        }
-
-        if (req.body.parent) {
-          post.setParent(req.body.parent);
         }
         success = !req.body.tags;
         if (req.body.tags) {
