@@ -28,6 +28,7 @@ export default function deletePost(app: Application) {
           success = true;
         } else {
           postToDelete.content = '<p>This post has been deleted</p>';
+          await postToDelete.save();
           success = true;
         }
 

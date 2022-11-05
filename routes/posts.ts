@@ -101,6 +101,18 @@ export default function postsRoutes(app: Application) {
         req.body.captchaKey &&
         (await checkCaptcha(req.body.captchaKey, getIp(req)))
       ) {
+        if (req.body.parent) {
+          const parent = await Post.findOne({
+            where: {
+              id: req.body.parent,
+            },
+          });
+          if (!parent) {
+            success = false;
+            res.send({success: false, message: 'non existent parent'});
+            return false;
+          }
+        }
         const content = req.body.content ? req.body.content.trim() : '';
         const post = await Post.create({
           content: content,
