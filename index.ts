@@ -20,6 +20,7 @@ import postsRoutes from './routes/posts';
 import searchRoutes from './routes/search';
 import getStartScrollParam from './utils/getStartScrollParam';
 import deletePost from './routes/deletepost';
+import getPosstGroupDetails from './utils/getPostGroupDetails';
 
 const swagger = require('swagger-ui-express');
 const swaggerJSON = require('./swagger.json');
@@ -72,7 +73,8 @@ app.get('/dashboard', authenticateToken, async (req: any, res) => {
     },
     ...getPostBaseQuery(req),
   });
-  res.send(rawPostsByFollowed);
+  const responseWithNotes = await getPosstGroupDetails(rawPostsByFollowed);
+  res.send(responseWithNotes);
 });
 
 app.get('/explore', async (req: any, res) => {
@@ -83,7 +85,8 @@ app.get('/explore', async (req: any, res) => {
     },
     ...getPostBaseQuery(req),
   });
-  res.send(rawPosts);
+  const responseWithNotes = await getPosstGroupDetails(rawPosts);
+  res.send(responseWithNotes);
 });
 
 userRoutes(app);

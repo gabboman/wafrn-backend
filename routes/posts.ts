@@ -15,31 +15,6 @@ import sequelize from '../db';
 import getStartScrollParam from '../utils/getStartScrollParam';
 
 export default function postsRoutes(app: Application) {
-  app.get('/postDetails/:id', async (req: any, res) => {
-    let success = false;
-    try {
-      if (req.params && req.params.id) {
-        const post = await Post.findOne({
-          where: {
-            id: req.params.id,
-          },
-        });
-        if (post) {
-          const totalReblogs = await post.getDescendents();
-          res.send({reblogs: totalReblogs.length});
-          success = true;
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-    if (!success) {
-      res.send({
-        success: false,
-      });
-    }
-  });
-
   app.get('/singlePost/:id', async (req: any, res) => {
     let success = false;
     if (req.params && req.params.id) {

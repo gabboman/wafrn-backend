@@ -4,6 +4,7 @@ import {Tag, User} from '../models';
 import getPostBaseQuery from '../utils/getPostBaseQuery';
 import sequelize from '../db';
 import getStartScrollParam from '../utils/getStartScrollParam';
+import getPosstGroupDetails from '../utils/getPostGroupDetails';
 
 export default function searchRoutes(app: Application) {
   app.get('/search/', async (req, res) => {
@@ -13,6 +14,7 @@ export default function searchRoutes(app: Application) {
 
     let users: any = [];
     let posts: any = [];
+    let responseWithNotes: any = [];
     const promises: Promise<any>[] = [];
 
     if (searchTerm) {
@@ -32,7 +34,8 @@ export default function searchRoutes(app: Application) {
           },
           ...getPostBaseQuery(req),
         });
-        promises.push(posts);
+        responseWithNotes = getPosstGroupDetails(await posts);
+        promises.push(responseWithNotes);
       }
 
       users = User.findAll({
@@ -74,7 +77,7 @@ export default function searchRoutes(app: Application) {
     await Promise.all(promises);
     res.send({
       users: await users,
-      posts: await posts,
+      posts: await responseWithNotes,
     });
   });
 
