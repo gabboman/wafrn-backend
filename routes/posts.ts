@@ -13,6 +13,7 @@ import getIp from '../utils/getIP';
 import getPostBaseQuery from '../utils/getPostBaseQuery';
 import sequelize from '../db';
 import getStartScrollParam from '../utils/getStartScrollParam';
+import getPosstGroupDetails from '../utils/getPostGroupDetails';
 
 export default function postsRoutes(app: Application) {
   app.get('/singlePost/:id', async (req: any, res) => {
@@ -24,7 +25,7 @@ export default function postsRoutes(app: Application) {
         },
         ...getPostBaseQuery(req),
       });
-      res.send(post);
+      res.send(await getPosstGroupDetails([post]));
       success = true;
     }
 
