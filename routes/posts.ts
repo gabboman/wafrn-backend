@@ -25,7 +25,7 @@ export default function postsRoutes(app: Application) {
         },
         ...getPostBaseQuery(req),
       });
-      res.send(await getPosstGroupDetails([post]));
+      res.send((await getPosstGroupDetails([post]))[0]);
       success = true;
     }
 
