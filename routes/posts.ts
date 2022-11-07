@@ -59,7 +59,7 @@ export default function postsRoutes(app: Application) {
           ...getPostBaseQuery(req),
         });
         success = true;
-        res.send(postsByBlog);
+        res.send(await getPosstGroupDetails(postsByBlog));
       }
     }
 
