@@ -4,7 +4,7 @@ import {Op} from 'sequelize';
 
 export default async function getPosstGroupDetails(postGroup: any[]) {
   const getPostFirstParentId = (post: any) => {
-    if (! post.ancestors) {
+    if (! post?.ancestors) {
       return post.id;
     } else {
       let furthestDate = new Date();
