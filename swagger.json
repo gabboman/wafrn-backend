@@ -296,14 +296,13 @@
         }
       }
     },
-    "/blog/{id}": {
+    "/blog": {
       "get": {
         "description": "",
         "parameters": [
           {
             "name": "id",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -384,14 +383,13 @@
         }
       }
     },
-    "/search/{term}": {
+    "/search/": {
       "get": {
         "description": "",
         "parameters": [
           {
             "name": "term",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -617,27 +615,22 @@
         }
       }
     },
-    "/userDetails": {
-      "post": {
+    "/user/{id}": {
+      "get": {
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "example": "any"
-                  }
-                }
-              }
-            }
           }
         }
       }

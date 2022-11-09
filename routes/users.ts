@@ -306,9 +306,9 @@ export default function userRoutes(app: Application) {
     }
   });
 
-  app.post('/userDetails', async (req, res) => {
+  app.get('/user/:id', async (req, res) => {
     let success = false;
-    if (req.body && req.body.id) {
+    if (req.body && req.params.id) {
       const blog = await User.findOne({
         attributes: {
           exclude: [
