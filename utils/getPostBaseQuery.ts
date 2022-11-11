@@ -1,10 +1,10 @@
-import {Request} from 'express';
-import {Media, Post, PostMentionsUserRelation, Tag, User} from '../models';
+import { Request } from 'express'
+import { Media, Post, PostMentionsUserRelation, Tag, User } from '../models'
 
-const POSTS_PER_PAGE = 20;
+const POSTS_PER_PAGE = 20
 
-export default function getPostBaseQuery(req: Request) {
-  const page = Number(req.query.page) || 0;
+export default function getPostBaseQuery (req: Request) {
+  const page = Number(req.query.page) || 0
   return {
     include: [
       {
@@ -13,15 +13,15 @@ export default function getPostBaseQuery(req: Request) {
         include: [
           {
             model: User,
-            attributes: ['avatar', 'url', 'description'],
+            attributes: ['avatar', 'url', 'description']
           },
           {
             model: Media,
-            attributes: ['id', 'NSFW', 'description', 'url', 'adultContent'],
+            attributes: ['id', 'NSFW', 'description', 'url', 'adultContent']
           },
           {
             model: Tag,
-            attributes: ['tagName'],
+            attributes: ['tagName']
           },
           {
             model: PostMentionsUserRelation,
@@ -29,23 +29,23 @@ export default function getPostBaseQuery(req: Request) {
             include: [
               {
                 model: User,
-                attributes: ['avatar', 'url', 'description'],
-              },
-            ],
-          },
-        ],
+                attributes: ['avatar', 'url', 'description']
+              }
+            ]
+          }
+        ]
       },
       {
         model: User,
-        attributes: ['avatar', 'url', 'description'],
+        attributes: ['avatar', 'url', 'description']
       },
       {
         model: Media,
-        attributes: ['id', 'NSFW', 'description', 'url', 'adultContent'],
+        attributes: ['id', 'NSFW', 'description', 'url', 'adultContent']
       },
       {
         model: Tag,
-        attributes: ['tagName'],
+        attributes: ['tagName']
       },
       {
         model: PostMentionsUserRelation,
@@ -53,13 +53,13 @@ export default function getPostBaseQuery(req: Request) {
         include: [
           {
             model: User,
-            attributes: ['avatar', 'url', 'description'],
-          },
-        ],
-      },
+            attributes: ['avatar', 'url', 'description']
+          }
+        ]
+      }
     ],
     order: [['createdAt', 'DESC']],
     limit: POSTS_PER_PAGE,
-    offset: page * POSTS_PER_PAGE,
-  };
+    offset: page * POSTS_PER_PAGE
+  }
 }

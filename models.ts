@@ -1,22 +1,22 @@
-import sequelize from './db';
-const {Sequelize} = require('sequelize');
+import sequelize from './db'
+const { Sequelize } = require('sequelize')
 
 const User = sequelize.define('users', {
   id: {
     type: Sequelize.UUID,
     defaultValue: Sequelize.UUIDV4,
     allowNull: false,
-    primaryKey: true,
+    primaryKey: true
   },
   email: {
     type: Sequelize.STRING,
     allowNull: false,
-    unique: true,
+    unique: true
   },
   description: Sequelize.TEXT,
   url: {
     type: Sequelize.STRING,
-    unique: true,
+    unique: true
   },
   NSFW: Sequelize.BOOLEAN,
   avatar: Sequelize.STRING,
@@ -33,64 +33,51 @@ const User = sequelize.define('users', {
   lastTimeNotificationsCheck: {
     type: Sequelize.DATE,
     allowNull: false,
-    defaultValue: new Date().setTime(0),
-  },
-});
+    defaultValue: new Date().setTime(0)
+  }
+})
 
 const Post = sequelize.define('posts', {
   id: {
     type: Sequelize.UUID,
     defaultValue: Sequelize.UUIDV4,
     allowNull: false,
-    primaryKey: true,
+    primaryKey: true
   },
   NSFW: Sequelize.BOOLEAN,
-  content: Sequelize.TEXT,
-});
+  content: Sequelize.TEXT
+})
 
 const Tag = sequelize.define('tags', {
   // NSFW: Sequelize.BOOLEAN,
-  tagName: Sequelize.TEXT,
-});
+  tagName: Sequelize.TEXT
+})
 
 const Media = sequelize.define('medias', {
   id: {
     type: Sequelize.UUID,
     defaultValue: Sequelize.UUIDV4,
     allowNull: false,
-    primaryKey: true,
+    primaryKey: true
   },
   NSFW: Sequelize.BOOLEAN,
   description: Sequelize.TEXT,
   url: Sequelize.TEXT,
   ipUpload: Sequelize.STRING,
-  adultContent: Sequelize.BOOLEAN,
-});
+  adultContent: Sequelize.BOOLEAN
+})
 
 const PostReport = sequelize.define('postReports', {
   resolved: Sequelize.BOOLEAN,
   severity: Sequelize.INTEGER,
-  description: Sequelize.TEXT,
-});
+  description: Sequelize.TEXT
+})
 
 const UserReport = sequelize.define('userReports', {
   resolved: Sequelize.BOOLEAN,
   severity: Sequelize.INTEGER,
-  description: Sequelize.TEXT,
-});
-
-const PostView = sequelize.define('postViews', {
-  postId: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    primaryKey: true,
-    references: {
-      model: 'posts',
-      key: 'id',
-    },
-    unique: false,
-  },
-});
+  description: Sequelize.TEXT
+})
 
 const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {
   userId: {
@@ -99,9 +86,9 @@ const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {
     primaryKey: true,
     references: {
       model: 'users',
-      key: 'id',
+      key: 'id'
     },
-    unique: false,
+    unique: false
   },
   postId: {
     type: Sequelize.UUID,
@@ -109,73 +96,71 @@ const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {
     primaryKey: true,
     references: {
       model: 'posts',
-      key: 'id',
+      key: 'id'
     },
-    unique: false,
-  },
-});
+    unique: false
+  }
+})
 
-PostView.belongsTo(Post);
 User.belongsToMany(User, {
   through: 'follows',
   as: 'followed',
-  foreignKey: 'followedId',
-});
+  foreignKey: 'followedId'
+})
 
 User.belongsToMany(User, {
   through: 'follows',
   as: 'follower',
-  foreignKey: 'followerId',
-});
+  foreignKey: 'followerId'
+})
 
 User.belongsToMany(User, {
   through: 'blocks',
   as: 'blocker',
-  foreignKey: 'blockerId',
-});
+  foreignKey: 'blockerId'
+})
 
 User.belongsToMany(User, {
   through: 'blocks',
   as: 'blocked',
-  foreignKey: 'blockedId',
-});
+  foreignKey: 'blockedId'
+})
 
-PostReport.belongsTo(User);
-PostReport.belongsTo(Post);
+PostReport.belongsTo(User)
+PostReport.belongsTo(Post)
 
-UserReport.belongsTo(User, {foreignKey: 'ReporterId'});
-UserReport.belongsTo(User, {foreignKey: 'ReportedId'});
+UserReport.belongsTo(User, { foreignKey: 'ReporterId' })
+UserReport.belongsTo(User, { foreignKey: 'ReportedId' })
 
-User.hasMany(Post);
-Post.belongsTo(User);
-Post.isHierarchy();
-Media.belongsTo(User);
+User.hasMany(Post)
+Post.belongsTo(User)
+Post.isHierarchy()
+Media.belongsTo(User)
 Tag.belongsToMany(Post, {
-  through: 'tagPostRelations',
-});
+  through: 'tagPostRelations'
+})
 Post.belongsToMany(Tag, {
-  through: 'tagPostRelations',
-});
+  through: 'tagPostRelations'
+})
 Media.belongsToMany(Post, {
-  through: 'postMediaRelations',
-});
+  through: 'postMediaRelations'
+})
 Post.belongsToMany(Media, {
-  through: 'postMediaRelations',
-});
+  through: 'postMediaRelations'
+})
 
 // mentions
-PostMentionsUserRelation.belongsTo(User);
-PostMentionsUserRelation.belongsTo(Post);
-User.hasMany(PostMentionsUserRelation);
-Post.hasMany(PostMentionsUserRelation);
+PostMentionsUserRelation.belongsTo(User)
+PostMentionsUserRelation.belongsTo(Post)
+User.hasMany(PostMentionsUserRelation)
+Post.hasMany(PostMentionsUserRelation)
 
 export {
   User,
   Post,
   PostReport,
-  PostView,
   UserReport,
   Tag,
   Media,
-  PostMentionsUserRelation,
-};
+  PostMentionsUserRelation
+}

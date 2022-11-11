@@ -1,27 +1,27 @@
-const jwt = require('jsonwebtoken');
-import {Request, Response, NextFunction} from 'express';
-const environment = require('../environment');
+import { Request, Response, NextFunction } from 'express'
+const jwt = require('jsonwebtoken')
+const environment = require('../environment')
 
-export default function authenticateToken(
-    req: Request,
-    res: Response,
-    next: NextFunction,
+export default function authenticateToken (
+  req: Request,
+  res: Response,
+  next: NextFunction
 ) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers.authorization
+  const token = authHeader && authHeader.split(' ')[1]
 
-  if (token == null) return res.sendStatus(401);
+  if (token == null) return res.sendStatus(401)
 
   jwt.verify(
-      token,
-      environment.jwtSecret as string,
-      (err: any, jwtData: any) => {
-        if (err) {
-          return res.sendStatus(403);
-        }
+    token,
+    environment.jwtSecret as string,
+    (err: any, jwtData: any) => {
+      if (err) {
+        return res.sendStatus(403)
+      }
 
-        (req as any).jwtData = jwtData;
-        next();
-      },
-  );
+      (req as any).jwtData = jwtData
+      next()
+    }
+  )
 }
