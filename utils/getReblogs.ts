@@ -1,8 +1,8 @@
-import {Op} from 'sequelize';
-import {Post, User} from '../models';
+import { Op } from 'sequelize'
+import { Post, User } from '../models'
 
-export default async function getReblogs(user: any) {
-  const userId = user.id;
+export default async function getReblogs (user: any) {
+  const userId = user.id
   const userPostsWithReblogs = await Post.findAll({
     include: [
       {
@@ -10,37 +10,37 @@ export default async function getReblogs(user: any) {
         as: 'descendents',
         where: {
           createdAt: {
-            [Op.gt]: new Date(user.lastTimeNotificationsCheck),
-          },
+            [Op.gt]: new Date(user.lastTimeNotificationsCheck)
+          }
         },
         include: [
           {
             model: User,
-            attributes: ['avatar', 'url', 'description', 'id'],
-          },
-        ],
+            attributes: ['avatar', 'url', 'description', 'id']
+          }
+        ]
       },
       {
         model: User,
-        attributes: ['avatar', 'url', 'description'],
-      },
+        attributes: ['avatar', 'url', 'description']
+      }
     ],
     where: {
-      userId: userId,
-    },
-  });
-  const result: any[] = [];
+      userId
+    }
+  })
+  const result: any[] = []
   userPostsWithReblogs.forEach((postWithReblogs: any) => {
     try {
       postWithReblogs.descendents.forEach((elem: any) => {
         // TODO fix dirty hack
-        const elemProcessed: any = JSON.parse(JSON.stringify(elem));
-        elemProcessed['createdAt'] = elem.createdAt.getTime();
-        result.push(elemProcessed);
-      });
+        const elemProcessed: any = JSON.parse(JSON.stringify(elem))
+        elemProcessed.createdAt = elem.createdAt.getTime()
+        result.push(elemProcessed)
+      })
     } catch (error) {
-      console.error(error);
+      console.error(error)
     }
-  });
-  return result;
+  })
+  return result
 }

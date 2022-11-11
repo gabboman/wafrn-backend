@@ -1,24 +1,23 @@
-const environment = require('../environment');
+const environment = require('../environment')
 
-const {Sequelize} = require('sequelize'); // sequelize plugins
-require('sequelize-hierarchy-fork')(Sequelize);
+const { Sequelize } = require('sequelize') // sequelize plugins
+require('sequelize-hierarchy-fork')(Sequelize)
 
 const sequelize = new Sequelize(environment.databaseConnectionString, {
-  logging: !environment.prod,
-});
+  logging: !environment.prod
+})
 
-const queryInterface = sequelize.getQueryInterface();
+const queryInterface = sequelize.getQueryInterface()
 // add column
 
 queryInterface.addColumn(
-    'medias',
-    'adultContent', {
-      type: Sequelize.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-    },
-);
-
+  'medias',
+  'adultContent', {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  }
+)
 
 // Add new table
 /*
@@ -49,4 +48,3 @@ queryInterface.createTable('postMentionsUserRelations', {
   },
 });
 */
-
