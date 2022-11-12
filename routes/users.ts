@@ -333,8 +333,10 @@ export default function userRoutes (app: Application) {
           )
         }
       })
-      success = true
-      res.send(blog)
+      success = blog;
+      if(success) {
+        res.send(blog)
+      }
     }
 
     if (!success) {
