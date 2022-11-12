@@ -305,9 +305,10 @@ export default function userRoutes (app: Application) {
     }
   })
 
-  app.get('/user/:id', async (req, res) => {
+  app.get('/user', async (req, res) => {
     let success = false
-    if (req.body && req.params.id) {
+    if (req.query && req.query.id) {
+      const blogId: string =  (req.query.id || '').toString().toLowerCase().trim()
       const blog = await User.findOne({
         attributes: {
           exclude: [
@@ -328,7 +329,7 @@ export default function userRoutes (app: Application) {
           url: sequelize.where(
             sequelize.fn('LOWER', sequelize.col('url')),
             'LIKE',
-            req.body.id.toLowerCase()
+            blogId
           )
         }
       })
