@@ -5,41 +5,45 @@ import {
 import {
   Media
 } from '../models'
+import uploadHandler from '../uploads'
 import authenticateToken from '../utils/authenticateToken'
 import getIp from '../utils/getIP'
 import optimizeMedia from '../utils/optimizeMedia'
 const environment = require('../environment')
 
 export default function mediaRoutes (app: Application) {
-  app.post('/uploadMedia', authenticateToken, async (req: any, res) => {
-    const files: any = req.files
-    const picturesPromise: any[] = []
-    if (files && files.length > 0) {
-      for (const file of files) {
-        let fileUrl = '/' + file.path
-        const originalNameArray = fileUrl.split('.')
-        const extension = originalNameArray[originalNameArray.length - 1].toLowerCase()
-        const formatsToNotConvert = ['webp']
-        if (!formatsToNotConvert.includes(extension)) {
-          fileUrl = '/' + await optimizeMedia(file.path)
-        }
-        if (environment.removeFolderNameFromFileUploads) {
-          fileUrl = fileUrl.slice('/uploads/'.length - 1)
-        }
+  app.post('/uploadMedia', authenticateToken, uploadHandler.array('files'), async (req, res) => {
+    const files = (req.files || []) as Express.Multer.File[]
+    const picturesPromise = [] as Promise<any>[]
 
-        picturesPromise.push(
-          Media.create({
-            url: fileUrl,
-            // if its marked as adult content it must be NSFW
-            NSFW: req.body.adultContent == 'true' ? true : req.body.nsfw === 'true',
-            userId: req.jwtData.userId,
-            description: req.body.description,
-            ipUpload: getIp(req),
-            adultContent: req.body.adultContent == 'true'
-          })
-        )
+    for (const file of files) {
+      let fileUrl = '/' + file.path
+      const originalNameArray = fileUrl.split('.')
+      const extension = originalNameArray[originalNameArray.length - 1].toLowerCase()
+      const formatsToNotConvert = ['webp']
+      if (!formatsToNotConvert.includes(extension)) {
+        fileUrl = '/' + await optimizeMedia(file.path)
       }
+      if (environment.removeFolderNameFromFileUploads) {
+        fileUrl = fileUrl.slice('/uploads/'.length - 1)
+      }
+
+      const isAdultContent = req.body.adultContent == 'true'
+      const isNSFW = req.body.nsfw === 'true'
+      
+      picturesPromise.push(
+        Media.create({
+          url: fileUrl,
+          // if its marked as adult content it must be NSFW
+          NSFW: isAdultContent ? true : isNSFW,
+          userId: (req as any).jwtData.userId,
+          description: req.body.description,
+          ipUpload: getIp(req),
+          adultContent: isAdultContent
+        })
+      )
     }
+
     const success = await Promise.all(picturesPromise)
     res.send(success)
   })

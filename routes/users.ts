@@ -11,17 +11,16 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import sequelize from '../db'
 import optimizeMedia from '../utils/optimizeMedia'
+import uploadHandler from '../uploads'
 const environment = require('../environment')
 
 export default function userRoutes (app: Application) {
-  app.post('/register', async (req, res) => {
+  app.post('/register', uploadHandler.single('avatar'), async (req, res) => {
     let success = false
     try {
       if (
         req.body &&
         req.body.email &&
-        // req.files &&
-        // req.files.length > 0 &&
         validateEmail(req.body.email) &&
         req.body.captchaResponse &&
         (await checkCaptcha(req.body.captchaResponse, getIp(req)))
@@ -30,7 +29,6 @@ export default function userRoutes (app: Application) {
           where: {
             [Op.or]: [
               { email: req.body.email.toLowerCase() },
-
               sequelize.where(
                 sequelize.fn('LOWER', sequelize.col('url')),
                 'LIKE',
@@ -41,20 +39,19 @@ export default function userRoutes (app: Application) {
         })
         if (!emailExists) {
           let avatarURL = '/uploads/default.webp'
-          const activationCode = generateRandomString()
-          if ((req.files != null) && req.files.length > 0) {
-            const files: any = req.files
-            avatarURL = '/' + await optimizeMedia(files[0].path)
+          if (req.file) {
+            avatarURL = '/' + await optimizeMedia(req.file.path)
           }
           if (environment.removeFolderNameFromFileUploads) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1)
           }
+
+          const activationCode = generateRandomString()
           const user = {
             email: req.body.email.toLowerCase(),
             description: req.body.description.trim(),
             url: req.body.url,
             NSFW: req.body.nsfw === 'true',
-
             password: await bcrypt.hash(
               req.body.password,
               environment.saltRounds
@@ -66,6 +63,7 @@ export default function userRoutes (app: Application) {
             lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
             activationCode
           }
+
           const userWithEmail = User.create(user)
           if (environment.adminId) {
             const adminUser = await User.findOne({
@@ -106,10 +104,10 @@ export default function userRoutes (app: Application) {
     }
   })
 
-  app.post('/editProfile', authenticateToken, async (req: any, res) => {
+  app.post('/editProfile', authenticateToken, uploadHandler.single('avatar'), async (req, res) => {
     let success = false
     try {
-      const posterId = req.jwtData.userId
+      const posterId = (req as any).jwtData.userId
       const user = await User.findOne({
         where: {
           id: posterId
@@ -119,13 +117,15 @@ export default function userRoutes (app: Application) {
         if (req.body.description) {
           user.description = req.body.description
         }
-        if (req.files?.length > 0) {
-          let avatarURL = '/' + await optimizeMedia(req.files[0].path)
+
+        if (req.file) {
+          let avatarURL = '/' + await optimizeMedia(req.file.path)
           if (environment.removeFolderNameFromFileUploads) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1)
             user.avatar = avatarURL
           }
         }
+
         user.save()
         success = true
       }
