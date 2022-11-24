@@ -20,7 +20,7 @@ const uploadHandler = multer({
   },
   fileFilter (req, file, cb) {
     const name = file.originalname.toLowerCase()
-    const isFileAllowed = !!name.match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv)$/)
+    const isFileAllowed = !(name.match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv)$/) == null)
     cb(null, isFileAllowed)
   }
 })

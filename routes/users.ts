@@ -15,7 +15,7 @@ import uploadHandler from '../uploads'
 const environment = require('../environment')
 
 export default function userRoutes (app: Application) {
-  app.post('/register', uploadHandler.single('avatar'), async (req, res) => {
+  app.post('/register', uploadHandler.any(), async (req, res) => {
     let success = false
     try {
       if (
@@ -39,7 +39,7 @@ export default function userRoutes (app: Application) {
         })
         if (!emailExists) {
           let avatarURL = '/uploads/default.webp'
-          if (req.file) {
+          if (req.file != null) {
             avatarURL = '/' + await optimizeMedia(req.file.path)
           }
           if (environment.removeFolderNameFromFileUploads) {
@@ -104,7 +104,8 @@ export default function userRoutes (app: Application) {
     }
   })
 
-  app.post('/editProfile', authenticateToken, uploadHandler.single('avatar'), async (req, res) => {
+  // TODO fix uploadHandler.any() in multiple endpoints
+  app.post('/editProfile', authenticateToken, uploadHandler.any(), async (req, res) => {
     let success = false
     try {
       const posterId = (req as any).jwtData.userId
@@ -118,7 +119,7 @@ export default function userRoutes (app: Application) {
           user.description = req.body.description
         }
 
-        if (req.file) {
+        if (req.file != null) {
           let avatarURL = '/' + await optimizeMedia(req.file.path)
           if (environment.removeFolderNameFromFileUploads) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1)
@@ -308,7 +309,7 @@ export default function userRoutes (app: Application) {
   app.get('/user', async (req, res) => {
     let success = false
     if (req.query && req.query.id) {
-      const blogId: string =  (req.query.id || '').toString().toLowerCase().trim()
+      const blogId: string = (req.query.id || '').toString().toLowerCase().trim()
       const blog = await User.findOne({
         attributes: {
           exclude: [
@@ -333,8 +334,8 @@ export default function userRoutes (app: Application) {
           )
         }
       })
-      success = blog;
-      if(success) {
+      success = blog
+      if (success) {
         res.send(blog)
       }
     }

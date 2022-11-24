@@ -12,9 +12,9 @@ import optimizeMedia from '../utils/optimizeMedia'
 const environment = require('../environment')
 
 export default function mediaRoutes (app: Application) {
-  app.post('/uploadMedia', authenticateToken, uploadHandler.array('files'), async (req, res) => {
-    const files = (req.files || []) as Express.Multer.File[]
-    const picturesPromise = [] as Promise<any>[]
+  app.post('/uploadMedia', authenticateToken, uploadHandler.any() , async (req, res) => {
+    const files = ((req.files != null) || []) as Express.Multer.File[]
+    const picturesPromise = [] as Array<Promise<any>>
 
     for (const file of files) {
       let fileUrl = '/' + file.path
@@ -30,7 +30,7 @@ export default function mediaRoutes (app: Application) {
 
       const isAdultContent = req.body.adultContent == 'true'
       const isNSFW = req.body.nsfw === 'true'
-      
+
       picturesPromise.push(
         Media.create({
           url: fileUrl,
