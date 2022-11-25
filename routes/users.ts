@@ -15,7 +15,7 @@ import uploadHandler from '../uploads'
 const environment = require('../environment')
 
 export default function userRoutes (app: Application) {
-  app.post('/register', uploadHandler.any(), async (req, res) => {
+  app.post('/register', uploadHandler.single('avatar'), async (req, res) => {
     let success = false
     try {
       if (
