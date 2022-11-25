@@ -104,8 +104,7 @@ export default function userRoutes (app: Application) {
     }
   })
 
-  // TODO fix uploadHandler.any() in multiple endpoints
-  app.post('/editProfile', authenticateToken, uploadHandler.any(), async (req, res) => {
+  app.post('/editProfile', authenticateToken, uploadHandler.single('avatar'), async (req, res) => {
     let success = false
     try {
       const posterId = (req as any).jwtData.userId
@@ -120,7 +119,7 @@ export default function userRoutes (app: Application) {
         }
 
         if (req.file != null) {
-          let avatarURL = '/' + await optimizeMedia(req.file.path)
+          let avatarURL = '/' + optimizeMedia(req.file.path)
           if (environment.removeFolderNameFromFileUploads) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1)
             user.avatar = avatarURL
