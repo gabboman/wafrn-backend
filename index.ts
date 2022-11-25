@@ -3,8 +3,8 @@ import { Post } from './models'
 import { Op } from 'sequelize'
 
 import cors from 'cors'
+import bodyParser from 'body-parser'
 import sequelize from './db'
-import uploads from './uploads'
 import authenticateToken from './utils/authenticateToken'
 import getFollowedsIds from './utils/getFollowedsIds'
 import getPostBaseQuery from './utils/getPostBaseQuery'
@@ -29,14 +29,9 @@ const swaggerJSON = require('./swagger.json')
 const app = express()
 const PORT = process.env.PORT || environment.port
 
-app.use('/apidocs', swagger.serve, swagger.setup(swaggerJSON))
-
-// TODO: FIX THIS THING FOR THE LOVE OF GOD
-// SERIOUSLY WE SHOULD ONLY ACCEPT FILES IN THE APPROPIATE ROUTES
-// we should do that HERE and not in the multer as we are doing
-// because that thing is growing in complexity like  A LOT
-app.use(uploads.any())
+app.use(bodyParser.json())
 app.use(cors())
+app.use('/apidocs', swagger.serve, swagger.setup(swaggerJSON))
 
 sequelize
   .sync({

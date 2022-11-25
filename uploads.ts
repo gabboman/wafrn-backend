@@ -19,22 +19,9 @@ const uploadHandler = multer({
     fileSize: environment.uploadSize * 1024 * 1024 // 15 MB.
   },
   fileFilter (req, file, cb) {
-    if (
-      !(
-        (req.files != null) &&
-        (req.url === '/uploadMedia' ||
-        (req.url === '/register' && req.files?.length <= 1) ||
-        (req.url === '/editProfile' && req.files?.length <= 1)) &&
-        req.method === 'POST' &&
-        (file.originalname
-          .toLowerCase()
-          .match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv)$/) != null)
-      )
-    ) {
-      cb(null, false)
-      return cb(new Error('There was an error with the upload'))
-    }
-    cb(null, true)
+    const name = file.originalname.toLowerCase()
+    const isFileAllowed = !(name.match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv)$/) == null)
+    cb(null, isFileAllowed)
   }
 })
 
