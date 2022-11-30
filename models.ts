@@ -44,7 +44,7 @@ const Post = sequelize.define('posts', {
     allowNull: false,
     primaryKey: true
   },
-  NSFW: Sequelize.BOOLEAN,
+  content_warning: Sequelize.STRING,
   content: Sequelize.TEXT
 })
 

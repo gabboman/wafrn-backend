@@ -35,8 +35,7 @@ export default async function getPosstGroupDetails (postGroup: any[]) {
         model: Post,
         as: 'descendents',
         attributes: [
-          // NSFW is just a boolean, so we would bring the minimum data
-          'nsfw'
+          'id'
         ]
       }
     ]

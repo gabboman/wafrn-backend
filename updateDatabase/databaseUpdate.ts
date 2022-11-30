@@ -11,13 +11,18 @@ const queryInterface = sequelize.getQueryInterface()
 // add column
 
 queryInterface.addColumn(
-  'medias',
-  'adultContent', {
-    type: Sequelize.BOOLEAN,
-    allowNull: false,
-    defaultValue: false
+  'posts',
+  'content_warning', {
+    type: Sequelize.STRING,
+    allowNull: true,
+    defaultValue: ''
   }
-)
+);
+
+queryInterface.removeColumn(
+  'posts',
+  'NSFW'
+);
 
 // Add new table
 /*
