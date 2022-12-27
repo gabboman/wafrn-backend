@@ -8,6 +8,7 @@
     "admin-id": "",
     "captchaPrivateKey": "", 
     "frontendUrl": "https://app.wafrn.net",
+    "instanceUrl": "FRONTEND_URL_WITHOUT_HTTP://",
     "logSQLQueries": false,
     "removeFolderNameFromFileUploads": false,
     "uploadLimit": "50",

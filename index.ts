@@ -19,6 +19,7 @@ import searchRoutes from './routes/search'
 import getStartScrollParam from './utils/getStartScrollParam'
 import deletePost from './routes/deletepost'
 import getPosstGroupDetails from './utils/getPostGroupDetails'
+import activityPubRoutes from './routes/activitypub'
 
 const environment = require('./environment')
 
@@ -92,6 +93,7 @@ mediaRoutes(app)
 postsRoutes(app)
 searchRoutes(app)
 deletePost(app)
+activityPubRoutes(app)
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`⚡️Server is running at https://localhost:${PORT}`)
