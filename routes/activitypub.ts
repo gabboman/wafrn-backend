@@ -69,18 +69,18 @@ app.get('/fediverse/blog/:url', async (req: any, res) => {
                 ],
                 id: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase(),
                 type: "Person",
-                following: environment.frontendUrl + "/fediverse/following",
-                followers: environment.frontendUrl + "/fediverse/followers",
-                featured: environment.frontendUrl + "/fediverse/featured",
-                inbox: environment.frontendUrl + "/fediverse/inbox",
-                outbox: environment.frontendUrl + "/fediverse/outbox",
+                following: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/following",
+                followers: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/followers",
+                featured: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/featured",
+                inbox: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/inbox",
+                outbox: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/outbox",
                 preferredUsername: user.url,
                 name: user.url,
                 summary: user.description,
-                url: "https://justingarrison.com",
+                // url: "https://",
                 manuallyApprovesFollowers: false,
                 discoverable: true,
-                published: "2000-01-01T00:00:00Z",
+                published: user.createdAt,
             
                 icon: {
                     "type": "Image",
@@ -93,8 +93,9 @@ app.get('/fediverse/blog/:url', async (req: any, res) => {
                     "url": environment.mediaUrl + user.avatar
                 }
             };
-            
-            res.send(userForFediverse)
+            res.set({
+                'content-type': 'application/activity+json'
+            }).send(userForFediverse)
         } else {
             return404(res);
             return;
@@ -104,6 +105,19 @@ app.get('/fediverse/blog/:url', async (req: any, res) => {
         return;
     }
 } );
+
+
+
+app.get('/fediverse/:url/following', async (req: any, res) => { } );
+
+app.get('/fediverse/:url/followers', async (req: any, res) => { } );
+
+app.get('/fediverse/:url/featured', async (req: any, res) => { } );
+
+app.get('/fediverse/:url/inbox', async (req: any, res) => { } );
+
+app.get('/fediverse/:url/outbox', async (req: any, res) => { } );
+
 
 }
 
