@@ -30,11 +30,11 @@ export default function activityPubRoutes (app: Application) {
                         {
                             rel: "self",
                             type: "application/activity+json",
-                            href: environment.frontendUrl + '/blog/' + user.url
+                            href: environment.frontendUrl + '/fediverse/blog/' + user.url
                           },
                           {
                             rel: "http://ostatus.org/schema/1.0/subscribe",
-                            template: environment.frontendUrl + "/authorize_interaction?uri={uri}"
+                            template: environment.frontendUrl + "/fediverse/authorize_interaction?uri={uri}"
                           }
                     ]
                 }
@@ -51,6 +51,60 @@ export default function activityPubRoutes (app: Application) {
             return;
         }
     })
+
+//Get blog for fediverse
+app.get('/fediverse/blog/:url', async (req: any, res) => {
+    if(req.params && req.params.url) {
+        const url = req.params.url.toLowerCase();
+        const user = await User.findOne({
+            where: {
+                url: url
+            }
+        });
+        if(user) {
+            const userForFediverse = {
+                "@context": [
+                    "https://www.w3.org/ns/activitystreams",
+                    "https://w3id.org/security/v1"
+                ],
+                id: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase(),
+                type: "Person",
+                following: environment.frontendUrl + "/fediverse/following",
+                followers: environment.frontendUrl + "/fediverse/followers",
+                featured: environment.frontendUrl + "/fediverse/featured",
+                inbox: environment.frontendUrl + "/fediverse/inbox",
+                outbox: environment.frontendUrl + "/fediverse/outbox",
+                preferredUsername: user.url,
+                name: user.url,
+                summary: user.description,
+                url: "https://justingarrison.com",
+                manuallyApprovesFollowers: false,
+                discoverable: true,
+                published: "2000-01-01T00:00:00Z",
+            
+                icon: {
+                    "type": "Image",
+                    "mediaType": "image/webp",
+                    "url": environment.mediaUrl + user.avatar
+                },
+                image: {
+                    "type": "Image",
+                    "mediaType": "image/webp",
+                    "url": environment.mediaUrl + user.avatar
+                }
+            };
+            
+            res.send(userForFediverse)
+        } else {
+            return404(res);
+            return;
+        }
+    } else {
+        return404(res);
+        return;
+    }
+} );
+
 }
 
 

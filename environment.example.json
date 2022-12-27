@@ -9,6 +9,7 @@
     "captchaPrivateKey": "", 
     "frontendUrl": "https://app.wafrn.net",
     "instanceUrl": "FRONTEND_URL_WITHOUT_HTTP://",
+    "mediaUrl": "https://media.wafrn.net",
     "logSQLQueries": false,
     "removeFolderNameFromFileUploads": false,
     "uploadLimit": "50",
