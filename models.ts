@@ -49,7 +49,6 @@ const Post = sequelize.define('posts', {
 })
 
 const Tag = sequelize.define('tags', {
-  // NSFW: Sequelize.BOOLEAN,
   tagName: Sequelize.TEXT
 })
 
@@ -64,7 +63,12 @@ const Media = sequelize.define('medias', {
   description: Sequelize.TEXT,
   url: Sequelize.TEXT,
   ipUpload: Sequelize.STRING,
-  adultContent: Sequelize.BOOLEAN
+  adultContent: Sequelize.BOOLEAN,
+  external: {
+    defaultValue: false,
+    type: Sequelize.STRING,
+    allowNull: false
+  }
 })
 
 const PostReport = sequelize.define('postReports', {
@@ -100,6 +104,20 @@ const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {
     },
     unique: false
   }
+})
+
+const FederatedHost = sequelize.define('federatedHosts', {
+  id: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    allowNull: false,
+    primaryKey: true
+  },
+  displayName: Sequelize.STRING,
+  publicInbox: Sequelize.TEXT,
+  publicKey: Sequelize.TEXT,
+  detail: Sequelize.STRING,
+  blocked: Sequelize.BOOLEAN
 })
 
 User.belongsToMany(User, {

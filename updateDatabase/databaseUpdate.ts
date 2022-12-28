@@ -8,48 +8,51 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
 })
 
 const queryInterface = sequelize.getQueryInterface()
-// add column
 
+// Add new table
+
+queryInterface.createTable('federatedHosts', {
+  id: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    allowNull: false,
+    primaryKey: true
+  },
+  displayName: Sequelize.TEXT,
+  publicInbox: Sequelize.TEXT,
+  publicKey: Sequelize.TEXT,
+  detail: Sequelize.STRING,
+  blocked: Sequelize.BOOLEAN
+});
+
+
+// add column
 queryInterface.addColumn(
-  'posts',
-  'content_warning', {
-    type: Sequelize.STRING,
-    allowNull: true,
-    defaultValue: ''
+  'medias',
+  'external', {
+    defaultValue: false,
+    type: Sequelize.BOOLEAN,
+    allowNull: false
   }
 );
 
+queryInterface.addColumn(
+  'users',
+  'hostId', {
+    type: Sequelize.UUID,
+    allowNull: true,
+    references: {
+      model: 'federatedHosts',
+      key: 'id',
+    },
+    unique: false,
+  }
+);
+
+/*
 queryInterface.removeColumn(
   'posts',
   'NSFW'
 );
-
-// Add new table
-/*
-queryInterface.createTable('postMentionsUserRelations', {
-  userId: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id',
-    },
-    unique: false,
-  },
-  postId: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    references: {
-      model: 'posts',
-      key: 'id',
-    },
-    unique: false,
-  },
-  createdAt: {
-    type: Sequelize.DATE,
-  },
-  updatedAt: {
-    type: Sequelize.DATE,
-  },
-});
 */
+
