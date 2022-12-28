@@ -77,11 +77,10 @@ app.get('/fediverse/blog/:url', async (req: any, res) => {
                 preferredUsername: user.url,
                 name: user.url,
                 summary: user.description,
-                // url: "https://",
+                url:  environment.frontendUrl + '/fediverse/' + user.url.toLowerCase(),
                 manuallyApprovesFollowers: false,
                 discoverable: true,
                 published: user.createdAt,
-            
                 icon: {
                     "type": "Image",
                     "mediaType": "image/webp",
@@ -91,6 +90,9 @@ app.get('/fediverse/blog/:url', async (req: any, res) => {
                     "type": "Image",
                     "mediaType": "image/webp",
                     "url": environment.mediaUrl + user.avatar
+                },
+                endpoints: {
+                    sharedInbox:  environment.frontendUrl + '/fediverse/inbox'
                 }
             };
             res.set({
@@ -108,15 +110,114 @@ app.get('/fediverse/blog/:url', async (req: any, res) => {
 
 
 
-app.get('/fediverse/:url/following', async (req: any, res) => { } );
+app.get('/fediverse/:url/following', async (req: any, res) => {
+    if(req.params && req.params.url) {
+        const url = req.params.url.toLowerCase();
+        const user = await User.findOne({
+            where: {
+                url: url
+            }
+        });
+        if(user) {
+            const followed = user.getFollowed();
+            let response: any = {
+                "@context": "https://www.w3.org/ns/activitystreams",
+                id: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/following",
+                type: "OrderedCollection",
+                totalItems: followed.length,
+                first: "https://hamburguesa.minecraftanarquia.xyz/users/admin/following?page=1"
+            };
+            if(req.query && req.query.page) {
+                response = {
+                    "@context": "https://www.w3.org/ns/activitystreams",
+                    id: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/following",
+                    type: "OrderedCollection",
+                    totalItems: followed.length,
+                    partOf: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/following",
+                    orderedItems: [
+                        
+                    ]
+                };
+            }
 
-app.get('/fediverse/:url/followers', async (req: any, res) => { } );
+        } else {
+        return404(res);
+        return;
+    }
+    }
+    else {
+        return404(res);
+        return;
+    }
+}
+);
 
-app.get('/fediverse/:url/featured', async (req: any, res) => { } );
+app.get('/fediverse/:url/followers', async (req: any, res) => {
+    
+} );
 
-app.get('/fediverse/:url/inbox', async (req: any, res) => { } );
+app.get('/fediverse/:url/featured', async (req: any, res) => {
+    if(req.params && req.params.url) {
+        const url = req.params.url.toLowerCase();
+        const user = await User.findOne({
+            where: {
+                url: url
+            }
+        });
+        if(user) {
 
-app.get('/fediverse/:url/outbox', async (req: any, res) => { } );
+        } else {
+        return404(res);
+        return;
+    }
+    }
+    else {
+        return404(res);
+        return;
+    }
+} );
+
+app.get('/fediverse/:url/inbox', async (req: any, res) => {
+    if(req.params && req.params.url) {
+        const url = req.params.url.toLowerCase();
+        const user = await User.findOne({
+            where: {
+                url: url
+            }
+        });
+        if(user) {
+
+        } else {
+        return404(res);
+        return;
+    }
+    }
+    else {
+        return404(res);
+        return;
+    }
+} );
+
+app.get('/fediverse/:url/outbox', async (req: any, res) => {
+    if(req.params && req.params.url) {
+        const url = req.params.url.toLowerCase();
+        const user = await User.findOne({
+            where: {
+                url: url
+            }
+        });
+        if(user) {
+
+        } else {
+        return404(res);
+        return;
+    }
+    }
+    else {
+        return404(res);
+        return;
+    }
+} );
 
 
 }
