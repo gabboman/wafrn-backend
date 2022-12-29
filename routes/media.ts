@@ -54,21 +54,21 @@ export default function mediaRoutes (app: Application) {
     res.send(result)
   })
 
-  app.post('/updateMedia', authenticateToken, async (req: any, res) => {
+  app.get('/updateMedia', authenticateToken, async (req: any, res) => {
     let success = false
     try {
       const posterId = req.jwtData.userId
-      if (req.body && req.body.id) {
+      if (req.query && req.query.id) {
         const mediaToUpdate = await Media.findOne({
           where: {
-            id: req.body.id,
+            id: req.query.id,
             userId: posterId
           }
         })
         if (mediaToUpdate) {
-          mediaToUpdate.NSFW = req.body.adultContent == 'true' ? true : req.body.nsfw === 'true'
-          mediaToUpdate.adultContent = req.body.adultContent == 'true'
-          mediaToUpdate.description = req.body.description
+          mediaToUpdate.NSFW = req.query.adultContent == 'true' ? true : req.query.nsfw === 'true'
+          mediaToUpdate.adultContent = req.query.adultContent == 'true'
+          mediaToUpdate.description = req.query.description
           await mediaToUpdate.save()
           success = true
         }
