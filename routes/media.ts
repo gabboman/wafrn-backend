@@ -66,7 +66,7 @@ export default function mediaRoutes (app: Application) {
           }
         })
         if (mediaToUpdate) {
-          mediaToUpdate.NSFW = req.query.adultContent == 'true' ? true : req.query.nsfw === 'true'
+          mediaToUpdate.NSFW = req.query.adultContent == 'true' ? true : req.query.NSFW === 'true'
           mediaToUpdate.adultContent = req.query.adultContent == 'true'
           mediaToUpdate.description = req.query.description
           await mediaToUpdate.save()
