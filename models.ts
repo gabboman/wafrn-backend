@@ -66,7 +66,7 @@ const Media = sequelize.define('medias', {
   adultContent: Sequelize.BOOLEAN,
   external: {
     defaultValue: false,
-    type: Sequelize.STRING,
+    type: Sequelize.BOOLEAN,
     allowNull: false
   }
 })

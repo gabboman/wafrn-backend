@@ -135,7 +135,7 @@ app.get('/fediverse/:url/following', async (req: any, res) => {
                     totalItems: followed.length,
                     partOf: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/following",
                     orderedItems: [
-                        
+
                     ]
                 };
             }
@@ -157,24 +157,7 @@ app.get('/fediverse/:url/followers', async (req: any, res) => {
 } );
 
 app.get('/fediverse/:url/featured', async (req: any, res) => {
-    if(req.params && req.params.url) {
-        const url = req.params.url.toLowerCase();
-        const user = await User.findOne({
-            where: {
-                url: url
-            }
-        });
-        if(user) {
-
-        } else {
-        return404(res);
-        return;
-    }
-    }
-    else {
-        return404(res);
-        return;
-    }
+    return404(res);
 } );
 
 app.get('/fediverse/:url/inbox', async (req: any, res) => {
