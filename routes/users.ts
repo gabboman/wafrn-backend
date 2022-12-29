@@ -21,6 +21,8 @@ export default function userRoutes (app: Application) {
       if (
         req.body &&
         req.body.email &&
+        req.body.url &&
+        req.body.url.indexOf('@')  === -1 &&
         validateEmail(req.body.email) &&
         req.body.captchaResponse &&
         (await checkCaptcha(req.body.captchaResponse, getIp(req)))
