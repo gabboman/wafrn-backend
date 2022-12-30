@@ -34,7 +34,9 @@ const User = sequelize.define('users', {
     type: Sequelize.DATE,
     allowNull: false,
     defaultValue: new Date().setTime(0)
-  }
+  },
+  privateKey: Sequelize.TEXT,
+  publicKey: Sequelize.TEXT
 })
 
 const Post = sequelize.define('posts', {

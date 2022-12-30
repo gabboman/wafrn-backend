@@ -49,6 +49,24 @@ queryInterface.addColumn(
   }
 );
 
+queryInterface.addColumn(
+  'users',
+  'publicKey', {
+    type: Sequelize.TEXT,
+    allowNull: false,
+    unique: false,
+  }
+);
+
+queryInterface.addColumn(
+  'users',
+  'privateKey', {
+    type: Sequelize.TEXT,
+    allowNull: false,
+    unique: false,
+  }
+);
+
 /*
 queryInterface.removeColumn(
   'posts',

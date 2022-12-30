@@ -57,18 +57,10 @@ export default function searchRoutes (app: Application) {
           ]
         },
         attributes: {
-          exclude: [
-            'password',
-            'birthDate',
-            'email',
-            'lastLoginIp',
-            'registerIp',
-            'activated',
-            'activationCode',
-            'requestedPasswordReset',
-            'updatedAt',
-            'createdAt',
-            'lastTimeNotificationsCheck'
+          include: [
+            'url',
+            'description',
+            'avatar'
           ]
         }
       })

@@ -12,6 +12,7 @@ import jwt from 'jsonwebtoken'
 import sequelize from '../db'
 import optimizeMedia from '../utils/optimizeMedia'
 import uploadHandler from '../uploads'
+import * as ed from '@noble/ed25519';
 const environment = require('../environment')
 
 export default function userRoutes (app: Application) {
@@ -49,6 +50,7 @@ export default function userRoutes (app: Application) {
           }
 
           const activationCode = generateRandomString()
+          const privateKey = await ed.utils.randomPrivateKey()
           const user = {
             email: req.body.email.toLowerCase(),
             description: req.body.description.trim(),
@@ -63,7 +65,9 @@ export default function userRoutes (app: Application) {
             activated: false,
             registerIp: getIp(req),
             lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
-            activationCode
+            activationCode,
+            privateKey: Buffer.from(privateKey).toString('hex'),
+            publicKey: Buffer.from(await ed.getPublicKey(privateKey)).toString('hex')
           }
 
           const userWithEmail = User.create(user)

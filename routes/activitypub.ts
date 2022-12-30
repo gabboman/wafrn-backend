@@ -24,6 +24,7 @@ export default function activityPubRoutes (app: Application) {
                 const response = {
                     subject: urlQueryResource,
                     aliases: [
+                        environment.frontendUrl + '/fediverse/blog/' + user.url,
                         environment.frontendUrl + '/blog/' + user.url
                     ],
                     links: [
@@ -81,6 +82,11 @@ app.get('/fediverse/blog/:url', async (req: any, res) => {
                 manuallyApprovesFollowers: false,
                 discoverable: true,
                 published: user.createdAt,
+                publicKey: {
+                    id: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + '#main-key',
+                    owner: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase(),
+                    publicKeyPem: user.publicKey
+                },
                 icon: {
                     "type": "Image",
                     "mediaType": "image/webp",
@@ -169,6 +175,8 @@ app.get('/fediverse/:url/inbox', async (req: any, res) => {
             }
         });
         if(user) {
+            // TODO recive content for user
+            // we create content and stuff. WHAT THE HECK DO WE RECIVE I DONT KNOW
 
         } else {
         return404(res);
@@ -179,6 +187,10 @@ app.get('/fediverse/:url/inbox', async (req: any, res) => {
         return404(res);
         return;
     }
+} );
+
+app.post('/fediverse/inbox', async (req: any, res) => {
+    
 } );
 
 app.get('/fediverse/:url/outbox', async (req: any, res) => {
