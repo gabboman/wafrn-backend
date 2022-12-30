@@ -1,12 +1,18 @@
 import { Application } from 'express'
 const environment = require('../environment')
 import { User } from '../models'
+import uploadHandler from '../uploads';
 
 
 // all the stuff related to activitypub goes here
 export default function activityPubRoutes (app: Application) {
 
     //webfinger protocol
+    app.get('/.well-known/host-meta', (req: any, res) => {
+        res.send(
+            '<?xml version="1.0" encoding="UTF-8"?><XRD xmlns="http://docs.oasis-open.org/ns/xri/xrd-1.0"><Link rel="lrdd" template="' + environment.frontendUrl + '/.well-known/webfinger?resource={uri}"/></XRD>'
+        )
+    })
     app.get('/.well-known/webfinger/', async (req: any, res) => {
         if(req.query && req.query.resource) {
             const urlQueryResource: string = req.query.resource;
@@ -68,25 +74,27 @@ app.get('/fediverse/blog/:url', async (req: any, res) => {
                     "https://www.w3.org/ns/activitystreams",
                     "https://w3id.org/security/v1"
                 ],
-                id: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase(),
+                id: environment.frontendUrl + "/fediverse/blog" + user.url.toLowerCase(),
                 type: "Person",
-                following: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/following",
-                followers: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/followers",
-                featured: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/featured",
-                inbox: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/inbox",
-                outbox: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/outbox",
+                following: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/following",
+                followers: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/followers",
+                featured: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/featured",
+                inbox: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/inbox",
+                outbox: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/outbox",
                 preferredUsername: user.url,
                 name: user.url,
                 summary: user.description,
-                url:  environment.frontendUrl + '/fediverse/' + user.url.toLowerCase(),
+                url:  environment.frontendUrl + '/blog/' + user.url.toLowerCase(),
                 manuallyApprovesFollowers: false,
                 discoverable: true,
                 published: user.createdAt,
+                /*
                 publicKey: {
-                    id: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + '#main-key',
-                    owner: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase(),
+                    id: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + '#main-key',
+                    owner: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase(),
                     publicKeyPem: user.publicKey
                 },
+                */
                 icon: {
                     "type": "Image",
                     "mediaType": "image/webp",
@@ -116,7 +124,7 @@ app.get('/fediverse/blog/:url', async (req: any, res) => {
 
 
 
-app.get('/fediverse/:url/following', async (req: any, res) => {
+app.get('/fediverse/blog/:url/following', async (req: any, res) => {
     if(req.params && req.params.url) {
         const url = req.params.url.toLowerCase();
         const user = await User.findOne({
@@ -128,7 +136,7 @@ app.get('/fediverse/:url/following', async (req: any, res) => {
             const followed = user.getFollowed();
             let response: any = {
                 "@context": "https://www.w3.org/ns/activitystreams",
-                id: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/following",
+                id: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/following",
                 type: "OrderedCollection",
                 totalItems: followed.length,
                 first: "https://hamburguesa.minecraftanarquia.xyz/users/admin/following?page=1"
@@ -136,10 +144,10 @@ app.get('/fediverse/:url/following', async (req: any, res) => {
             if(req.query && req.query.page) {
                 response = {
                     "@context": "https://www.w3.org/ns/activitystreams",
-                    id: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/following",
+                    id: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/following",
                     type: "OrderedCollection",
                     totalItems: followed.length,
-                    partOf: environment.frontendUrl + "/fediverse/" + user.url.toLowerCase() + "/following",
+                    partOf: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/following",
                     orderedItems: [
 
                     ]
@@ -158,15 +166,15 @@ app.get('/fediverse/:url/following', async (req: any, res) => {
 }
 );
 
-app.get('/fediverse/:url/followers', async (req: any, res) => {
+app.get('/fediverse/blog/:url/followers', async (req: any, res) => {
     
 } );
 
-app.get('/fediverse/:url/featured', async (req: any, res) => {
+app.get('/fediverse/blog/:url/featured', async (req: any, res) => {
     return404(res);
 } );
 
-app.get('/fediverse/:url/inbox', async (req: any, res) => {
+app.post('/fediverse/blog/:url/inbox',uploadHandler.none(), async (req: any, res) => {
     if(req.params && req.params.url) {
         const url = req.params.url.toLowerCase();
         const user = await User.findOne({
@@ -193,7 +201,7 @@ app.post('/fediverse/inbox', async (req: any, res) => {
     
 } );
 
-app.get('/fediverse/:url/outbox', async (req: any, res) => {
+app.get('/fediverse/blog/:url/outbox', async (req: any, res) => {
     if(req.params && req.params.url) {
         const url = req.params.url.toLowerCase();
         const user = await User.findOne({
