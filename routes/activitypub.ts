@@ -74,41 +74,32 @@ app.get('/fediverse/blog/:url', async (req: any, res) => {
                     "https://www.w3.org/ns/activitystreams",
                     "https://w3id.org/security/v1"
                 ],
-                id: environment.frontendUrl + "/fediverse/blog" + user.url.toLowerCase(),
+                id: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase(),
                 type: "Person",
                 following: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/following",
-                followers: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/followers",
-                featured: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/featured",
-                inbox: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/inbox",
-                outbox: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + "/outbox",
-                preferredUsername: user.url,
+                followers: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() +"/followers",
+                featured: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() +"/featured",
+                inbox: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() +"/inbox",
+                outbox: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() +"/outbox",
+                preferredUsername: user.url.toLowerCase(),
                 name: user.url,
                 summary: user.description,
-                url:  environment.frontendUrl + '/blog/' + user.url.toLowerCase(),
+                url: environment.frontendUrl + "/blog/" + user.url.toLowerCase(),
                 manuallyApprovesFollowers: false,
                 discoverable: true,
                 published: user.createdAt,
-                /*
-                publicKey: {
-                    id: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase() + '#main-key',
-                    owner: environment.frontendUrl + "/fediverse/blog/" + user.url.toLowerCase(),
-                    publicKeyPem: user.publicKey
-                },
-                */
                 icon: {
                     "type": "Image",
                     "mediaType": "image/webp",
                     "url": environment.mediaUrl + user.avatar
                 },
-                image: {
+                "image": {
                     "type": "Image",
                     "mediaType": "image/webp",
                     "url": environment.mediaUrl + user.avatar
-                },
-                endpoints: {
-                    sharedInbox:  environment.frontendUrl + '/fediverse/inbox'
                 }
-            };
+            }
+            
             res.set({
                 'content-type': 'application/activity+json'
             }).send(userForFediverse)
