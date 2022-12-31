@@ -12,7 +12,7 @@ import jwt from 'jsonwebtoken'
 import sequelize from '../db'
 import optimizeMedia from '../utils/optimizeMedia'
 import uploadHandler from '../uploads'
-import * as ed from '@noble/ed25519';
+import * as ed from '@noble/ed25519'
 const environment = require('../environment')
 
 export default function userRoutes (app: Application) {
@@ -23,7 +23,7 @@ export default function userRoutes (app: Application) {
         req.body &&
         req.body.email &&
         req.body.url &&
-        req.body.url.indexOf('@')  === -1 &&
+        req.body.url.indexOf('@') === -1 &&
         validateEmail(req.body.email) &&
         req.body.captchaResponse &&
         (await checkCaptcha(req.body.captchaResponse, getIp(req)))

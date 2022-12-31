@@ -91,11 +91,11 @@ export default function postsRoutes (app: Application) {
             return false
           }
         }
-        const content = req.body.content ? req.body.content.trim() : '';
-        const content_warning = req.body.content_warning ? req.body.content_warning.trim() : '';
+        const content = req.body.content ? req.body.content.trim() : ''
+        const content_warning = req.body.content_warning ? req.body.content_warning.trim() : ''
         const post = await Post.create({
           content,
-          content_warning: content_warning,
+          content_warning,
           userId: posterId
         })
         if (req.body.parent) {

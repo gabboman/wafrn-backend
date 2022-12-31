@@ -23,8 +23,7 @@ queryInterface.createTable('federatedHosts', {
   publicKey: Sequelize.TEXT,
   detail: Sequelize.STRING,
   blocked: Sequelize.BOOLEAN
-});
-
+})
 
 // add column
 queryInterface.addColumn(
@@ -34,7 +33,7 @@ queryInterface.addColumn(
     type: Sequelize.BOOLEAN,
     allowNull: false
   }
-);
+)
 
 queryInterface.addColumn(
   'users',
@@ -43,29 +42,29 @@ queryInterface.addColumn(
     allowNull: true,
     references: {
       model: 'federatedHosts',
-      key: 'id',
+      key: 'id'
     },
-    unique: false,
+    unique: false
   }
-);
+)
 
 queryInterface.addColumn(
   'users',
   'publicKey', {
     type: Sequelize.TEXT,
     allowNull: false,
-    unique: false,
+    unique: false
   }
-);
+)
 
 queryInterface.addColumn(
   'users',
   'privateKey', {
     type: Sequelize.TEXT,
     allowNull: false,
-    unique: false,
+    unique: false
   }
-);
+)
 
 /*
 queryInterface.removeColumn(
@@ -73,4 +72,3 @@ queryInterface.removeColumn(
   'NSFW'
 );
 */
-
