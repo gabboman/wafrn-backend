@@ -24,7 +24,6 @@ queryInterface.createTable('federatedHosts', {
   detail: Sequelize.STRING,
   blocked: Sequelize.BOOLEAN
 })
-
 // add column
 
 queryInterface.addColumn(
@@ -35,7 +34,6 @@ queryInterface.addColumn(
     allowNull: false
   }
 )
-
 
 queryInterface.addColumn(
   'medias',
