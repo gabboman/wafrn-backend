@@ -26,6 +26,17 @@ queryInterface.createTable('federatedHosts', {
 })
 
 // add column
+
+queryInterface.addColumn(
+  'follows',
+  'remoteId', {
+    type: Sequelize.TEXT,
+    defaultValue: '',
+    allowNull: false
+  }
+)
+
+
 queryInterface.addColumn(
   'medias',
   'external', {

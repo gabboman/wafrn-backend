@@ -10,7 +10,7 @@ const User = sequelize.define('users', {
   },
   email: {
     type: Sequelize.STRING,
-    allowNull: false,
+    allowNull: true,
     unique: true
   },
   description: Sequelize.TEXT,
@@ -36,7 +36,29 @@ const User = sequelize.define('users', {
     defaultValue: new Date().setTime(0)
   },
   privateKey: Sequelize.TEXT,
-  publicKey: Sequelize.TEXT
+  publicKey: Sequelize.TEXT,
+  federatedHostId: {
+    type: Sequelize.UUID,
+    allowNull: true,
+    primaryKey: true
+  }
+})
+
+const Follows = sequelize.define ('follows', {
+  followedId: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    allowNull: false,
+    primaryKey: true
+  },
+  followerId: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    allowNull: false,
+    primaryKey: true
+  },
+  remoteId: Sequelize.TEXT
+  
 })
 
 const Post = sequelize.define('posts', {
@@ -152,6 +174,8 @@ PostReport.belongsTo(Post)
 UserReport.belongsTo(User, { foreignKey: 'ReporterId' })
 UserReport.belongsTo(User, { foreignKey: 'ReportedId' })
 
+User.belongsTo(FederatedHost, { foreignKey: 'federatedHostId' })
+FederatedHost.hasMany(User)
 User.hasMany(Post)
 Post.belongsTo(User)
 Post.isHierarchy()
@@ -181,6 +205,7 @@ export {
   PostReport,
   UserReport,
   Tag,
+  Follows,
   Media,
   PostMentionsUserRelation
 }
