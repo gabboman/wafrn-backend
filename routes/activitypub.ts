@@ -151,7 +151,7 @@ export default function activityPubRoutes (app: Application) {
     return404(res)
   })
 
-  app.post('/fediverse/blog/:url/inbox', async (req: any, res) => {
+  app.post('/fediverse/blog/:url/inbox',  async (req: any, res) => {
     if (req.params && req.params.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -160,6 +160,10 @@ export default function activityPubRoutes (app: Application) {
         }
       })
       if (user) {
+        // FOLLOW:
+        if (req.body.type === 'Follow') {
+            console.log(req.body.id)
+        }
         // TODO recive content for user
         // we create content and stuff. WHAT THE HECK DO WE RECIVE I DONT KNOW
 

@@ -20,6 +20,7 @@ import getStartScrollParam from './utils/getStartScrollParam'
 import deletePost from './routes/deletepost'
 import getPosstGroupDetails from './utils/getPostGroupDetails'
 import activityPubRoutes from './routes/activitypub'
+import overrideContentType from './utils/overrideContentType'
 
 const environment = require('./environment')
 
@@ -30,6 +31,7 @@ const swaggerJSON = require('./swagger.json')
 const app = express()
 const PORT = process.env.PORT || environment.port
 
+app.use(overrideContentType)
 app.use(bodyParser.json())
 app.use(cors())
 app.use('/apidocs', swagger.serve, swagger.setup(swaggerJSON))
