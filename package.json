@@ -23,7 +23,7 @@
     "express": "^4.17.2",
     "fluent-ffmpeg": "^2.1.2",
     "gm": "^1.25.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "mariadb": "^2.5.5",
     "multer": "^1.4.4",
     "nodemailer": "^6.7.2",
