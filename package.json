@@ -20,6 +20,7 @@
     "bcrypt": "^5.0.0",
     "body-parser": "^1.20.1",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "express": "^4.17.2",
     "fluent-ffmpeg": "^2.1.2",
     "gm": "^1.25.0",
