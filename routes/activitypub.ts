@@ -98,11 +98,12 @@ export default function activityPubRoutes (app: Application) {
             mediaType: 'image/webp',
             url: environment.mediaUrl + user.avatar
           },
+          /*
           image: {
             type: 'Image',
             mediaType: 'image/webp',
             url: environment.mediaUrl + user.avatar
-          }
+          }*/
         }
 
         res.set({

@@ -13,6 +13,7 @@ import sequelize from '../db'
 import optimizeMedia from '../utils/optimizeMedia'
 import uploadHandler from '../uploads'
 import * as ed from '@noble/ed25519'
+import { generateKeyPairSync } from 'crypto'
 const environment = require('../environment')
 
 export default function userRoutes (app: Application) {
@@ -50,7 +51,17 @@ export default function userRoutes (app: Application) {
           }
 
           const activationCode = generateRandomString()
-          const privateKey = await ed.utils.randomPrivateKey()
+          const {publicKey, privateKey} = generateKeyPairSync('rsa', {
+            modulusLength: 4096,
+            publicKeyEncoding: {
+              type: 'spki',
+              format: 'pem'
+            },
+            privateKeyEncoding: {
+              type: 'pkcs8',
+              format: 'pem'
+            }
+          })
           const user = {
             email: req.body.email.toLowerCase(),
             description: req.body.description.trim(),
@@ -66,8 +77,8 @@ export default function userRoutes (app: Application) {
             registerIp: getIp(req),
             lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
             activationCode,
-            privateKey: Buffer.from(privateKey).toString('hex'),
-            publicKey: Buffer.from(await ed.getPublicKey(privateKey)).toString('hex')
+            privateKey: privateKey,
+            publicKey: publicKey
           }
 
           const userWithEmail = User.create(user)
