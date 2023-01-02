@@ -22,10 +22,11 @@ queryInterface.createTable('federatedHosts', {
   publicInbox: Sequelize.TEXT,
   publicKey: Sequelize.TEXT,
   detail: Sequelize.STRING,
-  blocked: Sequelize.BOOLEAN
+  blocked: Sequelize.BOOLEAN,
+  createdAt: Sequelize.DATE,
+  updatedAt: Sequelize.DATE
 })
 // add column
-
 queryInterface.addColumn(
   'follows',
   'remoteId', {
@@ -70,11 +71,18 @@ queryInterface.addColumn(
   'users',
   'privateKey', {
     type: Sequelize.TEXT,
-    allowNull: false,
+    allowNull: true,
     unique: false
   }
 )
-
+queryInterface.addColumn(
+  'users',
+  'remoteInbox', {
+    type: Sequelize.TEXT,
+    allowNull: true,
+    unique: false
+  }
+)
 /*
 queryInterface.removeColumn(
   'posts',

@@ -1,7 +1,13 @@
+import axios from 'axios'
 import { Application } from 'express'
-import { User } from '../models'
+import { User, FederatedHost } from '../models'
 import checkFediverseSignature from '../utils/checkFediverseSignature'
+import { createHash, createSign } from 'crypto'
+import sequelize from '../db'
+
 const environment = require('../environment')
+
+
 // all the stuff related to activitypub goes here
 
 export default function activityPubRoutes (app: Application) {
@@ -17,9 +23,11 @@ export default function activityPubRoutes (app: Application) {
       if (urlQueryResource.startsWith('acct:') && urlQueryResource.endsWith(environment.instanceUrl)) {
         const userUrl = urlQueryResource.slice(5).slice(0, -(environment.instanceUrl.length + 1))
         const user = await User.findOne({
-          where: {
-            url: userUrl.toLowerCase()
-          }
+          where:  sequelize.where(
+            sequelize.fn('LOWER', sequelize.col('url')),
+            'LIKE',
+            userUrl.toLowerCase()
+          )
         })
         if (!user) {
           return404(res)
@@ -59,9 +67,11 @@ export default function activityPubRoutes (app: Application) {
     if (req.params && req.params.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: {
+        where:  sequelize.where(
+          sequelize.fn('LOWER', sequelize.col('url')),
+          'LIKE',
           url
-        }
+        )
       })
       if (user) {
         const userForFediverse = {
@@ -162,13 +172,17 @@ export default function activityPubRoutes (app: Application) {
       })
       if (user) {
         // FOLLOW:
-        if (req.body.type === 'Follow') {
-            console.log(req.body.id)
-        }
-        // TODO recive content for user
-        // we create content and stuff. WHAT THE HECK DO WE RECIVE I DONT KNOW
+        switch (req.body.type) {
+          case 'Follow': {
+            const remoteUser = await getRemoteActor(req.body.actor, user.privateKey)
+            res.sendStatus(500)
+            break;
+          }
+          default: {
+            res.sendStatus(500)
 
-        res.sendStatus(500)
+          }
+        }
       } else {
         return404(res)
       }
@@ -202,4 +216,53 @@ export default function activityPubRoutes (app: Application) {
 
 function return404 (res: any) {
   res.sendStatus(404)
+}
+
+
+async function getRemoteActor(actorUrl: string, privateKey: string) {
+  const url = new URL(actorUrl);
+
+  const userPetition = await axios.get(actorUrl, {
+    headers: {
+      'Content-Type': 'application/activity+json',
+      'Accept': 'application/activity+json'
+    }
+  })
+  
+  let user = await User.findOne({
+    where: {
+      url: '@' + userPetition.data.preferredUsername + '@' + url.host
+    }
+  })
+
+  if(!user) {
+    const userToCreate = {
+      url: '@' + userPetition.data.preferredUsername + '@' + url.host,
+      email: null,
+      description: userPetition.data.summary,
+      avatar: userPetition.data.icon?.url ? userPetition.data.icon.url : '/uploads/default.webp',
+      password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
+      publicKey: userPetition.data.publicKey?.publicKeyPem,
+      remoteInbox: userPetition.data.inbox
+    }
+    user = await User.create(userToCreate);
+
+    let federatedHost = await FederatedHost.findOne({
+      where: {
+        displayName: url.host.toLocaleLowerCase()
+      }
+    });
+    if(!federatedHost) {
+      const federatedHostToCreate = {
+        displayName: url.host,
+        publicInbox: userPetition.data.endpoints?.sharedInbox
+      }
+      federatedHost = await FederatedHost.create(federatedHostToCreate)
+    }
+
+    await federatedHost.addUser(user)
+  }
+
+  return user;
+
 }

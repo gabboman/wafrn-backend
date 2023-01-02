@@ -41,7 +41,8 @@ const User = sequelize.define('users', {
     type: Sequelize.UUID,
     allowNull: true,
     primaryKey: true
-  }
+  },
+  remoteInbox: Sequelize.TEXT
 })
 
 const Follows = sequelize.define ('follows', {
@@ -207,5 +208,6 @@ export {
   Tag,
   Follows,
   Media,
-  PostMentionsUserRelation
+  PostMentionsUserRelation,
+  FederatedHost
 }
