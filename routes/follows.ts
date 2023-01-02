@@ -6,6 +6,7 @@ import getFollowedsIds from '../utils/getFollowedsIds'
 
 export default function followsRoutes (app: Application) {
   app.post('/follow', authenticateToken, async (req: any, res) => {
+    // TODO remote user follow
     let success = false
     try {
       const posterId = req.jwtData.userId
@@ -29,6 +30,7 @@ export default function followsRoutes (app: Application) {
   })
 
   app.post('/unfollow', authenticateToken, async (req: any, res) => {
+    // TODO remote user unfollow
     let success = false
     try {
       const posterId = req.jwtData.userId
