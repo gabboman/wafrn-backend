@@ -1,13 +1,21 @@
 import { User } from '../models'
-import * as ed from '@noble/ed25519'
+import { generateKeyPair, generateKeyPairSync } from 'crypto'
 
 async function createKeysForUsers () {
   const users = await User.findAll()
   for await (const user of users) {
-    const privateKey = await ed.utils.randomPrivateKey()
-    const privateKeyString = Buffer.from(privateKey).toString('hex')
-    const publicKey = Buffer.from(await ed.getPublicKey(privateKey)).toString('hex')
-    user.privateKey = privateKeyString
+    const {publicKey, privateKey} = generateKeyPairSync('rsa', {
+      modulusLength: 4096,
+      publicKeyEncoding: {
+        type: 'spki',
+        format: 'pem'
+      },
+      privateKeyEncoding: {
+        type: 'pkcs8',
+        format: 'pem'
+      }
+    })
+    user.privateKey = privateKey
     user.publicKey = publicKey
     await user.save()
   }
