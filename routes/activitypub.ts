@@ -1,5 +1,6 @@
 import { Application } from 'express'
 import { User } from '../models'
+import checkFediverseSignature from '../utils/checkFediverseSignature'
 const environment = require('../environment')
 // all the stuff related to activitypub goes here
 
@@ -151,7 +152,7 @@ export default function activityPubRoutes (app: Application) {
     return404(res)
   })
 
-  app.post('/fediverse/blog/:url/inbox',  async (req: any, res) => {
+  app.post('/fediverse/blog/:url/inbox', checkFediverseSignature, async (req: any, res) => {
     if (req.params && req.params.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
