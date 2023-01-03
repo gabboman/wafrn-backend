@@ -31,8 +31,7 @@ queryInterface.addColumn(
   'follows',
   'remoteId', {
     type: Sequelize.TEXT,
-    defaultValue: '',
-    allowNull: false
+    allowNull: true
   }
 )
 

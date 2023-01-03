@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { Application } from 'express'
-import { User, FederatedHost } from '../models'
+import { User, FederatedHost, Follows } from '../models'
 import checkFediverseSignature from '../utils/checkFediverseSignature'
 import { createHash, createSign } from 'crypto'
 import sequelize from '../db'
@@ -36,14 +36,14 @@ export default function activityPubRoutes (app: Application) {
         const response = {
           subject: urlQueryResource,
           aliases: [
-            environment.frontendUrl + '/fediverse/blog/' + user.url,
-            environment.frontendUrl + '/blog/' + user.url
+            environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
+            environment.frontendUrl + '/blog/' + user.url.toLowerCase()
           ],
           links: [
             {
               rel: 'self',
               type: 'application/activity+json',
-              href: environment.frontendUrl + '/fediverse/blog/' + user.url
+              href: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase()
             },
             {
               rel: 'http://ostatus.org/schema/1.0/subscribe',
@@ -98,12 +98,16 @@ export default function activityPubRoutes (app: Application) {
             mediaType: 'image/webp',
             url: environment.mediaUrl + user.avatar
           },
-          /*
           image: {
             type: 'Image',
             mediaType: 'image/webp',
             url: environment.mediaUrl + user.avatar
-          }*/
+          }, 
+          publicKey: {
+            id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '#main-key',
+            owner: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
+            publicKeyPem: user.publicKey
+          }
         }
 
         res.set({
@@ -167,23 +171,72 @@ export default function activityPubRoutes (app: Application) {
     if (req.params && req.params.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: {
-          url
-        }
+        where:  sequelize.where(
+          sequelize.fn('LOWER', sequelize.col('url')),
+          'LIKE',
+          url.toLowerCase()
+        )
       })
       if (user) {
-        // FOLLOW:
-        switch (req.body.type) {
-          case 'Follow': {
-            const remoteUser = await getRemoteActor(req.body.actor, user.privateKey)
-            res.sendStatus(500)
-            break;
+        try {
+          switch (req.body.type) {
+            case 'Follow': {
+              res.sendStatus(200)
+              const remoteUser = await getRemoteActor(req.body.actor, user)
+              let remoteFollow = await Follows.findOne({
+                where: {
+                  followerId: remoteUser.id,
+                  followedId: user.id
+                }
+              });
+              if(!remoteFollow) {
+                await remoteUser.addFollower(user);
+                await remoteUser.save();
+                remoteFollow = await Follows.findOne({
+                  where: {
+                    followerId: remoteUser.id,
+                    followedId: user.id
+                  }
+                });
+              }
+              
+              remoteFollow.remoteId = req.body.id;
+              remoteFollow.save();
+              // we accept it
+              const acceptMessage = {
+                '@context': 'https://www.w3.org/ns/activitystreams',
+                'id': req.body.id,
+                'type': 'Accept',
+                'actor': environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
+                'object': req.body,
+              }
+              const acceptPetition = await axios.post(remoteUser.remoteInbox,
+                acceptMessage,
+                {
+                  headers: {
+                    ... await getSignHeaders(acceptMessage, user, remoteUser.remoteInbox, 'post' )
+                  }
+              })
+              break;
+            }
+            default: {
+              // res.sendStatus(500)
+              res.send({
+                '@context': 'https://www.w3.org/ns/activitystreams',
+                'id': req.body.id,
+                'type': 'Accept',
+                'actor': environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
+                'object': req.body,
+              })
+  
+            }
           }
-          default: {
-            res.sendStatus(500)
 
-          }
-        }
+        } catch (error) {
+          console.log('WE HAVE A PROBLEM')
+          console.error(error);
+          //res.send(500)
+        }       
       } else {
         return404(res)
       }
@@ -220,23 +273,23 @@ function return404 (res: any) {
 }
 
 
-async function getRemoteActor(actorUrl: string, privateKey: string) {
+async function getRemoteActor(actorUrl: string, user: any) {
   const url = new URL(actorUrl);
 
   const userPetition = await axios.get(actorUrl, {
     headers: {
-      'Content-Type': 'application/activity+json',
-      'Accept': 'application/activity+json'
-    }
+      ...await getSignHeaders({}, user, actorUrl, 'get' )
+    }, 
+    data: {},
   })
   
-  let user = await User.findOne({
+  let remoteUser = await User.findOne({
     where: {
       url: '@' + userPetition.data.preferredUsername + '@' + url.host
     }
   })
 
-  if(!user) {
+  if(!remoteUser) {
     const userToCreate = {
       url: '@' + userPetition.data.preferredUsername + '@' + url.host,
       email: null,
@@ -246,7 +299,7 @@ async function getRemoteActor(actorUrl: string, privateKey: string) {
       publicKey: userPetition.data.publicKey?.publicKeyPem,
       remoteInbox: userPetition.data.inbox
     }
-    user = await User.create(userToCreate);
+    remoteUser = await User.create(userToCreate);
 
     let federatedHost = await FederatedHost.findOne({
       where: {
@@ -261,9 +314,30 @@ async function getRemoteActor(actorUrl: string, privateKey: string) {
       federatedHost = await FederatedHost.create(federatedHostToCreate)
     }
 
-    await federatedHost.addUser(user)
+    await federatedHost.addUser(remoteUser)
   }
 
-  return user;
+  return remoteUser;
+
+}
+
+function getSignHeaders(message: any, user: any, target: string, method: string) : any {
+  const url = new URL(target)
+  const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')
+  const signer = createSign('sha256')
+  const sendDate = new Date()
+  let stringToSign = `(request-target): ${method} ${url.pathname}\nhost: ${url.host}\ndate: ${sendDate.toUTCString()}\ndigest: SHA-256=${digest}`;
+  signer.update(stringToSign);
+  signer.end();
+  const signature = signer.sign(user.privateKey).toString('base64')
+  const header = `keyId="${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key",headers="(request-target) host date digest",signature="${signature}"`;
+  return {
+    'Content-Type': 'application/activity+json',
+    Accept: 'application/activity+json',
+    Host: url.host,
+    Date: sendDate.toUTCString(),
+    Digest: `SHA-256=${digest}`,
+    Signature: header
+  }
 
 }
