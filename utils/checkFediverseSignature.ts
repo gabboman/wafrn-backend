@@ -6,16 +6,16 @@ export default async function checkFediverseSignature (
   res: Response,
   next: NextFunction
 ) {
-    let success = false;
-    const digest = req.headers.digest
-    const signature = req.headers.signature
-    if(digest && signature) {
-        // TODO check signatures for the love of god
-        success = true;
-    }
-    if (!success) {
-        return res.sendStatus(401)
-    } else {
-        next()
-    }
+  let success = false
+  const digest = req.headers.digest
+  const signature = req.headers.signature
+  if (digest && signature) {
+    // TODO check signatures for the love of god
+    success = true
+  }
+  if (!success) {
+    return res.sendStatus(401)
+  } else {
+    next()
+  }
 }

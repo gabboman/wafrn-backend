@@ -1,12 +1,11 @@
 import axios from 'axios'
 import { Application } from 'express'
-import { User, FederatedHost, Follows } from '../models'
+import { User, FederatedHost, Follows, Post } from '../models'
 import checkFediverseSignature from '../utils/checkFediverseSignature'
 import { createHash, createSign } from 'crypto'
 import sequelize from '../db'
 
 const environment = require('../environment')
-
 
 // all the stuff related to activitypub goes here
 
@@ -23,7 +22,7 @@ export default function activityPubRoutes (app: Application) {
       if (urlQueryResource.startsWith('acct:') && urlQueryResource.endsWith(environment.instanceUrl)) {
         const userUrl = urlQueryResource.slice(5).slice(0, -(environment.instanceUrl.length + 1))
         const user = await User.findOne({
-          where:  sequelize.where(
+          where: sequelize.where(
             sequelize.fn('LOWER', sequelize.col('url')),
             'LIKE',
             userUrl.toLowerCase()
@@ -67,7 +66,7 @@ export default function activityPubRoutes (app: Application) {
     if (req.params && req.params.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where:  sequelize.where(
+        where: sequelize.where(
           sequelize.fn('LOWER', sequelize.col('url')),
           'LIKE',
           url
@@ -102,7 +101,7 @@ export default function activityPubRoutes (app: Application) {
             type: 'Image',
             mediaType: 'image/webp',
             url: environment.mediaUrl + user.avatar
-          }, 
+          },
           publicKey: {
             id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '#main-key',
             owner: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
@@ -125,7 +124,7 @@ export default function activityPubRoutes (app: Application) {
     if (req.params && req.params.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where:  sequelize.where(
+        where: sequelize.where(
           sequelize.fn('LOWER', sequelize.col('url')),
           'LIKE',
           url.toLowerCase()
@@ -166,7 +165,7 @@ export default function activityPubRoutes (app: Application) {
     if (req.params && req.params.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where:  sequelize.where(
+        where: sequelize.where(
           sequelize.fn('LOWER', sequelize.col('url')),
           'LIKE',
           url.toLowerCase()
@@ -211,7 +210,7 @@ export default function activityPubRoutes (app: Application) {
     if (req.params && req.params.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where:  sequelize.where(
+        where: sequelize.where(
           sequelize.fn('LOWER', sequelize.col('url')),
           'LIKE',
           url.toLowerCase()
@@ -221,36 +220,42 @@ export default function activityPubRoutes (app: Application) {
         try {
           const remoteUser = await getRemoteActor(req.body.actor, user)
           switch (req.body.type) {
+            case 'Create': {
+              // Create new post
+              const postRecived = req.body.object
+            }
             case 'Follow': {
+              // Follow user
               res.sendStatus(200)
               let remoteFollow = await Follows.findOne({
                 where: {
                   followerId: remoteUser.id,
                   followedId: user.id
                 }
-              });
-              if(!remoteFollow) {
-                await remoteUser.addFollower(user);
-                await remoteUser.save();
+              })
+              if (!remoteFollow) {
+                await remoteUser.addFollower(user)
+                await remoteUser.save()
                 remoteFollow = await Follows.findOne({
                   where: {
                     followerId: remoteUser.id,
                     followedId: user.id
                   }
-                });
+                })
               }
-              
-              remoteFollow.remoteFollowId = req.body.id;
-              remoteFollow.save();
+
+              remoteFollow.remoteFollowId = req.body.id
+              remoteFollow.save()
               // we accept it
               await signAndAccept(req, remoteUser, user)
-              break;
+              break
             }
             case 'Undo': {
-              
+              // Unfollow? Destroy post? what else can be undone
+
               res.sendStatus(200)
               const body = req.body
-              switch(body.object.type) {
+              switch (body.object.type) {
                 case 'Follow': {
                   const remoteFollow = await Follows.findOne({
                     where: {
@@ -258,27 +263,28 @@ export default function activityPubRoutes (app: Application) {
                       followedId: user.id,
                       remoteFollowId: body.object.id
                     }
-                  });
+                  })
                   await remoteFollow.destroy()
                   await signAndAccept(req, remoteUser, user)
                 }
+                case 'Create': {
+                  // TODO what if user wants to remove post? time to carl the delete I guess
+                }
                 default: {
-                  
+
                 }
               }
-              break;
+              break
             }
             default: {
               res.sendStatus(200)
-  
             }
           }
-
         } catch (error) {
           console.log('WE HAVE A PROBLEM')
-          console.error(error);
-          //res.send(500)
-        }       
+          console.error(error)
+          // res.send(500)
+        }
       } else {
         return404(res)
       }
@@ -314,24 +320,30 @@ function return404 (res: any) {
   res.sendStatus(404)
 }
 
+async function getRemoteActor (actorUrl: string, user: any) {
+  // TODO delete this, this line was made for doing stuff in a plane with no internet
+  return await User.findOne({
+    where: {
+      url: '@admin@hamburguesa.minecraftanarquia.xyz'
+    }
+  })
+  const url = new URL(actorUrl)
 
-async function getRemoteActor(actorUrl: string, user: any) {
-  const url = new URL(actorUrl);
-
+  // TODO properly sign petition
   const userPetition = await axios.get(actorUrl, {
     headers: {
-      ...await getSignHeaders({}, user, actorUrl, 'get' )
-    }, 
-    data: {},
+      ...await getSignHeaders({}, user, actorUrl, 'get')
+    },
+    data: {}
   })
-  
+
   let remoteUser = await User.findOne({
     where: {
       url: '@' + userPetition.data.preferredUsername + '@' + url.host
     }
   })
 
-  if(!remoteUser) {
+  if (!remoteUser) {
     const userToCreate = {
       url: '@' + userPetition.data.preferredUsername + '@' + url.host,
       email: null,
@@ -342,14 +354,14 @@ async function getRemoteActor(actorUrl: string, user: any) {
       remoteInbox: userPetition.data.inbox,
       remoteId: actorUrl
     }
-    remoteUser = await User.create(userToCreate);
+    remoteUser = await User.create(userToCreate)
 
     let federatedHost = await FederatedHost.findOne({
       where: {
         displayName: url.host.toLocaleLowerCase()
       }
-    });
-    if(!federatedHost) {
+    })
+    if (!federatedHost) {
       const federatedHostToCreate = {
         displayName: url.host,
         publicInbox: userPetition.data.endpoints?.sharedInbox
@@ -360,20 +372,19 @@ async function getRemoteActor(actorUrl: string, user: any) {
     await federatedHost.addUser(remoteUser)
   }
 
-  return remoteUser;
-
+  return remoteUser
 }
 
-function getSignHeaders(message: any, user: any, target: string, method: string) : any {
+function getSignHeaders (message: any, user: any, target: string, method: string): any {
   const url = new URL(target)
   const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')
   const signer = createSign('sha256')
   const sendDate = new Date()
-  let stringToSign = `(request-target): ${method} ${url.pathname}\nhost: ${url.host}\ndate: ${sendDate.toUTCString()}\ndigest: SHA-256=${digest}`;
-  signer.update(stringToSign);
-  signer.end();
+  const stringToSign = `(request-target): ${method} ${url.pathname}\nhost: ${url.host}\ndate: ${sendDate.toUTCString()}\ndigest: SHA-256=${digest}`
+  signer.update(stringToSign)
+  signer.end()
   const signature = signer.sign(user.privateKey).toString('base64')
-  const header = `keyId="${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key",headers="(request-target) host date digest",signature="${signature}"`;
+  const header = `keyId="${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key",headers="(request-target) host date digest",signature="${signature}"`
   return {
     'Content-Type': 'application/activity+json',
     Accept: 'application/activity+json',
@@ -382,22 +393,40 @@ function getSignHeaders(message: any, user: any, target: string, method: string)
     Digest: `SHA-256=${digest}`,
     Signature: header
   }
-
 }
 
-async function signAndAccept(req: any, remoteUser: any, user: any ) {
+async function signAndAccept (req: any, remoteUser: any, user: any) {
   const acceptMessage = {
     '@context': 'https://www.w3.org/ns/activitystreams',
-    'id': req.body.id,
-    'type': 'Accept',
-    'actor': environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
-    'object': req.body,
+    id: req.body.id,
+    type: 'Accept',
+    actor: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
+    object: req.body
   }
   const acceptPetition = await axios.post(remoteUser.remoteInbox,
     acceptMessage,
     {
       headers: {
-        ... await getSignHeaders(acceptMessage, user, remoteUser.remoteInbox, 'post' )
+        ...await getSignHeaders(acceptMessage, user, remoteUser.remoteInbox, 'post')
       }
+    })
+}
+
+async function getPostThreadRecursive (user: any, remotePostId: string) {
+  const postInDatabase = await Post.findOne({
+    where: {
+      remotePostId
+    }
   })
+  if (postInDatabase) {
+    return postInDatabase
+  } else {
+    // TODO properly sign petition
+    const postPetition = await axios.get(remotePostId, {
+      headers: {
+        ...await getSignHeaders({}, user, remotePostId, 'get')
+      },
+      data: {}
+    })
+  }
 }

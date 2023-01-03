@@ -51,7 +51,7 @@ export default function userRoutes (app: Application) {
           }
 
           const activationCode = generateRandomString()
-          const {publicKey, privateKey} = generateKeyPairSync('rsa', {
+          const { publicKey, privateKey } = generateKeyPairSync('rsa', {
             modulusLength: 4096,
             publicKeyEncoding: {
               type: 'spki',
@@ -77,8 +77,8 @@ export default function userRoutes (app: Application) {
             registerIp: getIp(req),
             lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
             activationCode,
-            privateKey: privateKey,
-            publicKey: publicKey
+            privateKey,
+            publicKey
           }
 
           const userWithEmail = User.create(user)

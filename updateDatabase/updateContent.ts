@@ -4,7 +4,7 @@ import { generateKeyPair, generateKeyPairSync } from 'crypto'
 async function createKeysForUsers () {
   const users = await User.findAll()
   for await (const user of users) {
-    const {publicKey, privateKey} = generateKeyPairSync('rsa', {
+    const { publicKey, privateKey } = generateKeyPairSync('rsa', {
       modulusLength: 4096,
       publicKeyEncoding: {
         type: 'spki',

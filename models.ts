@@ -46,7 +46,7 @@ const User = sequelize.define('users', {
   remoteId: Sequelize.TEXT
 })
 
-const Follows = sequelize.define ('follows', {
+const Follows = sequelize.define('follows', {
   followedId: {
     type: Sequelize.UUID,
     defaultValue: Sequelize.UUIDV4,
@@ -60,7 +60,7 @@ const Follows = sequelize.define ('follows', {
     primaryKey: true
   },
   remoteFollowId: Sequelize.TEXT
-  
+
 })
 
 const Post = sequelize.define('posts', {
@@ -71,7 +71,8 @@ const Post = sequelize.define('posts', {
     primaryKey: true
   },
   content_warning: Sequelize.STRING,
-  content: Sequelize.TEXT
+  content: Sequelize.TEXT,
+  remotePostId: Sequelize.TEXT
 })
 
 const Tag = sequelize.define('tags', {

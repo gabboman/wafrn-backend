@@ -27,6 +27,16 @@ queryInterface.createTable('federatedHosts', {
   updatedAt: Sequelize.DATE
 })
 // add column
+
+queryInterface.addColumn(
+  'posts',
+  'remotePostId', {
+    type: Sequelize.TEXT,
+    allowNull: true,
+    unique: false
+  }
+)
+
 queryInterface.addColumn(
   'follows',
   'remoteFollowId', {
