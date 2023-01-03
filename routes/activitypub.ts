@@ -125,12 +125,14 @@ export default function activityPubRoutes (app: Application) {
     if (req.params && req.params.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: {
-          url
-        }
+        where:  sequelize.where(
+          sequelize.fn('LOWER', sequelize.col('url')),
+          'LIKE',
+          url.toLowerCase()
+        )
       })
       if (user) {
-        const followed = user.getFollowed()
+        const followed = await user.getFollowed()
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/following',
@@ -145,11 +147,12 @@ export default function activityPubRoutes (app: Application) {
             type: 'OrderedCollection',
             totalItems: followed.length,
             partOf: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/following',
-            orderedItems: [
-
-            ]
+            orderedItems: followed.map(
+              (elem: any) => elem.remoteId ? elem.remoteId : environment.frontendUrl + '/fediverse/blog/' + elem.url
+            )
           }
         }
+        res.send(response)
       } else {
         return404(res)
       }
@@ -160,8 +163,45 @@ export default function activityPubRoutes (app: Application) {
   )
 
   app.get('/fediverse/blog/:url/followers', async (req: any, res) => {
-
-  })
+    if (req.params && req.params.url) {
+      const url = req.params.url.toLowerCase()
+      const user = await User.findOne({
+        where:  sequelize.where(
+          sequelize.fn('LOWER', sequelize.col('url')),
+          'LIKE',
+          url.toLowerCase()
+        )
+      })
+      if (user) {
+        const followers = await user.getFollower()
+        let response: any = {
+          '@context': 'https://www.w3.org/ns/activitystreams',
+          id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers',
+          type: 'OrderedCollection',
+          totalItems: followers.length,
+          first: 'https://hamburguesa.minecraftanarquia.xyz/users/admin/followers?page=1'
+        }
+        if (req.query && req.query.page) {
+          response = {
+            '@context': 'https://www.w3.org/ns/activitystreams',
+            id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers',
+            type: 'OrderedCollection',
+            totalItems: followers.length,
+            partOf: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers',
+            orderedItems: followers.map(
+              (elem: any) => elem.remoteId ? elem.remoteId : environment.frontendUrl + '/fediverse/blog/' + elem.url
+            )
+          }
+        }
+        res.send(response)
+      } else {
+        return404(res)
+      }
+    } else {
+      return404(res)
+    }
+  }
+  )
 
   app.get('/fediverse/blog/:url/featured', async (req: any, res) => {
     return404(res)
@@ -200,7 +240,7 @@ export default function activityPubRoutes (app: Application) {
                 });
               }
               
-              remoteFollow.remoteId = req.body.id;
+              remoteFollow.remoteFollowId = req.body.id;
               remoteFollow.save();
               // we accept it
               const acceptMessage = {
@@ -297,7 +337,8 @@ async function getRemoteActor(actorUrl: string, user: any) {
       avatar: userPetition.data.icon?.url ? userPetition.data.icon.url : '/uploads/default.webp',
       password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
       publicKey: userPetition.data.publicKey?.publicKeyPem,
-      remoteInbox: userPetition.data.inbox
+      remoteInbox: userPetition.data.inbox,
+      remoteId: actorUrl
     }
     remoteUser = await User.create(userToCreate);
 

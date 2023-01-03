@@ -29,7 +29,7 @@ queryInterface.createTable('federatedHosts', {
 // add column
 queryInterface.addColumn(
   'follows',
-  'remoteId', {
+  'remoteFollowId', {
     type: Sequelize.TEXT,
     allowNull: true
   }
@@ -82,6 +82,16 @@ queryInterface.addColumn(
     unique: false
   }
 )
+
+queryInterface.addColumn(
+  'users',
+  'remoteId', {
+    type: Sequelize.TEXT,
+    allowNull: true,
+    unique: false
+  }
+)
+
 /*
 queryInterface.removeColumn(
   'posts',

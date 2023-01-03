@@ -42,7 +42,8 @@ const User = sequelize.define('users', {
     allowNull: true,
     primaryKey: true
   },
-  remoteInbox: Sequelize.TEXT
+  remoteInbox: Sequelize.TEXT,
+  remoteId: Sequelize.TEXT
 })
 
 const Follows = sequelize.define ('follows', {
@@ -58,7 +59,7 @@ const Follows = sequelize.define ('follows', {
     allowNull: false,
     primaryKey: true
   },
-  remoteId: Sequelize.TEXT
+  remoteFollowId: Sequelize.TEXT
   
 })
 
