@@ -10,6 +10,7 @@
     "frontendUrl": "https://app.wafrn.net",
     "instanceUrl": "FRONTEND_URL_WITHOUT_HTTP://",
     "mediaUrl": "https://media.wafrn.net",
+    "fronendToProxyUrl": "we_redirect_queries_to_ angular ssr here. localhost:4000",
     "logSQLQueries": false,
     "removeFolderNameFromFileUploads": false,
     "uploadLimit": "50",
