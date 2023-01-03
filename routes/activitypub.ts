@@ -221,8 +221,11 @@ export default function activityPubRoutes (app: Application) {
           const remoteUser = await getRemoteActor(req.body.actor, user)
           switch (req.body.type) {
             case 'Create': {
+              res.sendStatus(200)
               // Create new post
               const postRecived = req.body.object
+              await signAndAccept(req, remoteUser, user)
+              await getPostThreadRecursive(user, postRecived.id, postRecived)
             }
             case 'Follow': {
               // Follow user
@@ -321,12 +324,6 @@ function return404 (res: any) {
 }
 
 async function getRemoteActor (actorUrl: string, user: any) {
-  // TODO delete this, this line was made for doing stuff in a plane with no internet
-  return await User.findOne({
-    where: {
-      url: '@admin@hamburguesa.minecraftanarquia.xyz'
-    }
-  })
   const url = new URL(actorUrl)
 
   // TODO properly sign petition
@@ -412,7 +409,7 @@ async function signAndAccept (req: any, remoteUser: any, user: any) {
     })
 }
 
-async function getPostThreadRecursive (user: any, remotePostId: string) {
+async function getPostThreadRecursive (user: any, remotePostId: string, remotePostObject?: any) {
   const postInDatabase = await Post.findOne({
     where: {
       remotePostId
@@ -422,11 +419,26 @@ async function getPostThreadRecursive (user: any, remotePostId: string) {
     return postInDatabase
   } else {
     // TODO properly sign petition
-    const postPetition = await axios.get(remotePostId, {
+    const postPetition = remotePostObject || await axios.get(remotePostId, {
       headers: {
         ...await getSignHeaders({}, user, remotePostId, 'get')
       },
       data: {}
     })
+    const postToCreate = {
+      content: postPetition.content,
+      content_warning: postPetition.sensitive ? postPetition.summary : '',
+      createdAt: new Date(postPetition.published),
+      userId: (await getRemoteActor(user, postPetition.attributedTo)).id
+    }
+    if (postPetition.inReplyTo) {
+      const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
+      const newPost = await Post.create(postToCreate)
+      await newPost.setParent(parent)
+      await newPost.save()
+      return newPost
+    } else {
+      return await Post.create(postToCreate)
+    }
   }
 }
