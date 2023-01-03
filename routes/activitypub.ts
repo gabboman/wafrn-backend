@@ -219,10 +219,10 @@ export default function activityPubRoutes (app: Application) {
       })
       if (user) {
         try {
+          const remoteUser = await getRemoteActor(req.body.actor, user)
           switch (req.body.type) {
             case 'Follow': {
               res.sendStatus(200)
-              const remoteUser = await getRemoteActor(req.body.actor, user)
               let remoteFollow = await Follows.findOne({
                 where: {
                   followerId: remoteUser.id,
@@ -243,31 +243,33 @@ export default function activityPubRoutes (app: Application) {
               remoteFollow.remoteFollowId = req.body.id;
               remoteFollow.save();
               // we accept it
-              const acceptMessage = {
-                '@context': 'https://www.w3.org/ns/activitystreams',
-                'id': req.body.id,
-                'type': 'Accept',
-                'actor': environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
-                'object': req.body,
+              await signAndAccept(req, remoteUser, user)
+              break;
+            }
+            case 'Undo': {
+              
+              res.sendStatus(200)
+              const body = req.body
+              switch(body.object.type) {
+                case 'Follow': {
+                  const remoteFollow = await Follows.findOne({
+                    where: {
+                      followerId: remoteUser.id,
+                      followedId: user.id,
+                      remoteFollowId: body.object.id
+                    }
+                  });
+                  await remoteFollow.destroy()
+                  await signAndAccept(req, remoteUser, user)
+                }
+                default: {
+                  
+                }
               }
-              const acceptPetition = await axios.post(remoteUser.remoteInbox,
-                acceptMessage,
-                {
-                  headers: {
-                    ... await getSignHeaders(acceptMessage, user, remoteUser.remoteInbox, 'post' )
-                  }
-              })
               break;
             }
             default: {
-              // res.sendStatus(500)
-              res.send({
-                '@context': 'https://www.w3.org/ns/activitystreams',
-                'id': req.body.id,
-                'type': 'Accept',
-                'actor': environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
-                'object': req.body,
-              })
+              res.sendStatus(200)
   
             }
           }
@@ -381,4 +383,21 @@ function getSignHeaders(message: any, user: any, target: string, method: string)
     Signature: header
   }
 
+}
+
+async function signAndAccept(req: any, remoteUser: any, user: any ) {
+  const acceptMessage = {
+    '@context': 'https://www.w3.org/ns/activitystreams',
+    'id': req.body.id,
+    'type': 'Accept',
+    'actor': environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
+    'object': req.body,
+  }
+  const acceptPetition = await axios.post(remoteUser.remoteInbox,
+    acceptMessage,
+    {
+      headers: {
+        ... await getSignHeaders(acceptMessage, user, remoteUser.remoteInbox, 'post' )
+      }
+  })
 }
