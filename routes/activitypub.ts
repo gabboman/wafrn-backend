@@ -226,6 +226,7 @@ export default function activityPubRoutes (app: Application) {
               const postRecived = req.body.object
               await signAndAccept(req, remoteUser, user)
               await getPostThreadRecursive(user, postRecived.id, postRecived)
+              break
             }
             case 'Follow': {
               // Follow user
@@ -324,6 +325,7 @@ function return404 (res: any) {
 }
 
 async function getRemoteActor (actorUrl: string, user: any) {
+  console.log(actorUrl)
   const url = new URL(actorUrl)
 
   // TODO properly sign petition
@@ -419,17 +421,19 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     return postInDatabase
   } else {
     // TODO properly sign petition
-    const postPetition = remotePostObject || await axios.get(remotePostId, {
+    const postPetition = remotePostObject || (await axios.get(remotePostId, {
       headers: {
         ...await getSignHeaders({}, user, remotePostId, 'get')
       },
       data: {}
-    })
+    })).data
     const postToCreate = {
       content: postPetition.content,
       content_warning: postPetition.sensitive ? postPetition.summary : '',
       createdAt: new Date(postPetition.published),
-      userId: (await getRemoteActor(user, postPetition.attributedTo)).id
+      updatedAt: new Date(),
+      userId: (await getRemoteActor(postPetition.attributedTo, user)).id,
+      remotePostId: remotePostId
     }
     if (postPetition.inReplyTo) {
       const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
