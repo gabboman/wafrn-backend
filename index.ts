@@ -19,7 +19,7 @@ import searchRoutes from './routes/search'
 import getStartScrollParam from './utils/getStartScrollParam'
 import deletePost from './routes/deletepost'
 import getPosstGroupDetails from './utils/getPostGroupDetails'
-import activityPubRoutes from './routes/activitypub'
+import { activityPubRoutes } from './routes/activitypub'
 import overrideContentType from './utils/overrideContentType'
 
 const environment = require('./environment')

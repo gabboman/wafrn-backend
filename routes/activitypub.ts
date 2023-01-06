@@ -9,7 +9,7 @@ const environment = require('../environment')
 
 // all the stuff related to activitypub goes here
 
-export default function activityPubRoutes (app: Application) {
+function activityPubRoutes (app: Application) {
   // webfinger protocol
   app.get('/.well-known/host-meta', (req: any, res) => {
     res.send(
@@ -433,7 +433,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
       createdAt: new Date(postPetition.published),
       updatedAt: new Date(),
       userId: (await getRemoteActor(postPetition.attributedTo, user)).id,
-      remotePostId: remotePostId
+      remotePostId
     }
     if (postPetition.inReplyTo) {
       const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
@@ -446,3 +446,22 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     }
   }
 }
+
+async function remoteFollow (localUser: any, remoteUser: any) {
+  const petitionBody = { '@context': 'https://www.w3.org/ns/activitystreams',
+  id: environment.frontendUrl + '/fediverse/follows/'+ localUser.id + '/' + remoteUser.id,
+  type: 'Follow',
+  actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
+  object: remoteUser.remoteId
+ }
+ const followPetition = await axios.post(remoteUser.remoteInbox,
+  petitionBody,
+  {
+    headers: {
+      ...await getSignHeaders(petitionBody, localUser, remoteUser.remoteInbox, 'post')
+    }
+  })
+  return followPetition
+}
+
+export { activityPubRoutes, remoteFollow }

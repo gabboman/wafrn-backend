@@ -3,6 +3,7 @@ import { User } from '../models'
 import authenticateToken from '../utils/authenticateToken'
 import getBlockedIds from '../utils/getBlockedIds'
 import getFollowedsIds from '../utils/getFollowedsIds'
+import { remoteFollow } from './activitypub'
 
 export default function followsRoutes (app: Application) {
   app.post('/follow', authenticateToken, async (req: any, res) => {
@@ -19,6 +20,10 @@ export default function followsRoutes (app: Application) {
 
         userFollowed.addFollower(posterId)
         success = true
+        if(userFollowed.remoteId){
+          const localUser = await User.findOne({where: {id: posterId}})
+          await remoteFollow(localUser , userFollowed)      
+        }
       }
     } catch (error) {
       console.error(error)
