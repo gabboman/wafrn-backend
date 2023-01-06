@@ -56,13 +56,11 @@ export default function searchRoutes (app: Application) {
             )
           ]
         },
-        attributes: {
-          include: [
+        attributes: [
             'url',
             'description',
             'avatar'
-          ]
-        }
+        ]
       })
       promises.push(users)
     }
