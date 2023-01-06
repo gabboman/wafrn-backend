@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { Application } from 'express'
-import { User, FederatedHost, Follows, Post } from '../models'
+import { User, FederatedHost, Follows, Post, Media } from '../models'
 import checkFediverseSignature from '../utils/checkFediverseSignature'
 import { createHash, createSign } from 'crypto'
 import sequelize from '../db'
@@ -427,12 +427,31 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
       },
       data: {}
     })).data
+
+    const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
+    let mediasString = ''
+    const medias = []
+    if(postPetition.attachment && postPetition.attachment.length > 0) {
+      for await (const remoteFile of postPetition.attachment) {
+        const wafrnMedia = await Media.create({
+          url: remoteFile.url,
+          NSFW: remotePostObject.sensitive,
+          userId: remoteUser.id,
+          description: remoteFile.name,
+          ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
+          adultContent: remotePostObject.sensitive,
+          external: true
+        })
+        medias.push(wafrnMedia)
+        mediasString = mediasString + '[wafrnmediaid="' + wafrnMedia.id + '"]'
+      }
+    }
     const postToCreate = {
-      content: postPetition.content,
+      content: postPetition.content + mediasString,
       content_warning: postPetition.sensitive ? postPetition.summary : '',
       createdAt: new Date(postPetition.published),
       updatedAt: new Date(),
-      userId: (await getRemoteActor(postPetition.attributedTo, user)).id,
+      userId: remoteUser.id,
       remotePostId
     }
     if (postPetition.inReplyTo) {
@@ -440,9 +459,12 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
       const newPost = await Post.create(postToCreate)
       await newPost.setParent(parent)
       await newPost.save()
+      newPost.addMedias(medias)
       return newPost
     } else {
-      return await Post.create(postToCreate)
+      const post = await Post.create(postToCreate)
+      post.addMedias(medias)
+      return post
     }
   }
 }
@@ -463,5 +485,6 @@ async function remoteFollow (localUser: any, remoteUser: any) {
   })
   return followPetition
 }
+
 
 export { activityPubRoutes, remoteFollow }
