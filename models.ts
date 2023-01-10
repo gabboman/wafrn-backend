@@ -72,7 +72,8 @@ const Post = sequelize.define('posts', {
   },
   content_warning: Sequelize.STRING,
   content: Sequelize.TEXT,
-  remotePostId: Sequelize.TEXT
+  remotePostId: Sequelize.TEXT,
+  privacy: Sequelize.INTEGER
 })
 
 const Tag = sequelize.define('tags', {

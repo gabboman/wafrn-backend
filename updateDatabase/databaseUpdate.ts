@@ -30,6 +30,16 @@ queryInterface.createTable('federatedHosts', {
 
 queryInterface.addColumn(
   'posts',
+  'privacy', {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    unique: false
+  }
+)
+
+queryInterface.addColumn(
+  'posts',
   'remotePostId', {
     type: Sequelize.TEXT,
     allowNull: true,

@@ -67,7 +67,8 @@ app.get('/dashboard', authenticateToken, async (req: any, res) => {
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      userId: { [Op.in]: usersFollowed }
+      userId: { [Op.in]: usersFollowed },
+      privacy: {[Op.in]: [0, 1] }
     },
     ...getPostBaseQuery(req)
   })
@@ -79,7 +80,8 @@ app.get('/explore', async (req: any, res) => {
   const rawPosts = await Post.findAll({
     where: {
       // date the user has started scrolling
-      createdAt: { [Op.lt]: getStartScrollParam(req) }
+      createdAt: { [Op.lt]: getStartScrollParam(req) },
+      privacy: 0,
     },
     ...getPostBaseQuery(req)
   })

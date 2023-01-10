@@ -4,6 +4,9 @@ import { User, FederatedHost, Follows, Post, Media } from '../models'
 import checkFediverseSignature from '../utils/checkFediverseSignature'
 import { createHash, createSign } from 'crypto'
 import sequelize from '../db'
+import { resolve } from 'path'
+var https = require('https');
+var httpSignature = require('@peertube/http-signature');
 
 const environment = require('../environment')
 
@@ -268,7 +271,9 @@ function activityPubRoutes (app: Application) {
                       remoteFollowId: body.object.id
                     }
                   })
-                  await remoteFollow.destroy()
+                  if(remoteFollow) {
+                    await remoteFollow.destroy()
+                  }
                   await signAndAccept(req, remoteUser, user)
                 }
                 case 'Create': {
@@ -329,28 +334,23 @@ async function getRemoteActor (actorUrl: string, user: any) {
   const url = new URL(actorUrl)
 
   // TODO properly sign petition
-  const userPetition = await axios.get(actorUrl, {
-    headers: {
-      ...await getSignHeaders({}, user, actorUrl, 'get')
-    },
-    data: {}
-  })
+  const userPetition = await  getSignHeaders(user, actorUrl)
 
   let remoteUser = await User.findOne({
     where: {
-      url: '@' + userPetition.data.preferredUsername + '@' + url.host
+      url: '@' + userPetition.preferredUsername + '@' + url.host
     }
   })
 
   if (!remoteUser) {
     const userToCreate = {
-      url: '@' + userPetition.data.preferredUsername + '@' + url.host,
+      url: '@' + userPetition.preferredUsername + '@' + url.host,
       email: null,
-      description: userPetition.data.summary,
-      avatar: userPetition.data.icon?.url ? userPetition.data.icon.url : '/uploads/default.webp',
+      description: userPetition.summary,
+      avatar: userPetition.icon?.url ? userPetition.icon.url : '/uploads/default.webp',
       password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
-      publicKey: userPetition.data.publicKey?.publicKeyPem,
-      remoteInbox: userPetition.data.inbox,
+      publicKey: userPetition.publicKey?.publicKeyPem,
+      remoteInbox: userPetition.inbox,
       remoteId: actorUrl
     }
     remoteUser = await User.create(userToCreate)
@@ -363,7 +363,7 @@ async function getRemoteActor (actorUrl: string, user: any) {
     if (!federatedHost) {
       const federatedHostToCreate = {
         displayName: url.host,
-        publicInbox: userPetition.data.endpoints?.sharedInbox
+        publicInbox: userPetition.endpoints?.sharedInbox
       }
       federatedHost = await FederatedHost.create(federatedHostToCreate)
     }
@@ -374,12 +374,12 @@ async function getRemoteActor (actorUrl: string, user: any) {
   return remoteUser
 }
 
-function getSignHeaders (message: any, user: any, target: string, method: string): any {
+function getPostSignHeaders (message: any, user: any, target: string): any {
   const url = new URL(target)
   const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')
   const signer = createSign('sha256')
   const sendDate = new Date()
-  const stringToSign = `(request-target): ${method} ${url.pathname}\nhost: ${url.host}\ndate: ${sendDate.toUTCString()}\ndigest: SHA-256=${digest}`
+  const stringToSign = `(request-target): post ${url.pathname}\nhost: ${url.host}\ndate: ${sendDate.toUTCString()}\ndigest: SHA-256=${digest}`
   signer.update(stringToSign)
   signer.end()
   const signature = signer.sign(user.privateKey).toString('base64')
@@ -394,6 +394,43 @@ function getSignHeaders (message: any, user: any, target: string, method: string
   }
 }
 
+function getSignHeaders (user: any, target: string): Promise<any> {
+  const res =  new Promise((resolve: any, reject: any) => {
+    const url = new URL(target)
+    const privKey = user.privateKey
+    const options = {
+      host: url.host,
+      port: 443,
+      path: url.pathname,
+      method: 'GET',
+      headers: {
+        //'Content-Type': 'application/activity+json',
+        Accept: 'application/activity+json',
+      }
+    };
+    const httpPetition = https.request(options, (response:any)=> {
+      if(response.statusCode == 200){
+        let data = ''
+        response.on('data', (chunk: any) => data = data + chunk)
+        response.on('end', () => {
+          resolve(JSON.parse(data))
+        })
+      } else {
+        reject({'code': response.statusCode})
+      }
+    })
+    httpSignature.signRequest(httpPetition, {
+      key: privKey,
+      keyId: `${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key`,
+      algorithm: 'rsa-sha256',
+      authorizationHeaderName: 'signature',
+      headers: ['(request-target)', 'host', 'date', 'accept' ]
+    });  
+    httpPetition.end();
+  })
+  return res
+}
+
 async function signAndAccept (req: any, remoteUser: any, user: any) {
   const acceptMessage = {
     '@context': 'https://www.w3.org/ns/activitystreams',
@@ -406,7 +443,7 @@ async function signAndAccept (req: any, remoteUser: any, user: any) {
     acceptMessage,
     {
       headers: {
-        ...await getSignHeaders(acceptMessage, user, remoteUser.remoteInbox, 'post')
+        ...await getPostSignHeaders(acceptMessage, user, remoteUser.remoteInbox)
       }
     })
 }
@@ -423,7 +460,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     // TODO properly sign petition
     const postPetition = remotePostObject || (await axios.get(remotePostId, {
       headers: {
-        ...await getSignHeaders({}, user, remotePostId, 'get')
+        ... await getSignHeaders(user, remotePostId)
       },
       data: {}
     })).data
@@ -431,6 +468,8 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
     let mediasString = ''
     const medias = []
+    let privacy = 10
+    
     if(postPetition.attachment && postPetition.attachment.length > 0) {
       for await (const remoteFile of postPetition.attachment) {
         const wafrnMedia = await Media.create({
@@ -480,11 +519,11 @@ async function remoteFollow (localUser: any, remoteUser: any) {
   petitionBody,
   {
     headers: {
-      ...await getSignHeaders(petitionBody, localUser, remoteUser.remoteInbox, 'post')
+      ...await getPostSignHeaders(petitionBody, localUser, remoteUser.remoteInbox)
     }
   })
   return followPetition
 }
 
 
-export { activityPubRoutes, remoteFollow }
+export { activityPubRoutes, remoteFollow, getRemoteActor, getSignHeaders }
