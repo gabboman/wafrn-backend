@@ -5,6 +5,7 @@ import checkFediverseSignature from '../utils/checkFediverseSignature'
 import { createHash, createSign } from 'crypto'
 import sequelize from '../db'
 import { resolve } from 'path'
+
 var https = require('https');
 var httpSignature = require('@peertube/http-signature');
 
@@ -134,13 +135,14 @@ function activityPubRoutes (app: Application) {
         )
       })
       if (user) {
-        const followed = await user.getFollowed()
+        // ????????
+        const followed = await user.getFollower()
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/following',
           type: 'OrderedCollection',
           totalItems: followed.length,
-          first: 'https://hamburguesa.minecraftanarquia.xyz/users/admin/following?page=1'
+          first: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/following?page=1'
         }
         if (req.query && req.query.page) {
           response = {
@@ -175,13 +177,14 @@ function activityPubRoutes (app: Application) {
         )
       })
       if (user) {
-        const followers = await user.getFollower()
+        // ??????????
+        const followers = await user.getFollowed()
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers',
           type: 'OrderedCollection',
           totalItems: followers.length,
-          first: 'https://hamburguesa.minecraftanarquia.xyz/users/admin/followers?page=1'
+          first: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers?page=1'
         }
         if (req.query && req.query.page) {
           response = {
@@ -227,8 +230,8 @@ function activityPubRoutes (app: Application) {
               res.sendStatus(200)
               // Create new post
               const postRecived = req.body.object
-              await signAndAccept(req, remoteUser, user)
               await getPostThreadRecursive(user, postRecived.id, postRecived)
+              await signAndAccept(req, remoteUser, user)
               break
             }
             case 'Follow': {
@@ -254,7 +257,7 @@ function activityPubRoutes (app: Application) {
               remoteFollow.remoteFollowId = req.body.id
               remoteFollow.save()
               // we accept it
-              await signAndAccept(req, remoteUser, user)
+              const acceptResponse = await signAndAccept(req, remoteUser, user)
               break
             }
             case 'Undo': {
@@ -290,7 +293,6 @@ function activityPubRoutes (app: Application) {
             }
           }
         } catch (error) {
-          console.log('WE HAVE A PROBLEM')
           console.error(error)
           // res.send(500)
         }
@@ -330,11 +332,10 @@ function return404 (res: any) {
 }
 
 async function getRemoteActor (actorUrl: string, user: any) {
-  console.log(actorUrl)
   const url = new URL(actorUrl)
 
   // TODO properly sign petition
-  const userPetition = await  getSignHeaders(user, actorUrl)
+  const userPetition = await  signedGetPetition(user, actorUrl)
 
   let remoteUser = await User.findOne({
     where: {
@@ -374,27 +375,53 @@ async function getRemoteActor (actorUrl: string, user: any) {
   return remoteUser
 }
 
-function getPostSignHeaders (message: any, user: any, target: string): any {
-  const url = new URL(target)
-  const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')
-  const signer = createSign('sha256')
-  const sendDate = new Date()
-  const stringToSign = `(request-target): post ${url.pathname}\nhost: ${url.host}\ndate: ${sendDate.toUTCString()}\ndigest: SHA-256=${digest}`
-  signer.update(stringToSign)
-  signer.end()
-  const signature = signer.sign(user.privateKey).toString('base64')
-  const header = `keyId="${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key",headers="(request-target) host date digest",signature="${signature}"`
-  return {
-    'Content-Type': 'application/activity+json',
-    Accept: 'application/activity+json',
-    Host: url.host,
-    Date: sendDate.toUTCString(),
-    Digest: `SHA-256=${digest}`,
-    Signature: header
-  }
+function getPostSignHeaders (message: any, user: any, target: string): Promise<any> {
+  const res =  new Promise((resolve: any, reject: any) => {
+    const url = new URL(target)
+    const privKey = user.privateKey
+    const options = {
+      host: url.host,
+      port: 443,
+      path: url.pathname,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/activity+json',
+        Accept: 'application/activity+json',
+        digest: createHash('sha256').update(JSON.stringify(message)).digest('base64')
+
+      }
+    };
+    const httpPetition = https.request(options, (response:any)=> {
+      
+      let data = ''
+      response.on('data', (chunk: any) => {
+        data = data + chunk
+      })
+      if(response.statusCode.toString().startsWith('2')){
+
+        response.on('end', () => {
+          console.log('http post request to ' + url.href +' success by user ' +user.url)
+          resolve({response: response, data: data})
+        })
+      } else {
+        reject({'code_post': response.statusCode,'url': url.href, 'initiatedBy': user.url})
+      }
+    })
+    httpSignature.signRequest(httpPetition, {
+      key: privKey,
+      keyId: `${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key`,
+      algorithm: 'rsa-sha256',
+      authorizationHeaderName: 'Signature',
+      headers: ['(request-target)', 'host', 'date', 'digest' ]
+    });
+    //httpPetition.write(message)
+    console.log('http post request to ' + url.href +' initiated by user ' +user.url)
+    httpPetition.end(JSON.stringify(message));
+  })
+  return res
 }
 
-function getSignHeaders (user: any, target: string): Promise<any> {
+function signedGetPetition (user: any, target: string): Promise<any> {
   const res =  new Promise((resolve: any, reject: any) => {
     const url = new URL(target)
     const privKey = user.privateKey
@@ -413,10 +440,11 @@ function getSignHeaders (user: any, target: string): Promise<any> {
         let data = ''
         response.on('data', (chunk: any) => data = data + chunk)
         response.on('end', () => {
+          console.log('http get request to ' + url.href + ' has finished successfully, initiated by user ' + user.url)
           resolve(JSON.parse(data))
         })
       } else {
-        reject({'code': response.statusCode})
+        reject({'code_get': response.statusCode, 'url': url.href, 'initiatedBy': user.url})
       }
     })
     httpSignature.signRequest(httpPetition, {
@@ -425,7 +453,8 @@ function getSignHeaders (user: any, target: string): Promise<any> {
       algorithm: 'rsa-sha256',
       authorizationHeaderName: 'signature',
       headers: ['(request-target)', 'host', 'date', 'accept' ]
-    });  
+    });
+    console.log('http get request to ' + url.href + ' initiated by user ' + user.url)
     httpPetition.end();
   })
   return res
@@ -439,13 +468,7 @@ async function signAndAccept (req: any, remoteUser: any, user: any) {
     actor: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
     object: req.body
   }
-  const acceptPetition = await axios.post(remoteUser.remoteInbox,
-    acceptMessage,
-    {
-      headers: {
-        ...await getPostSignHeaders(acceptMessage, user, remoteUser.remoteInbox)
-      }
-    })
+  return await getPostSignHeaders(acceptMessage, user, remoteUser.remoteInbox)
 }
 
 async function getPostThreadRecursive (user: any, remotePostId: string, remotePostObject?: any) {
@@ -458,12 +481,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     return postInDatabase
   } else {
     // TODO properly sign petition
-    const postPetition = remotePostObject || (await axios.get(remotePostId, {
-      headers: {
-        ... await getSignHeaders(user, remotePostId)
-      },
-      data: {}
-    })).data
+    const postPetition = remotePostObject ? remotePostObject : await signedGetPetition(user, remotePostId)
 
     const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
     let mediasString = ''
@@ -515,15 +533,9 @@ async function remoteFollow (localUser: any, remoteUser: any) {
   actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
   object: remoteUser.remoteId
  }
- const followPetition = await axios.post(remoteUser.remoteInbox,
-  petitionBody,
-  {
-    headers: {
-      ...await getPostSignHeaders(petitionBody, localUser, remoteUser.remoteInbox)
-    }
-  })
+ const followPetition = await getPostSignHeaders(petitionBody, localUser, remoteUser.remoteInbox)
   return followPetition
 }
 
 
-export { activityPubRoutes, remoteFollow, getRemoteActor, getSignHeaders }
+export { activityPubRoutes, remoteFollow, getRemoteActor, signedGetPetition }
