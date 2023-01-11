@@ -136,7 +136,7 @@ function activityPubRoutes (app: Application) {
       })
       if (user) {
         // ????????
-        const followed = await user.getFollower()
+        const followed = await user.getFollowed()
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/following',
@@ -178,7 +178,7 @@ function activityPubRoutes (app: Application) {
       })
       if (user) {
         // ??????????
-        const followers = await user.getFollowed()
+        const followers = await user.getFollower()
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers',
@@ -244,8 +244,8 @@ function activityPubRoutes (app: Application) {
                 }
               })
               if (!remoteFollow) {
-                await remoteUser.addFollower(user)
-                await remoteUser.save()
+                await user.addFollower(remoteUser)
+                await user.save()
                 remoteFollow = await Follows.findOne({
                   where: {
                     followerId: remoteUser.id,
