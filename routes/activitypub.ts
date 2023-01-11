@@ -135,7 +135,6 @@ function activityPubRoutes (app: Application) {
         )
       })
       if (user) {
-        // ????????
         const followed = await user.getFollowed()
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
@@ -177,7 +176,6 @@ function activityPubRoutes (app: Application) {
         )
       })
       if (user) {
-        // ??????????
         const followers = await user.getFollower()
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
@@ -375,10 +373,11 @@ async function getRemoteActor (actorUrl: string, user: any) {
   return remoteUser
 }
 
-function getPostSignHeaders (message: any, user: any, target: string): Promise<any> {
+function postPetitionSigned (message: object, user: any, target: string): Promise<any> {
   const res =  new Promise((resolve: any, reject: any) => {
     const url = new URL(target)
     const privKey = user.privateKey
+    const messageToSend = JSON.stringify(message)
     const options = {
       host: url.host,
       port: 443,
@@ -387,7 +386,7 @@ function getPostSignHeaders (message: any, user: any, target: string): Promise<a
       headers: {
         'Content-Type': 'application/activity+json',
         Accept: 'application/activity+json',
-        digest: createHash('sha256').update(JSON.stringify(message)).digest('base64')
+        digest: createHash('sha256').update(messageToSend).digest('base64')
 
       }
     };
@@ -411,12 +410,12 @@ function getPostSignHeaders (message: any, user: any, target: string): Promise<a
       key: privKey,
       keyId: `${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key`,
       algorithm: 'rsa-sha256',
-      authorizationHeaderName: 'Signature',
+      authorizationHeaderName: 'signature',
       headers: ['(request-target)', 'host', 'date', 'digest' ]
     });
-    //httpPetition.write(message)
+    httpPetition.write(messageToSend)
     console.log('http post request to ' + url.href +' initiated by user ' +user.url)
-    httpPetition.end(JSON.stringify(message));
+    httpPetition.end();
   })
   return res
 }
@@ -468,7 +467,7 @@ async function signAndAccept (req: any, remoteUser: any, user: any) {
     actor: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
     object: req.body
   }
-  return await getPostSignHeaders(acceptMessage, user, remoteUser.remoteInbox)
+  return await postPetitionSigned(acceptMessage, user, remoteUser.remoteInbox)
 }
 
 async function getPostThreadRecursive (user: any, remotePostId: string, remotePostObject?: any) {
@@ -533,7 +532,7 @@ async function remoteFollow (localUser: any, remoteUser: any) {
   actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
   object: remoteUser.remoteId
  }
- const followPetition = await getPostSignHeaders(petitionBody, localUser, remoteUser.remoteInbox)
+ const followPetition = await postPetitionSigned(petitionBody, localUser, remoteUser.remoteInbox)
   return followPetition
 }
 
