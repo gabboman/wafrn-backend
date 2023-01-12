@@ -281,6 +281,31 @@ function activityPubRoutes (app: Application) {
               const acceptResponse = await signAndAccept(req, remoteUser, user)
               break
             }
+            case 'Update': {
+              res.sendStatus(200)
+              const body = req.body.object
+              switch (body.type) {
+                case 'Note': {
+                  const postToEdit = await Post.findOne({
+                    where: {
+                      remotePostId: body.id
+                    }
+                  })
+                  postToEdit.content = body.content + '<p>Post edited at '+ body.updated + '</p>'
+                  postToEdit.updatedAt = body.updated
+                  await postToEdit.save()
+                  const acceptResponse = await signAndAccept(req, remoteUser, user)
+
+
+                  break
+                }
+                default: {
+                  console.log('update not implemented ' + body.type)
+                }
+              }
+
+              break
+            }
             case 'Undo': {
               // Unfollow? Destroy post? what else can be undone
 
@@ -300,14 +325,37 @@ function activityPubRoutes (app: Application) {
                   }
                   await signAndAccept(req, remoteUser, user)
                 }
-                case 'Create': {
-                  // TODO what if user wants to remove post? time to carl the delete I guess
-                }
                 default: {
                   console.log('UNDO NOT IMPLEMENTED: ' + req.body.type)
 
 
                 }
+              }
+              break
+            }
+            case 'Delete': {
+              res.sendStatus(200)
+              const body = req.body.object
+              switch (body.type) {
+                case 'Tombstone': {
+                  const postToDelete = await Post.findOne({
+                    where: {
+                      remotePostId: body.id
+                    }
+                  })
+                  const children = await postToDelete.getChildren()
+                  if(children && children.length > 0) {
+                    postToDelete.content = 'Post has been deleted'
+                  } else {
+                    await postToDelete.destroy()
+                  }
+                  await signAndAccept(req, remoteUser, user)
+                  break
+                }
+                default: {
+                  console.log('DELETE not implemented ' + body.type)
+                }
+              break
               }
               break
             }
