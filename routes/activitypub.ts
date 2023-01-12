@@ -5,6 +5,7 @@ import checkFediverseSignature from '../utils/checkFediverseSignature'
 import { createHash, createSign } from 'crypto'
 import sequelize from '../db'
 import { resolve } from 'path'
+import getRemoteFollowers from '../utils/getRemoteFollowers'
 
 var https = require('https');
 var httpSignature = require('@peertube/http-signature');
@@ -224,12 +225,11 @@ function activityPubRoutes (app: Application) {
         try {
           const remoteUser = await getRemoteActor(req.body.actor, user)
           switch (req.body.type) {
+            case 'Accept': {
+              res.sendStatus(200)
+            }
             case 'Announce': {
-              res.sendStatus
-              
-              
-              
-              (200)
+              res.sendStatus(200)
               const retooted_content = await getPostThreadRecursive(user, req.body.object )
               const postToCreate = {
                 content: '',
@@ -467,52 +467,7 @@ async function postPetitionSigned (message: object, user: any, target: string): 
   }
   const res =  await axios.post(target, message, {headers: headers})
   return res
-  /*
-  const res =  new Promise((resolve: any, reject: any) => {
-    const url = new URL(target)
-    const privKey = user.privateKey
-    const messageToSend = JSON.stringify(message)
-    const options = {
-      host: url.host,
-      port: 443,
-      path: url.pathname,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/activity+json',
-        Accept: 'application/activity+json',
-        digest: createHash('sha256').update(messageToSend).digest('base64')
 
-      }
-    };
-    const httpPetition = https.request(options, (response:any)=> {
-      
-      let data = ''
-      response.on('data', (chunk: any) => {
-        data = data + chunk
-      })
-      if(response.statusCode.toString().startsWith('2')){
-
-        response.on('end', () => {
-          console.log('http post request to ' + url.href +' success by user ' +user.url)
-          resolve({response: response, data: data})
-        })
-      } else {
-        reject({'code_post': response.statusCode,'url': url.href, 'initiatedBy': user.url})
-      }
-    })
-    httpSignature.signRequest(httpPetition, {
-      key: privKey,
-      keyId: `${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key`,
-      algorithm: 'rsa-sha256',
-      authorizationHeaderName: 'signature',
-      headers: ['(request-target)', 'host', 'date', 'digest' ]
-    });
-    httpPetition.write(messageToSend)
-    console.log('http post request to ' + url.href +' initiated by user ' +user.url)
-    httpPetition.end();
-  })
-  return res
-  */
 }
 
 function signedGetPetition (user: any, target: string): Promise<any> {
@@ -631,5 +586,39 @@ async function remoteFollow (localUser: any, remoteUser: any) {
   return followPetition
 }
 
+async function sendRemotePost (localUser: any, post: any) {
+  const usersToSendThePost= getRemoteFollowers(localUser.id)
+  const stringMyFollowers = environment.frontendUrl + '/fediverse/blog' + localUser.url + '/followers'
+  const mentionedUsers: string[] = []
+  const objectToSend = {
+    "@context": [
+      "https://www.w3.org/ns/activitystreams",
+      {
+        "ostatus": "http://ostatus.org#",
+        "atomUri": "ostatus:atomUri",
+        "inReplyToAtomUri": "ostatus:inReplyToAtomUri",
+        "conversation": "ostatus:conversation",
+        "sensitive": "as:sensitive",
+        "toot": "http://joinmastodon.org/ns#",
+        "votersCount": "toot:votersCount",
+        "blurhash": "toot:blurhash",
+        "focalPoint": {
+          "@container": "@list",
+          "@id": "toot:focalPoint"
+        }
+      }
+    ],
+    id: environment.frontendUrl + '/fediverse/post/' + post.id,
+    type: 'Create',
+    actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
+    published: post.createdAt,
+    to: [
+      post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : post.privacy == 1 ? stringMyFollowers :  ...mentionedUsers
+    ] 
+  }
 
-export { activityPubRoutes, remoteFollow, getRemoteActor, signedGetPetition }
+
+}
+
+
+export { activityPubRoutes, remoteFollow, getRemoteActor, signedGetPetition, sendRemotePost }

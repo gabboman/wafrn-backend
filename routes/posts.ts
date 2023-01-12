@@ -14,6 +14,7 @@ import getPostBaseQuery from '../utils/getPostBaseQuery'
 import sequelize from '../db'
 import getStartScrollParam from '../utils/getStartScrollParam'
 import getPosstGroupDetails from '../utils/getPostGroupDetails'
+import { sendRemotePost } from './activitypub'
 
 export default function postsRoutes (app: Application) {
   app.get('/singlePost/:id', async (req: any, res) => {
@@ -185,6 +186,7 @@ export default function postsRoutes (app: Application) {
           success = true
         }
         res.send(post)
+        sendRemotePost(await User.findOne({where: {id: posterId}}), post)
       }
     } catch (error) {
       console.error(error)
