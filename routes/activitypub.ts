@@ -224,6 +224,29 @@ function activityPubRoutes (app: Application) {
         try {
           const remoteUser = await getRemoteActor(req.body.actor, user)
           switch (req.body.type) {
+            case 'Announce': {
+              res.sendStatus
+              
+              
+              
+              (200)
+              const retooted_content = await getPostThreadRecursive(user, req.body.object )
+              const postToCreate = {
+                content: '',
+                content_warning: '',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                userId: remoteUser.id,
+                remotePostId: req.body.id
+              }
+              const newToot = await Post.create(postToCreate)
+              await newToot.setParent(retooted_content)
+              await newToot.save()
+              await signAndAccept(req, remoteUser, user)
+
+
+              break;
+            }
             case 'Create': {
               res.sendStatus(200)
               // Create new post
@@ -246,8 +269,8 @@ function activityPubRoutes (app: Application) {
                 await user.save()
                 remoteFollow = await Follows.findOne({
                   where: {
-                    followerId: remoteUser.id,
-                    followedId: user.id
+                    followerId: user.id,
+                    followedId: remoteUser.id
                   }
                 })
               }
@@ -281,12 +304,15 @@ function activityPubRoutes (app: Application) {
                   // TODO what if user wants to remove post? time to carl the delete I guess
                 }
                 default: {
+                  console.log('UNDO NOT IMPLEMENTED: ' + req.body.type)
+
 
                 }
               }
               break
             }
             default: {
+              console.log('NOT IMPLEMENTED: ' + req.body.type)
               res.sendStatus(200)
             }
           }
@@ -373,7 +399,27 @@ async function getRemoteActor (actorUrl: string, user: any) {
   return remoteUser
 }
 
-function postPetitionSigned (message: object, user: any, target: string): Promise<any> {
+async function postPetitionSigned (message: object, user: any, target: string): Promise<any> {
+  const url = new URL(target)
+  const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')
+  const signer = createSign('sha256')
+  const sendDate = new Date()
+  const stringToSign = `(request-target): post ${url.pathname}\nhost: ${url.host}\ndate: ${sendDate.toUTCString()}\ndigest: SHA-256=${digest}`
+  signer.update(stringToSign)
+  signer.end()
+  const signature = signer.sign(user.privateKey).toString('base64')
+  const header = `keyId="${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key",headers="(request-target) host date digest",signature="${signature}"`
+  const headers =  {
+    'Content-Type': 'application/activity+json',
+    Accept: 'application/activity+json',
+    Host: url.host,
+    Date: sendDate.toUTCString(),
+    Digest: `SHA-256=${digest}`,
+    signature: header
+  }
+  const res =  await axios.post(target, message, {headers: headers})
+  return res
+  /*
   const res =  new Promise((resolve: any, reject: any) => {
     const url = new URL(target)
     const privKey = user.privateKey
@@ -418,6 +464,7 @@ function postPetitionSigned (message: object, user: any, target: string): Promis
     httpPetition.end();
   })
   return res
+  */
 }
 
 function signedGetPetition (user: any, target: string): Promise<any> {
@@ -491,11 +538,11 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
       for await (const remoteFile of postPetition.attachment) {
         const wafrnMedia = await Media.create({
           url: remoteFile.url,
-          NSFW: remotePostObject.sensitive,
+          NSFW: remotePostObject?.sensitive,
           userId: remoteUser.id,
           description: remoteFile.name,
           ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
-          adultContent: remotePostObject.sensitive,
+          adultContent: remotePostObject?.sensitive,
           external: true
         })
         medias.push(wafrnMedia)
