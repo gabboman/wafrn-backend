@@ -2,11 +2,10 @@ import axios from 'axios'
 import { Application } from 'express'
 import { User, FederatedHost, Follows, Post, Media } from '../models'
 import checkFediverseSignature from '../utils/checkFediverseSignature'
-import { createHash, createSign } from 'crypto'
+import { createHash, createSign, randomBytes } from 'crypto'
 import sequelize from '../db'
-import { resolve } from 'path'
 import getRemoteFollowers from '../utils/getRemoteFollowers'
-
+import { canonize } from 'jsonld';
 var https = require('https');
 var httpSignature = require('@peertube/http-signature');
 
@@ -437,15 +436,16 @@ async function getRemoteActor (actorUrl: string, user: any) {
   const url = new URL(actorUrl)
 
   // TODO properly sign petition
-  const userPetition = await  signedGetPetition(user, actorUrl)
-
   let remoteUser = await User.findOne({
     where: {
-      url: '@' + userPetition.preferredUsername + '@' + url.host
+      remoteId: actorUrl
     }
   })
 
+  
+
   if (!remoteUser) {
+    const userPetition = await  signedGetPetition(user, actorUrl)
     const userToCreate = {
       url: '@' + userPetition.preferredUsername + '@' + url.host,
       email: null,
@@ -629,7 +629,7 @@ async function sendRemotePost (localUser: any, post: any) {
     if(parentPost) {
       parentPostString = parentPost.remotePostId ? parentPost.remotePostId : environment.frontendUrl + '/fediverse/post/' + parentPost.id
     }
-    const objectToSend = {
+    const unsignedObjectToSend = {
       "@context": [
         "https://www.w3.org/ns/activitystreams",
         {
@@ -671,10 +671,10 @@ async function sendRemotePost (localUser: any, post: any) {
         sensitive: !!post.content_warning,
         atomUri: environment.frontedUrl + '/fediverse/post/' + post.id,
         inReplyToAtomUri: parentPostString,
-        //"conversation": "tag:hamburguesa.minecraftanarquia.xyz,2023-01-12:objectId=128:objectType=Conversation",
+        "conversation": '',
         content: post.content,
-        /*"attachment": [
-          {
+        "attachment": [
+          /*{
             "type": "Document",
             "mediaType": "image/png",
             "url": "https://hamburguesa.minecraftanarquia.xyz/system/media_attachments/files/109/678/071/574/445/597/original/4f1993925fdadebe.png",
@@ -682,22 +682,31 @@ async function sendRemotePost (localUser: any, post: any) {
             "blurhash": "U78NkQ~qayIUj[ofofWBRjofj[RjWBofj[of",
             "width": 214,
             "height": 310
-          }
-        ],*/
+          }*/
+        ],
         "tag": [],
-        /*
         "replies": {
-          "id": "https://hamburguesa.minecraftanarquia.xyz/users/admin/statuses/109678071666176739/replies",
+          "id": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
           "type": "Collection",
           "first": {
             "type": "CollectionPage",
-            "next": "https://hamburguesa.minecraftanarquia.xyz/users/admin/statuses/109678071666176739/replies?only_other_accounts=true&page=true",
-            "partOf": "https://hamburguesa.minecraftanarquia.xyz/users/admin/statuses/109678071666176739/replies",
+            "next": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies&page=true',
+            "partOf": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
             "items": []
           }
-        }*/
+        }
       }
     }
+
+    const signature = createBodySignature(unsignedObjectToSend, localUser)
+    
+    const objectToSend = {
+      ...unsignedObjectToSend,
+      signature: signature
+    }
+
+
+
     for await (const remoteuser of usersToSendThePost) {
       try {
         const response =await postPetitionSigned(objectToSend, localUser, remoteuser)
@@ -708,6 +717,41 @@ async function sendRemotePost (localUser: any, post: any) {
     }
   }
   
+}
+
+async function createBodySignature(activity: any, localUser: any) {
+  const options = {
+    creator: environment.instanceUrl + '/fediverse/blog/' +localUser.url,
+    domain: environment.instanceUrl,
+    nonce: randomBytes(16).toString("hex"),
+    created: activity.createdAt,
+    "@context": 'https://w3id.org/security/v1'
+  };
+
+
+
+  const canonizedOptions = await canonize(options);
+  const optionsHash = createHash('sha256').update(canonizedOptions).digest('base64')
+
+  const document = await canonize(activity.object)
+  const documentHash = createHash('sha256').update(document).digest('base64')
+
+  const verifyData = `${optionsHash}${documentHash}`;
+
+  const signer = createSign("sha256");
+  signer.update(verifyData);
+  signer.end();
+  const signature = signer.sign(localUser.privateKey);
+
+  return {
+    type: "RsaSignature2017",
+    creator: options.creator,
+    domain: options.domain,
+    nonce: options.nonce,
+    created: options.created,
+    signatureValue: signature.toString("base64")
+  }
+
 }
 
 
