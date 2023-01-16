@@ -43,7 +43,7 @@ queryInterface.addColumn(
   'remotePostId', {
     type: Sequelize.TEXT,
     allowNull: true,
-    unique: false
+    unique: true
   }
 )
 

@@ -227,6 +227,7 @@ function activityPubRoutes (app: Application) {
           switch (req.body.type) {
             case 'Accept': {
               res.sendStatus(200)
+              break
             }
             case 'Announce': {
               res.sendStatus(200)
@@ -343,17 +344,46 @@ function activityPubRoutes (app: Application) {
                       remotePostId: body.id
                     }
                   })
-                  const children = await postToDelete.getChildren()
-                  if(children && children.length > 0) {
-                    postToDelete.content = 'Post has been deleted'
-                  } else {
-                    await postToDelete.destroy()
+                  if(postToDelete) {
+                    const children = await postToDelete.getChildren()
+                    if(children && children.length > 0) {
+                      postToDelete.content = 'Post has been deleted'
+                    } else {
+                      await postToDelete.destroy()
+                    }
                   }
                   await signAndAccept(req, remoteUser, user)
                   break
                 }
+                case undefined: {
+                  // we assume its just the url of an user
+                  const userToRemove = await User.findOne({where: {remoteId: req.body.object}})
+                  if(userToRemove) {
+                    userToRemove.url = userToRemove.url + '_DEACTIVATED'
+                    userToRemove.remoteId = 'DELETED_USER'
+                    const postsToRemove = userToRemove.getPosts()
+                    if (postsToRemove && postsToRemove.length > 0) {
+                      for await (const postToDelete of postsToRemove) {
+                        const children = await postToDelete.getChildren()
+                        if(children && children.length > 0) {
+                          postToDelete.content = 'Post has been deleted'
+                          await postToDelete.save()
+                        } else {
+                          await postToDelete.destroy()
+                        }
+                      }
+                    }
+                  }
+                  await signAndAccept(req, remoteUser, user)
+                  if(userToRemove) {
+                    userToRemove.remoteInbox = 'DELETED_USER'
+                    await userToRemove.save()
+                  }
+                  break;
+                }
                 default: {
                   console.log('DELETE not implemented ' + body.type)
+                  console.log(req.body)
                 }
               break
               }
@@ -448,6 +478,7 @@ async function getRemoteActor (actorUrl: string, user: any) {
 }
 
 async function postPetitionSigned (message: object, user: any, target: string): Promise<any> {
+  console.log('http post signed to ' + target + 'started by ' + user.url )
   const url = new URL(target)
   const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')
   const signer = createSign('sha256')
@@ -466,6 +497,8 @@ async function postPetitionSigned (message: object, user: any, target: string): 
     signature: header
   }
   const res =  await axios.post(target, message, {headers: headers})
+  console.log('http post signed to ' + target + ' completed by ' + user.url )
+
   return res
 
 }
@@ -523,7 +556,7 @@ async function signAndAccept (req: any, remoteUser: any, user: any) {
 async function getPostThreadRecursive (user: any, remotePostId: string, remotePostObject?: any) {
   const postInDatabase = await Post.findOne({
     where: {
-      remotePostId
+      remotePostId :remotePostId 
     }
   })
   if (postInDatabase) {
@@ -587,37 +620,94 @@ async function remoteFollow (localUser: any, remoteUser: any) {
 }
 
 async function sendRemotePost (localUser: any, post: any) {
-  const usersToSendThePost= getRemoteFollowers(localUser.id)
-  const stringMyFollowers = environment.frontendUrl + '/fediverse/blog' + localUser.url + '/followers'
-  const mentionedUsers: string[] = []
-  const objectToSend = {
-    "@context": [
-      "https://www.w3.org/ns/activitystreams",
-      {
-        "ostatus": "http://ostatus.org#",
-        "atomUri": "ostatus:atomUri",
-        "inReplyToAtomUri": "ostatus:inReplyToAtomUri",
-        "conversation": "ostatus:conversation",
-        "sensitive": "as:sensitive",
-        "toot": "http://joinmastodon.org/ns#",
-        "votersCount": "toot:votersCount",
-        "blurhash": "toot:blurhash",
-        "focalPoint": {
-          "@container": "@list",
-          "@id": "toot:focalPoint"
+  const usersToSendThePost= ['https://hamburguesa.minecraftanarquia.xyz/users/admin/inbox'] //await getRemoteFollowers(localUser.id)
+  if(usersToSendThePost && usersToSendThePost.length > 0) {
+    const stringMyFollowers = environment.frontendUrl + '/fediverse/blog' + localUser.url + '/followers'
+    const mentionedUsers: string[] = []
+    const parentPost = post.parentId ? (await Post.findOne({where: {id: post.parentId}})) : null
+    let parentPostString = null
+    if(parentPost) {
+      parentPostString = parentPost.remotePostId ? parentPost.remotePostId : environment.frontendUrl + '/fediverse/post/' + parentPost.id
+    }
+    const objectToSend = {
+      "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        {
+          "ostatus": "http://ostatus.org#",
+          "atomUri": "ostatus:atomUri",
+          "inReplyToAtomUri": "ostatus:inReplyToAtomUri",
+          "conversation": "ostatus:conversation",
+          "sensitive": "as:sensitive",
+          "toot": "http://joinmastodon.org/ns#",
+          "votersCount": "toot:votersCount",
+          "blurhash": "toot:blurhash",
+          "focalPoint": {
+            "@container": "@list",
+            "@id": "toot:focalPoint"
+          }
         }
+      ],
+      id: environment.frontendUrl + '/fediverse/post/' + post.id,
+      type: 'Create',
+      actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
+      published: post.createdAt,
+      to: post.privacy == 2 ? mentionedUsers : [
+         post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
+      ],
+      cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+      object: {
+        id: environment.frontedUrl + '/fediverse/post/' + post.id,
+        type: "Note",
+        summary: post.content_warning,
+        // TODO get parent post url
+        inReplyTo: parentPostString,
+        published: post.createdAt,
+        url: environment.frontendUrl + '/post/' + post.id, 
+        attributedTo: environment.frontendurl + '/fediverse/blog/' + localUser.url,
+        to: post.privacy == 2 ? mentionedUsers : [
+          post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
+       ],
+       cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+        sensitive: !!post.content_warning,
+        atomUri: environment.frontedUrl + '/fediverse/post/' + post.id,
+        inReplyToAtomUri: parentPostString,
+        //"conversation": "tag:hamburguesa.minecraftanarquia.xyz,2023-01-12:objectId=128:objectType=Conversation",
+        content: post.content,
+        /*"attachment": [
+          {
+            "type": "Document",
+            "mediaType": "image/png",
+            "url": "https://hamburguesa.minecraftanarquia.xyz/system/media_attachments/files/109/678/071/574/445/597/original/4f1993925fdadebe.png",
+            "name": null,
+            "blurhash": "U78NkQ~qayIUj[ofofWBRjofj[RjWBofj[of",
+            "width": 214,
+            "height": 310
+          }
+        ],*/
+        "tag": [],
+        /*
+        "replies": {
+          "id": "https://hamburguesa.minecraftanarquia.xyz/users/admin/statuses/109678071666176739/replies",
+          "type": "Collection",
+          "first": {
+            "type": "CollectionPage",
+            "next": "https://hamburguesa.minecraftanarquia.xyz/users/admin/statuses/109678071666176739/replies?only_other_accounts=true&page=true",
+            "partOf": "https://hamburguesa.minecraftanarquia.xyz/users/admin/statuses/109678071666176739/replies",
+            "items": []
+          }
+        }*/
       }
-    ],
-    id: environment.frontendUrl + '/fediverse/post/' + post.id,
-    type: 'Create',
-    actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
-    published: post.createdAt,
-    to: [
-      post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : post.privacy == 1 ? stringMyFollowers :  ...mentionedUsers
-    ] 
+    }
+    for await (const remoteuser of usersToSendThePost) {
+      try {
+        const response =await postPetitionSigned(objectToSend, localUser, remoteuser)
+
+      } catch (error) {
+        console.log('Could not send post to ' + remoteuser)
+      }
+    }
   }
-
-
+  
 }
 
 
