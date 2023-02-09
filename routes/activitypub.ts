@@ -11,9 +11,13 @@ var httpSignature = require('@peertube/http-signature');
 
 const environment = require('../environment')
 
+// global activitypub variables
+const currentlyWritingPosts: Array<string> = []
+
 // all the stuff related to activitypub goes here
 
 function activityPubRoutes (app: Application) {
+
   // webfinger protocol
   app.get('/.well-known/host-meta', (req: any, res) => {
     res.send(
@@ -64,7 +68,10 @@ function activityPubRoutes (app: Application) {
       return404(res)
     }
   })
-
+  // get post
+  app.get('/fediverse/blog/:url', async (req: any, res) => {
+    // TODO
+  })
   // Get blog for fediverse
   app.get('/fediverse/blog/:url', async (req: any, res) => {
     if (req.params && req.params.url) {
@@ -251,9 +258,19 @@ function activityPubRoutes (app: Application) {
               res.sendStatus(200)
               // Create new post
               const postRecived = req.body.object
-              await getPostThreadRecursive(user, postRecived.id, postRecived)
-              await signAndAccept(req, remoteUser, user)
+              if (currentlyWritingPosts.indexOf(postRecived.id) === -1 ){
+                currentlyWritingPosts.push(postRecived.id)
+                const tmpIndex = currentlyWritingPosts.indexOf(postRecived.id)
+                await getPostThreadRecursive(user, postRecived.id, postRecived)
+                await signAndAccept(req, remoteUser, user)
+                if (tmpIndex != -1) {
+                  currentlyWritingPosts[tmpIndex] = '_POST_ALREADY_WRITTEN_'
+                }
+              } else {
+                console.log('DEADLOCK AVOIDED')
+              }
               break
+              
             }
             case 'Follow': {
               // Follow user
@@ -394,8 +411,8 @@ function activityPubRoutes (app: Application) {
             }
           }
         } catch (error) {
-          console.error(error)
-          // res.send(500)
+          console.log('error happened: more detail');
+          console.log(error)
         }
       } else {
         return404(res)
@@ -418,7 +435,7 @@ function activityPubRoutes (app: Application) {
         }
       })
       if (user) {
-
+        res.sendStatus(200)
       } else {
         return404(res)
       }
@@ -432,7 +449,7 @@ function return404 (res: any) {
   res.sendStatus(404)
 }
 
-async function getRemoteActor (actorUrl: string, user: any) {
+async function getRemoteActor (actorUrl: string, user: any): Promise<any> {
   const url = new URL(actorUrl)
 
   // TODO properly sign petition
@@ -445,40 +462,48 @@ async function getRemoteActor (actorUrl: string, user: any) {
   
 
   if (!remoteUser) {
-    const userPetition = await  signedGetPetition(user, actorUrl)
-    const userToCreate = {
-      url: '@' + userPetition.preferredUsername + '@' + url.host,
-      email: null,
-      description: userPetition.summary,
-      avatar: userPetition.icon?.url ? userPetition.icon.url : '/uploads/default.webp',
-      password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
-      publicKey: userPetition.publicKey?.publicKeyPem,
-      remoteInbox: userPetition.inbox,
-      remoteId: actorUrl
-    }
-    remoteUser = await User.create(userToCreate)
-
-    let federatedHost = await FederatedHost.findOne({
-      where: {
-        displayName: url.host.toLocaleLowerCase()
+    if (currentlyWritingPosts.indexOf(actorUrl) !== -1) {
+      await new Promise(resolve => setTimeout(resolve, 250))
+      return await getRemoteActor(actorUrl, user)
+    } else {
+      currentlyWritingPosts.push(actorUrl)
+      const currentlyWritingObject = currentlyWritingPosts.indexOf(actorUrl) 
+      const userPetition = await  signedGetPetition(user, actorUrl)
+      const userToCreate = {
+        url: '@' + userPetition.preferredUsername + '@' + url.host,
+        email: null,
+        description: userPetition.summary,
+        avatar: userPetition.icon?.url ? userPetition.icon.url : '/uploads/default.webp',
+        password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
+        publicKey: userPetition.publicKey?.publicKeyPem,
+        remoteInbox: userPetition.inbox,
+        remoteId: actorUrl
       }
-    })
-    if (!federatedHost) {
-      const federatedHostToCreate = {
-        displayName: url.host,
-        publicInbox: userPetition.endpoints?.sharedInbox
+      remoteUser = await User.create(userToCreate)
+  
+      let federatedHost = await FederatedHost.findOne({
+        where: {
+          displayName: url.host.toLocaleLowerCase()
+        }
+      })
+      if (!federatedHost) {
+        const federatedHostToCreate = {
+          displayName: url.host,
+          publicInbox: userPetition.endpoints?.sharedInbox
+        }
+        federatedHost = await FederatedHost.create(federatedHostToCreate)
       }
-      federatedHost = await FederatedHost.create(federatedHostToCreate)
+  
+      await federatedHost.addUser(remoteUser)
+      currentlyWritingPosts[currentlyWritingObject] = '_OBJECT_FINALLY_WRITTEN_'
     }
-
-    await federatedHost.addUser(remoteUser)
   }
 
   return remoteUser
 }
 
 async function postPetitionSigned (message: object, user: any, target: string): Promise<any> {
-  console.log('http post signed to ' + target + 'started by ' + user.url )
+  console.log('http post signed to ' + target + ' started by ' + user.url )
   const url = new URL(target)
   const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')
   const signer = createSign('sha256')
@@ -496,9 +521,14 @@ async function postPetitionSigned (message: object, user: any, target: string): 
     Digest: `SHA-256=${digest}`,
     signature: header
   }
-  const res =  await axios.post(target, message, {headers: headers})
-  console.log('http post signed to ' + target + ' completed by ' + user.url )
-
+  let res;
+  try {
+    res =  await axios.post(target, message, {headers: headers})
+    console.log('http post signed to ' + target + ' completed by ' + user.url )
+  } catch (error) {
+    console.log('Error during petition')
+    //console.log(error)
+  }
   return res
 
 }
@@ -659,7 +689,6 @@ async function sendRemotePost (localUser: any, post: any) {
         id: environment.frontedUrl + '/fediverse/post/' + post.id,
         type: "Note",
         summary: post.content_warning,
-        // TODO get parent post url
         inReplyTo: parentPostString,
         published: post.createdAt,
         url: environment.frontendUrl + '/post/' + post.id, 
@@ -698,18 +727,19 @@ async function sendRemotePost (localUser: any, post: any) {
       }
     }
 
-    const signature = createBodySignature(unsignedObjectToSend, localUser)
+    // const signature = createBodySignature(unsignedObjectToSend, localUser)
     
     const objectToSend = {
       ...unsignedObjectToSend,
-      signature: signature
+      // signature: signature
     }
 
 
 
     for await (const remoteuser of usersToSendThePost) {
       try {
-        const response =await postPetitionSigned(objectToSend, localUser, remoteuser)
+        const response = await postPetitionSigned(objectToSend, localUser, remoteuser)
+        //console.log(response)
 
       } catch (error) {
         console.log('Could not send post to ' + remoteuser)
@@ -721,20 +751,22 @@ async function sendRemotePost (localUser: any, post: any) {
 
 async function createBodySignature(activity: any, localUser: any) {
   const options = {
-    creator: environment.instanceUrl + '/fediverse/blog/' +localUser.url,
+    actor: environment.instanceUrl + '/fediverse/blog/' +localUser.url,
     domain: environment.instanceUrl,
     nonce: randomBytes(16).toString("hex"),
     created: activity.createdAt,
-    "@context": 'https://w3id.org/security/v1'
+    "@context": [
+      'https://www.w3.org/ns/activitystreams',
+    ]
   };
 
-
-
   const canonizedOptions = await canonize(options);
-  const optionsHash = createHash('sha256').update(canonizedOptions).digest('base64')
+  // const canonizedOptions = options;
+  const optionsHash = createHash('sha256').update(JSON.stringify(canonizedOptions)).digest('base64')
 
   const document = await canonize(activity.object)
-  const documentHash = createHash('sha256').update(document).digest('base64')
+  // const document = activity.object
+  const documentHash = createHash('sha256').update(JSON.stringify(document)).digest('base64')
 
   const verifyData = `${optionsHash}${documentHash}`;
 
@@ -745,7 +777,7 @@ async function createBodySignature(activity: any, localUser: any) {
 
   return {
     type: "RsaSignature2017",
-    creator: options.creator,
+    creator: options.actor,
     domain: options.domain,
     nonce: options.nonce,
     created: options.created,

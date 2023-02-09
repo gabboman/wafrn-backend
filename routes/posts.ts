@@ -97,7 +97,9 @@ export default function postsRoutes (app: Application) {
         const post = await Post.create({
           content,
           content_warning,
-          userId: posterId
+          userId: posterId,
+          privacy: req.body.privacy ? req.body.privacy : 0
+          
         })
         if (req.body.parent) {
           post.setParent(req.body.parent)
