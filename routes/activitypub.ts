@@ -70,7 +70,22 @@ function activityPubRoutes (app: Application) {
   })
   // get post
   app.get('/fediverse/post/:id', async (req: any, res) => {
-    // TODO
+    if(req.params && req.params.id) {
+      const post = await Post.findOne({
+        where: {
+          id: req.params.id
+        }
+      })
+      if(post) {
+        // TODO corregir esto seguramente
+        res.send(await postToJSONLD(post, []))
+      } else {
+        res.sendStatus(404)
+      }
+    } else {
+      res.sendStatus(404)
+    }
+    
   })
   // Get blog for fediverse
   app.get('/fediverse/blog/:url', async (req: any, res) => {
@@ -649,97 +664,97 @@ async function remoteFollow (localUser: any, remoteUser: any) {
   return followPetition
 }
 
-async function sendRemotePost (localUser: any, post: any) {
-  const usersToSendThePost= ['https://hamburguesa.minecraftanarquia.xyz/users/admin/inbox'] //await getRemoteFollowers(localUser.id)
-  if(usersToSendThePost && usersToSendThePost.length > 0) {
-    const stringMyFollowers = environment.frontendUrl + '/fediverse/blog' + localUser.url + '/followers'
+
+async function postToJSONLD(post: any, usersToSendThePost: string[]) {
+  const localUser = await User.findOne({
+    where: {
+      id: post.userId
+    }
+  })
+  const stringMyFollowers = environment.frontendUrl + '/fediverse/blog' + localUser.url + '/followers'
     const mentionedUsers: string[] = []
     const parentPost = post.parentId ? (await Post.findOne({where: {id: post.parentId}})) : null
     let parentPostString = null
     if(parentPost) {
       parentPostString = parentPost.remotePostId ? parentPost.remotePostId : environment.frontendUrl + '/fediverse/post/' + parentPost.id
     }
-    const unsignedObjectToSend = {
-      "@context": [
-        "https://www.w3.org/ns/activitystreams",
-        {
-          "ostatus": "http://ostatus.org#",
-          "atomUri": "ostatus:atomUri",
-          "inReplyToAtomUri": "ostatus:inReplyToAtomUri",
-          "conversation": "ostatus:conversation",
-          "sensitive": "as:sensitive",
-          "toot": "http://joinmastodon.org/ns#",
-          "votersCount": "toot:votersCount",
-          "blurhash": "toot:blurhash",
-          "focalPoint": {
-            "@container": "@list",
-            "@id": "toot:focalPoint"
-          }
+  return {
+    "@context": [
+      "https://www.w3.org/ns/activitystreams",
+      {
+        "ostatus": "http://ostatus.org#",
+        "atomUri": "ostatus:atomUri",
+        "inReplyToAtomUri": "ostatus:inReplyToAtomUri",
+        "conversation": "ostatus:conversation",
+        "sensitive": "as:sensitive",
+        "toot": "http://joinmastodon.org/ns#",
+        "votersCount": "toot:votersCount",
+        "blurhash": "toot:blurhash",
+        "focalPoint": {
+          "@container": "@list",
+          "@id": "toot:focalPoint"
         }
-      ],
+      }
+    ],
+    id: environment.frontendUrl + '/fediverse/post/' + post.id,
+    type: 'Create',
+    actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
+    published: post.createdAt,
+    to: post.privacy == 2 ? mentionedUsers : [
+       post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
+    ],
+    cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+    object: {
       id: environment.frontendUrl + '/fediverse/post/' + post.id,
-      type: 'Create',
-      actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
+      type: "Note",
+      summary: post.content_warning,
+      inReplyTo: parentPostString,
       published: post.createdAt,
+      url: environment.frontendUrl + '/post/' + post.id, 
+      attributedTo: environment.frontendurl + '/fediverse/blog/' + localUser.url,
       to: post.privacy == 2 ? mentionedUsers : [
-         post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
+        post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
+     ],
+     cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+      sensitive: !!post.content_warning,
+      atomUri: environment.frontendUrl + '/fediverse/post/' + post.id,
+      inReplyToAtomUri: parentPostString,
+      "conversation": '',
+      content: post.content,
+      "attachment": [
+        /*{
+          "type": "Document",
+          "mediaType": "image/png",
+          "url": "https://hamburguesa.minecraftanarquia.xyz/system/media_attachments/files/109/678/071/574/445/597/original/4f1993925fdadebe.png",
+          "name": null,
+          "blurhash": "U78NkQ~qayIUj[ofofWBRjofj[RjWBofj[of",
+          "width": 214,
+          "height": 310
+        }*/
       ],
-      cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
-      object: {
-        id: environment.frontendUrl + '/fediverse/post/' + post.id,
-        type: "Note",
-        summary: post.content_warning,
-        inReplyTo: parentPostString,
-        published: post.createdAt,
-        url: environment.frontendUrl + '/post/' + post.id, 
-        attributedTo: environment.frontendurl + '/fediverse/blog/' + localUser.url,
-        to: post.privacy == 2 ? mentionedUsers : [
-          post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
-       ],
-       cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
-        sensitive: !!post.content_warning,
-        atomUri: environment.frontendUrl + '/fediverse/post/' + post.id,
-        inReplyToAtomUri: parentPostString,
-        "conversation": '',
-        content: post.content,
-        "attachment": [
-          /*{
-            "type": "Document",
-            "mediaType": "image/png",
-            "url": "https://hamburguesa.minecraftanarquia.xyz/system/media_attachments/files/109/678/071/574/445/597/original/4f1993925fdadebe.png",
-            "name": null,
-            "blurhash": "U78NkQ~qayIUj[ofofWBRjofj[RjWBofj[of",
-            "width": 214,
-            "height": 310
-          }*/
-        ],
-        "tag": [],
-        "replies": {
-          "id": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
-          "type": "Collection",
-          "first": {
-            "type": "CollectionPage",
-            "next": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies&page=true',
-            "partOf": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
-            "items": []
-          }
+      "tag": [],
+      "replies": {
+        "id": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
+        "type": "Collection",
+        "first": {
+          "type": "CollectionPage",
+          "next": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies&page=true',
+          "partOf": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
+          "items": []
         }
       }
     }
+  }
+}
 
-    // const signature = createBodySignature(unsignedObjectToSend, localUser)
+async function sendRemotePost (localUser: any, post: any) {
+  const usersToSendThePost= await getRemoteFollowers(localUser.id)
+  if(usersToSendThePost && usersToSendThePost.length > 0) {
     
-    const objectToSend = {
-      ...unsignedObjectToSend,
-      // signature: signature
-    }
-
-
-
+    const objectToSend = await postToJSONLD(post, usersToSendThePost )
     for await (const remoteuser of usersToSendThePost) {
       try {
         const response = await postPetitionSigned(objectToSend, localUser, remoteuser)
-        //console.log(response)
 
       } catch (error) {
         console.log('Could not send post to ' + remoteuser)

@@ -7,7 +7,7 @@ export default async function getRemoteFollowers (userId: string) {
       attributes: ['id']
     })
     const followed = await usr.getFollowed()
-    const result = followed.filter((followed: any) => followed.remoteInbox)
+    const result = followed.map((followed: any) => followed.remoteInbox).filter((elem: string) => elem)
     return result
   } catch (error) {
     return []
