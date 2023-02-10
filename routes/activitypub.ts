@@ -599,6 +599,14 @@ async function signAndAccept (req: any, remoteUser: any, user: any) {
 }
 
 async function getPostThreadRecursive (user: any, remotePostId: string, remotePostObject?: any) {
+  if(remotePostId.startsWith(environment.frontendUrl + '/fediverse/post/')) {
+    // we are looking at a local post
+    const partToRemove = environment.frontendUrl + '/fediverse/post/'
+    const postId = remotePostId.substring(partToRemove.length)
+    return await Post.findOne({where: {
+      id: postId
+    }})
+  }
   const postInDatabase = await Post.findOne({
     where: {
       remotePostId :remotePostId 
