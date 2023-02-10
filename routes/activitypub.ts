@@ -69,7 +69,7 @@ function activityPubRoutes (app: Application) {
     }
   })
   // get post
-  app.get('/fediverse/blog/:url', async (req: any, res) => {
+  app.get('/fediverse/post/:id', async (req: any, res) => {
     // TODO
   })
   // Get blog for fediverse
@@ -686,7 +686,7 @@ async function sendRemotePost (localUser: any, post: any) {
       ],
       cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
       object: {
-        id: environment.frontedUrl + '/fediverse/post/' + post.id,
+        id: environment.frontendUrl + '/fediverse/post/' + post.id,
         type: "Note",
         summary: post.content_warning,
         inReplyTo: parentPostString,
@@ -698,7 +698,7 @@ async function sendRemotePost (localUser: any, post: any) {
        ],
        cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
         sensitive: !!post.content_warning,
-        atomUri: environment.frontedUrl + '/fediverse/post/' + post.id,
+        atomUri: environment.frontendUrl + '/fediverse/post/' + post.id,
         inReplyToAtomUri: parentPostString,
         "conversation": '',
         content: post.content,
@@ -749,42 +749,6 @@ async function sendRemotePost (localUser: any, post: any) {
   
 }
 
-async function createBodySignature(activity: any, localUser: any) {
-  const options = {
-    actor: environment.instanceUrl + '/fediverse/blog/' +localUser.url,
-    domain: environment.instanceUrl,
-    nonce: randomBytes(16).toString("hex"),
-    created: activity.createdAt,
-    "@context": [
-      'https://www.w3.org/ns/activitystreams',
-    ]
-  };
-
-  const canonizedOptions = await canonize(options);
-  // const canonizedOptions = options;
-  const optionsHash = createHash('sha256').update(JSON.stringify(canonizedOptions)).digest('base64')
-
-  const document = await canonize(activity.object)
-  // const document = activity.object
-  const documentHash = createHash('sha256').update(JSON.stringify(document)).digest('base64')
-
-  const verifyData = `${optionsHash}${documentHash}`;
-
-  const signer = createSign("sha256");
-  signer.update(verifyData);
-  signer.end();
-  const signature = signer.sign(localUser.privateKey);
-
-  return {
-    type: "RsaSignature2017",
-    creator: options.actor,
-    domain: options.domain,
-    nonce: options.nonce,
-    created: options.created,
-    signatureValue: signature.toString("base64")
-  }
-
-}
 
 
 export { activityPubRoutes, remoteFollow, getRemoteActor, signedGetPetition, sendRemotePost }
