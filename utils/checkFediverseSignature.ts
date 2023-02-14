@@ -31,6 +31,7 @@ export default async function checkFediverseSignature (
 
     } catch (error) {
       console.log('Error while parsing.')
+      // success = true
     }
   }
   if (!success) {

@@ -3,7 +3,7 @@ import { User } from '../models'
 import authenticateToken from '../utils/authenticateToken'
 import getBlockedIds from '../utils/getBlockedIds'
 import getFollowedsIds from '../utils/getFollowedsIds'
-import { remoteFollow } from './activitypub'
+import { remoteFollow, remoteUnfollow } from './activitypub'
 
 export default function followsRoutes (app: Application) {
   app.post('/follow', authenticateToken, async (req: any, res) => {
@@ -22,7 +22,7 @@ export default function followsRoutes (app: Application) {
         success = true
         if(userFollowed.remoteId){
           const localUser = await User.findOne({where: {id: posterId}})
-          await remoteFollow(localUser , userFollowed)      
+          remoteFollow(localUser , userFollowed).then(() => {}).catch((error)=> {console.log('error following remote user')})
         }
       }
     } catch (error) {
@@ -45,6 +45,12 @@ export default function followsRoutes (app: Application) {
             id: req.body.userId
           }
         })
+
+        if(userUnfollowed.remoteId) {
+          const localUser = await User.findOne({where: {id: posterId}})
+          remoteUnfollow(localUser , userUnfollowed).then(() => {}).catch((error)=> {console.log('error following remote user')})
+
+        }
 
         userUnfollowed.removeFollower(posterId)
         success = true
