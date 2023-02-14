@@ -5,15 +5,22 @@ import getPostBaseQuery from '../utils/getPostBaseQuery'
 import sequelize from '../db'
 import getStartScrollParam from '../utils/getStartScrollParam'
 import getPosstGroupDetails from '../utils/getPostGroupDetails'
+import axios from 'axios'
+import { getRemoteActor, searchRemoteUser } from './activitypub'
+import optionalAuthentication from '../utils/optionalAuthentication'
+import authenticateToken from '../utils/authenticateToken';
+
 
 export default function searchRoutes (app: Application) {
-  app.get('/search/', async (req, res) => {
+  app.get('/search/', optionalAuthentication, async (req: any, res) => {
+    const posterId = req.jwtData.userId
     // const success = false;
     // eslint-disable-next-line max-len
     const searchTerm: string = (req.query.term || '').toString().toLowerCase().trim()
 
     let users: any = []
     let posts: any = []
+    let remoteUsers: any[] = []
     let responseWithNotes: any = []
     const promises: Array<Promise<any>> = []
 
@@ -59,19 +66,25 @@ export default function searchRoutes (app: Application) {
         attributes: [
             'url',
             'description',
-            'avatar'
+            'avatar',
+            'remoteId'
         ]
       })
       promises.push(users)
+      // remote user search time
+      if (posterId) {
+        remoteUsers = await searchRemoteUser(searchTerm, User.findOne({where: {id: posterId}}))
+      }
     }
     await Promise.all(promises)
     res.send({
-      users: await users,
+      users: (await users).concat(remoteUsers),
       posts: await responseWithNotes
     })
   })
 
-  app.get('/userSearch/:term', async (req, res) => {
+  app.get('/userSearch/:term', authenticateToken ,async (req: any, res) => {
+    const posterId = req.jwtData.userId
     // const success = false;
     let users: any = []
     const searchTerm = req.params.term.toLowerCase().trim()
@@ -87,11 +100,11 @@ export default function searchRoutes (app: Application) {
           )
         ]
       },
-      attributes: ['url', 'avatar', 'id']
+      attributes: ['url', 'avatar', 'id', 'remoteId']
     })
 
     res.send({
-      users: await users
+      users: (await users).concat(await searchRemoteUser(searchTerm, User.findOne({where: {id: posterId}})))
     })
   })
 }

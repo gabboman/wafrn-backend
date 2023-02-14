@@ -635,6 +635,13 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
           external: true
         })
         medias.push(wafrnMedia)
+        setTimeout(() => {
+          axios.get(environment.externalCacheurl + encodeURIComponent(wafrnMedia.url)).then((res)=> {
+
+          }).catch((error) => {
+            console.log('Error caching image')
+          })
+        }, 2000)
         mediasString = mediasString + '[wafrnmediaid="' + wafrnMedia.id + '"]'
       }
     }
@@ -773,5 +780,31 @@ async function sendRemotePost (localUser: any, post: any) {
 }
 
 
+async function searchRemoteUser(searchTerm: string, user: any){
+  const usernameAndDomain = searchTerm.split('@');
+  const users: Array<any> = []
+  if(searchTerm.startsWith('@') && searchTerm.length > 3 && usernameAndDomain.length == 3 ) {
+    const userToSearch = searchTerm.substring(1)
+    // fediverse users are like emails right? god I hope so
+      const username = usernameAndDomain[1]
+      const domain = usernameAndDomain[2]
+      try {
+        const remoteResponse = await axios.get(`https://${domain}/.well-known/webfinger/?resource=acct:${username}@${domain}`)
+        const links = remoteResponse.data.links;
+        for await (const responseLink of links) {
+          if(responseLink.rel == 'self') {
+            users.push( await getRemoteActor(responseLink.href, user))
+          }
+        };
 
-export { activityPubRoutes, remoteFollow, getRemoteActor, signedGetPetition, sendRemotePost }
+      } catch (error) {
+        console.log('webfinger petition failed')
+
+      }
+      
+    }
+  return users;
+}
+
+
+export { activityPubRoutes, remoteFollow, getRemoteActor, signedGetPetition, sendRemotePost, searchRemoteUser }
