@@ -9,9 +9,10 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
 
 const queryInterface = sequelize.getQueryInterface()
 
+async function dbUpdate() {
 // Add new table
 
-queryInterface.createTable('federatedHosts', {
+ await queryInterface.createTable('federatedHosts', {
   id: {
     type: Sequelize.UUID,
     defaultValue: Sequelize.UUIDV4,
@@ -28,7 +29,7 @@ queryInterface.createTable('federatedHosts', {
 })
 // add column
 
-queryInterface.addColumn(
+ await queryInterface.addColumn(
   'posts',
   'privacy', {
     type: Sequelize.INTEGER,
@@ -38,7 +39,7 @@ queryInterface.addColumn(
   }
 )
 
-queryInterface.addColumn(
+ await queryInterface.addColumn(
   'posts',
   'remotePostId', {
     type: Sequelize.TEXT,
@@ -47,7 +48,7 @@ queryInterface.addColumn(
   }
 )
 
-queryInterface.addColumn(
+ await queryInterface.addColumn(
   'follows',
   'remoteFollowId', {
     type: Sequelize.TEXT,
@@ -55,7 +56,7 @@ queryInterface.addColumn(
   }
 )
 
-queryInterface.addColumn(
+ await queryInterface.addColumn(
   'medias',
   'external', {
     defaultValue: false,
@@ -64,9 +65,9 @@ queryInterface.addColumn(
   }
 )
 
-queryInterface.addColumn(
+ await queryInterface.addColumn(
   'users',
-  'hostId', {
+  'federatedHostId', {
     type: Sequelize.UUID,
     allowNull: true,
     references: {
@@ -77,7 +78,7 @@ queryInterface.addColumn(
   }
 )
 
-queryInterface.addColumn(
+ await queryInterface.addColumn(
   'users',
   'publicKey', {
     type: Sequelize.TEXT,
@@ -86,7 +87,7 @@ queryInterface.addColumn(
   }
 )
 
-queryInterface.addColumn(
+ await queryInterface.addColumn(
   'users',
   'privateKey', {
     type: Sequelize.TEXT,
@@ -94,7 +95,7 @@ queryInterface.addColumn(
     unique: false
   }
 )
-queryInterface.addColumn(
+ await queryInterface.addColumn(
   'users',
   'remoteInbox', {
     type: Sequelize.TEXT,
@@ -103,7 +104,7 @@ queryInterface.addColumn(
   }
 )
 
-queryInterface.addColumn(
+ await queryInterface.addColumn(
   'users',
   'remoteId', {
     type: Sequelize.TEXT,
@@ -111,10 +112,18 @@ queryInterface.addColumn(
     unique: false
   }
 )
+}
+
 
 /*
-queryInterface.removeColumn(
+ await queryInterface.removeColumn(
   'posts',
   'NSFW'
 );
 */
+
+dbUpdate().then(()=> {
+  console.log('done')
+}).catch(error => {
+  console.log(error)
+})

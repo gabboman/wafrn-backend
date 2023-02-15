@@ -18,6 +18,7 @@ async function createKeysForUsers () {
     user.privateKey = privateKey
     user.publicKey = publicKey
     await user.save()
+    console.log(`${user.url} updated`)
   }
 }
 
