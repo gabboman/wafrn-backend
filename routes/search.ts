@@ -73,7 +73,7 @@ export default function searchRoutes (app: Application) {
       promises.push(users)
       // remote user search time
       if (posterId) {
-        remoteUsers = await searchRemoteUser(searchTerm, User.findOne({where: {id: posterId}}))
+        remoteUsers = await searchRemoteUser(searchTerm, await User.findOne({where: {id: posterId}}))
       }
     }
     await Promise.all(promises)
@@ -104,7 +104,7 @@ export default function searchRoutes (app: Application) {
     })
 
     res.send({
-      users: (await users).concat(await searchRemoteUser(searchTerm, User.findOne({where: {id: posterId}})))
+      users: (await users).concat(await searchRemoteUser(searchTerm, await User.findOne({where: {id: posterId}})))
     })
   })
 }

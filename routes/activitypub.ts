@@ -483,34 +483,40 @@ async function getRemoteActor (actorUrl: string, user: any): Promise<any> {
     } else {
       currentlyWritingPosts.push(actorUrl)
       const currentlyWritingObject = currentlyWritingPosts.indexOf(actorUrl) 
-      const userPetition = await  signedGetPetition(user, actorUrl)
-      const userToCreate = {
-        url: '@' + userPetition.preferredUsername + '@' + url.host,
-        email: null,
-        description: userPetition.summary,
-        avatar: userPetition.icon?.url ? userPetition.icon.url : '/uploads/default.webp',
-        password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
-        publicKey: userPetition.publicKey?.publicKeyPem,
-        remoteInbox: userPetition.inbox,
-        remoteId: actorUrl
-      }
-      remoteUser = await User.create(userToCreate)
-  
-      let federatedHost = await FederatedHost.findOne({
-        where: {
-          displayName: url.host.toLocaleLowerCase()
+      try {
+        currentlyWritingPosts.push(actorUrl)
+        const currentlyWritingObject = currentlyWritingPosts.indexOf(actorUrl) 
+        const userPetition = await  signedGetPetition(user, actorUrl)
+        const userToCreate = {
+          url: '@' + userPetition.preferredUsername + '@' + url.host,
+          email: null,
+          description: userPetition.summary,
+          avatar: userPetition.icon?.url ? userPetition.icon.url : '/uploads/default.webp',
+          password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
+          publicKey: userPetition.publicKey?.publicKeyPem,
+          remoteInbox: userPetition.inbox,
+          remoteId: actorUrl
         }
-      })
-      if (!federatedHost) {
-        const federatedHostToCreate = {
-          displayName: url.host,
-          publicInbox: userPetition.endpoints?.sharedInbox
+        remoteUser = await User.create(userToCreate)
+    
+        let federatedHost = await FederatedHost.findOne({
+          where: {
+            displayName: url.host.toLocaleLowerCase()
+          }
+        })
+        if (!federatedHost) {
+          const federatedHostToCreate = {
+            displayName: url.host,
+            publicInbox: userPetition.endpoints?.sharedInbox
+          }
+          federatedHost = await FederatedHost.create(federatedHostToCreate)
         }
-        federatedHost = await FederatedHost.create(federatedHostToCreate)
+    
+        await federatedHost.addUser(remoteUser)
+      } catch (error) {
       }
-  
-      await federatedHost.addUser(remoteUser)
       currentlyWritingPosts[currentlyWritingObject] = '_OBJECT_FINALLY_WRITTEN_'
+
     }
   }
 
@@ -732,7 +738,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
     published: post.createdAt,
     to: post.privacy == 2 ? mentionedUsers : [
-       post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
+       post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : stringMyFollowers 
     ],
     cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
     object: {
