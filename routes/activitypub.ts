@@ -767,6 +767,11 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       parentPostString = parentPost.remotePostId ? parentPost.remotePostId : environment.frontendUrl + '/fediverse/post/' + parentPost.id
     }
   const postMedias = await post.getMedias()
+  let processedContent = post.content;
+  const wafrnMediaRegex = /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
+  const mentionRegex = /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
+  // we remove the wafrnmedia from the post for the outside world, as they get this on the attachments
+  processedContent = processedContent.replace(wafrnMediaRegex, '')
   return {
     "@context": [
       "https://www.w3.org/ns/activitystreams",
@@ -809,25 +814,15 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       atomUri: environment.frontendUrl + '/fediverse/post/' + post.id,
       inReplyToAtomUri: parentPostString,
       "conversation": '',
-      content: post.content,
-      "attachment": postMedias.map((media: any) => {
+      content: processedContent,
+      attachment: postMedias.map((media: any) => {
         const extension = (media.url.split('.')[media.url.split('.').length - 1]).toLowerCase()
         return {
           type: 'Document',
           mediaType: extension == 'mp4' ? 'video/mp4' : 'image/webp',
           url: environment.mediaUrl + media.url
         }
-      })/*[
-        
-          "type": "Document",
-          "mediaType": "image/png",
-          "url": "https://hamburguesa.minecraftanarquia.xyz/system/media_attachments/files/109/678/071/574/445/597/original/4f1993925fdadebe.png",
-          "name": null,
-          "blurhash": "U78NkQ~qayIUj[ofofWBRjofj[RjWBofj[of",
-          "width": 214,
-          "height": 310
-        }
-      ]*/,
+      }),
       "tag": [],
       "replies": {
         "id": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
