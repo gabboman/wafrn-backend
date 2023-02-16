@@ -766,6 +766,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     if(parentPost) {
       parentPostString = parentPost.remotePostId ? parentPost.remotePostId : environment.frontendUrl + '/fediverse/post/' + parentPost.id
     }
+  const postMedias = await post.getMedias()
   return {
     "@context": [
       "https://www.w3.org/ns/activitystreams",
@@ -809,8 +810,15 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       inReplyToAtomUri: parentPostString,
       "conversation": '',
       content: post.content,
-      "attachment": [
-        /*{
+      "attachment": postMedias.map((media: any) => {
+        const extension = (media.url.split('.')[media.url.split('.').length - 1]).toLowerCase()
+        return {
+          type: 'Document',
+          mediaType: extension == 'mp4' ? 'video/mp4' : 'image/webp',
+          url: environment.mediaUrl + media.url
+        }
+      })/*[
+        
           "type": "Document",
           "mediaType": "image/png",
           "url": "https://hamburguesa.minecraftanarquia.xyz/system/media_attachments/files/109/678/071/574/445/597/original/4f1993925fdadebe.png",
@@ -818,8 +826,8 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
           "blurhash": "U78NkQ~qayIUj[ofofWBRjofj[RjWBofj[of",
           "width": 214,
           "height": 310
-        }*/
-      ],
+        }
+      ]*/,
       "tag": [],
       "replies": {
         "id": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
