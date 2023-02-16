@@ -633,9 +633,17 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
     let mediasString = ''
     const medias = []
-    let privacy = 10
     const fediMentions = postPetition.tag.filter((elem: any) => elem.type == 'Mention' ).filter((elem: any) => elem.href.startsWith(environment.frontendUrl))
-    
+    let privacy = 10
+    if(postPetition.to[0] == 'https://www.w3.org/ns/activitystreams#Public') {
+      // post is PUBLIC
+      privacy = 0
+    }
+    if(postPetition.to[0].toString().indexOf('followers') !== -1) {
+      privacy = 1
+     }
+
+
     if(postPetition.attachment && postPetition.attachment.length > 0) {
       for await (const remoteFile of postPetition.attachment) {
         const wafrnMedia = await Media.create({
@@ -664,7 +672,8 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
       createdAt: new Date(postPetition.published),
       updatedAt: new Date(),
       userId: remoteUser.id,
-      remotePostId
+      remotePostId,
+      privacy: privacy
     }
     const mentionedUsersIds = []
     try {
