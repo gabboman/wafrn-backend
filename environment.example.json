@@ -1,26 +1,27 @@
 {
     "prod": false,
-    "forceSync": true,
-    "databaseConnectionString": "mariadb://root@127.0.0.1/wafrn",
+    "logSQLQueries": false,
+    "forceSync": false,
+    "databaseConnectionString": "mariadb://user:password@127.0.0.1/wafrn",
     "port": 3000,
     "saltRounds": 12,
-    "jwtSecret": "",
-    "captchaPrivateKey": "", 
-    "frontendUrl": "https://app.wafrn.net",
-    "instanceUrl": "FRONTEND_URL_WITHOUT_HTTP://",
-    "mediaUrl": "https://media.wafrn.net",
-    "fronendToProxyUrl": "we_redirect_queries_to_ angular ssr here. localhost:4000",
-    "logSQLQueries": false,
+    "jwtSecret": "JWTSECRET",
+    "captchaPrivateKey": "GOOGLE_CAPTCHA_PRIVATE_KEY", 
+    "frontendUrl": "FEDIVERSE_URL_WITH_HTTPS",
+    "instanceUrl": "FEDIVERSE_URL_NO_PROTOCOL",
+    "mediaUrl": "MEDIA_URL_OR_API_URL",
+    "fronendToProxyUrl": "FRONTEND_URL",
+    "externalCacheurl": "FEDIVERSE_CACHINATOR",
     "removeFolderNameFromFileUploads": false,
-    "uploadLimit": "50",
+    "adminUser": "ADMIN_USER_URL",
+    "uploadSize": 50,
     "emailConfig": {
-        "host": "host",
+        "host": "smtp_host",
         "port": 25,
         "auth": {
             "user": "user",
             "pass": "password",
-            "from": "mail from"
+            "from": "from_mail"
         }
     }
-
 }

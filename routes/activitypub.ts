@@ -770,8 +770,23 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
   let processedContent = post.content;
   const wafrnMediaRegex = /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
   const mentionRegex = /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
+  const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/;
+
   // we remove the wafrnmedia from the post for the outside world, as they get this on the attachments
   processedContent = processedContent.replace(wafrnMediaRegex, '')
+  const mentions = processedContent.matchAll(mentionRegex)
+  const replacementsWafrnMentions: Array<{ wafrnMentionstringToReplace: string, url: string }> = [];
+  const fediMentions: any = []
+  for await (const mention of mentions) {
+    const userId = mention[0].match(uuidRegex)[0]
+    const user = await User.findOne({where : {id: userId}})
+    processedContent = processedContent.replace(mention, `<a href="${user.remoteId ? user.remoteId : environment.frontendUrl + '/fediverse/blog/'+ user.url}" >@${user.url.startsWith('@') ? user.url.substring(1) : user.url}</a>`)
+    fediMentions.push({
+      type: 'Mention',
+      name: user.url.startsWith('@') ? user.url.substring(1) : user.url,
+      href: user.remoteId ? user.remoteId : environment.frontendUrl + '/blog/'+ user.url
+    })
+  }
   return {
     "@context": [
       "https://www.w3.org/ns/activitystreams",
@@ -823,7 +838,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
           url: environment.mediaUrl + media.url
         }
       }),
-      "tag": [],
+      "tag": fediMentions,
       "replies": {
         "id": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
         "type": "Collection",
