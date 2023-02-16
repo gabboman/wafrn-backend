@@ -863,7 +863,22 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
 }
 
 async function sendRemotePost (localUser: any, post: any) {
-  const usersToSendThePost= await getRemoteFollowers(localUser.id)
+  let usersToSendThePost= await getRemoteFollowers(localUser.id)
+  if(post.privacy == 10) {
+    const userIdsToSendPost =  (await post.getPostMentionsUserRelations()).map((mention: any)=> mention.userId);
+    const mentionedUsersFullModel = await User.findAll({
+      where: {
+        id: {[Op.in]: userIdsToSendPost}
+      }
+    });
+    usersToSendThePost = mentionedUsersFullModel.filter((user: any)=> user.remoteInbox).map((user: any) => user.remoteInbox)
+  }
+
+  if(post.privacy == 0) {
+    const hosts = await FederatedHost.findAll()
+    const hostInboxs = hosts.map((host: any) => host.publicInbox)
+    usersToSendThePost = usersToSendThePost.concat(hostInboxs)
+  }
   if(usersToSendThePost && usersToSendThePost.length > 0) {
     
     const objectToSend = await postToJSONLD(post, usersToSendThePost )
