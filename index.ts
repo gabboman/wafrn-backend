@@ -21,6 +21,7 @@ import deletePost from './routes/deletepost'
 import getPosstGroupDetails from './utils/getPostGroupDetails'
 import { activityPubRoutes } from './routes/activitypub'
 import overrideContentType from './utils/overrideContentType'
+import getMentionsUser from './utils/getMentionsUser'
 
 const environment = require('./environment')
 
@@ -88,6 +89,25 @@ app.get('/explore', async (req: any, res) => {
   const responseWithNotes = await getPosstGroupDetails(rawPosts)
   res.send(responseWithNotes)
 })
+
+
+app.get('/private',authenticateToken, async (req: any, res) => {
+  const posterId = req.jwtData.userId
+  const postsWithMentions = await getMentionsUser(posterId)
+  const rawPostsByFollowed = await Post.findAll({
+    where: {
+      // date the user has started scrolling
+      createdAt: { [Op.lt]: getStartScrollParam(req) },
+      id: { [Op.in]: postsWithMentions },
+      privacy: 10
+    },
+    ...getPostBaseQuery(req)
+  })
+  const responseWithNotes = await getPosstGroupDetails(rawPostsByFollowed)
+  res.send(responseWithNotes)
+})
+
+
 
 userRoutes(app)
 followsRoutes(app)
