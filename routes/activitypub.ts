@@ -1,11 +1,12 @@
 import axios from 'axios'
 import { Application } from 'express'
-import { User, FederatedHost, Follows, Post, Media } from '../models'
+import { User, FederatedHost, Follows, Post, Media, PostMentionsUserRelation } from '../models'
 import checkFediverseSignature from '../utils/checkFediverseSignature'
 import { createHash, createSign, randomBytes } from 'crypto'
 import sequelize from '../db'
 import getRemoteFollowers from '../utils/getRemoteFollowers'
-import { canonize } from 'jsonld';
+import { Op } from 'sequelize'
+
 var https = require('https');
 var httpSignature = require('@peertube/http-signature');
 
@@ -274,13 +275,18 @@ function activityPubRoutes (app: Application) {
               // Create new post
               const postRecived = req.body.object
               if (currentlyWritingPosts.indexOf(postRecived.id) === -1 ){
-                currentlyWritingPosts.push(postRecived.id)
-                const tmpIndex = currentlyWritingPosts.indexOf(postRecived.id)
-                await getPostThreadRecursive(user, postRecived.id, postRecived)
-                await signAndAccept(req, remoteUser, user)
-                if (tmpIndex != -1) {
-                  currentlyWritingPosts[tmpIndex] = '_POST_ALREADY_WRITTEN_'
+                if(postRecived.type === 'Note'){
+                  currentlyWritingPosts.push(postRecived.id)
+                  const tmpIndex = currentlyWritingPosts.indexOf(postRecived.id)
+                  await getPostThreadRecursive(user, postRecived.id, postRecived)
+                  await signAndAccept(req, remoteUser, user)
+                  if (tmpIndex != -1) {
+                    currentlyWritingPosts[tmpIndex] = '_POST_ALREADY_WRITTEN_'
+                  }
+                } else {
+                  console.log('post type not implemented: ' + postRecived.type)
                 }
+                
               } else {
                 console.log('DEADLOCK AVOIDED')
               }
@@ -628,6 +634,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     let mediasString = ''
     const medias = []
     let privacy = 10
+    const fediMentions = postPetition.tag.filter((elem: any) => elem.type == 'Mention' ).filter((elem: any) => elem.href.startsWith(environment.frontendUrl))
     
     if(postPetition.attachment && postPetition.attachment.length > 0) {
       for await (const remoteFile of postPetition.attachment) {
@@ -659,16 +666,50 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
       userId: remoteUser.id,
       remotePostId
     }
+    const mentionedUsersIds = []
+    try {
+      for await (const mention of fediMentions) {
+        const username = mention.href.substring((environment.frontendUrl + '/fediverse/blog/').length)
+        const mentionedUser = await  User.findOne({
+          where: {
+            [Op.or]: [
+              sequelize.where(
+                sequelize.fn('LOWER', sequelize.col('url')),
+                'LIKE',
+                // TODO fix
+                username
+              )
+            ]
+          }
+        });
+        mentionedUsersIds.push(mentionedUser.id)
+      }
+      
+    } catch (error) {
+      console.log('problem processing mentions')
+    }
     if (postPetition.inReplyTo) {
       const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
       const newPost = await Post.create(postToCreate)
       await newPost.setParent(parent)
       await newPost.save()
       newPost.addMedias(medias)
+      for await (const mention of mentionedUsersIds) {
+        PostMentionsUserRelation.create({
+          userId: mention,
+          postId: newPost.id
+        })
+      }
       return newPost
     } else {
       const post = await Post.create(postToCreate)
       post.addMedias(medias)
+      for await (const mention of mentionedUsersIds) {
+        PostMentionsUserRelation.create({
+          userId: mention,
+          postId: post.id
+        })
+      }
       return post
     }
   }
@@ -709,7 +750,17 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     }
   })
   const stringMyFollowers = environment.frontendUrl + '/fediverse/blog' + localUser.url + '/followers'
-    const mentionedUsers: string[] = []
+  const dbMentions = await post.getPostMentionsUserRelations();
+  let mentionedUsers: string[] = []
+
+  if(dbMentions) {
+    const mentionedUsersFullModel = await User.findAll({
+      where: {
+        id: {[Op.in]: dbMentions.map((mention: any) => mention.userId)}
+      }
+    });
+    mentionedUsers = mentionedUsersFullModel.filter((elem: any) => elem.remoteInbox).map((elem : any) => elem.remoteInbox )
+  }
     const parentPost = post.parentId ? (await Post.findOne({where: {id: post.parentId}})) : null
     let parentPostString = null
     if(parentPost) {
