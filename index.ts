@@ -1,5 +1,5 @@
 import express from 'express'
-import { Post } from './models'
+import { Post, User } from './models'
 import { Op } from 'sequelize'
 
 import cors from 'cors'
@@ -74,6 +74,26 @@ app.get('/dashboard', authenticateToken, async (req: any, res) => {
     ...getPostBaseQuery(req)
   })
   const responseWithNotes = await getPosstGroupDetails(rawPostsByFollowed)
+  res.send(responseWithNotes)
+})
+
+app.get('/exploreLocal', async (req: any, res) => {
+  const localUsers = await User.findAll({
+    where: {
+      remoteInbox: {[Op.eq]: null}
+    },
+    attributes: ['id']
+  })
+  const rawPosts = await Post.findAll({
+    ...getPostBaseQuery(req),
+    where: {
+      // date the user has started scrolling
+      createdAt: { [Op.lt]: getStartScrollParam(req) },
+      userId: { [Op.in]: localUsers.map((user: any) => user.id) },
+      privacy: 0,
+    },
+  })
+  const responseWithNotes = await getPosstGroupDetails(rawPosts)
   res.send(responseWithNotes)
 })
 
