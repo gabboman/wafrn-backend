@@ -796,6 +796,13 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       href: user.remoteId ? user.remoteId : environment.frontendUrl + '/blog/'+ user.url
     })
   }
+
+  let contentWarning = false;
+  postMedias.forEach((media: any) => {
+    if (media.NSFW) {
+      contentWarning = true
+    }
+  });
   return {
     "@context": [
       "https://www.w3.org/ns/activitystreams",
@@ -834,7 +841,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
         post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
      ],
      cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
-      sensitive: !!post.content_warning,
+      sensitive: !!post.content_warning || contentWarning,
       atomUri: environment.frontendUrl + '/fediverse/post/' + post.id,
       inReplyToAtomUri: parentPostString,
       "conversation": '',
