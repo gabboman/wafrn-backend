@@ -844,7 +844,9 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
         return {
           type: 'Document',
           mediaType: extension == 'mp4' ? 'video/mp4' : 'image/webp',
-          url: environment.mediaUrl + media.url
+          url: environment.mediaUrl + media.url,
+          sensitive: media.NSFW ? `Marked as NSFW: ${media.description}` : '',
+          name: media.description
         }
       }),
       "tag": fediMentions,
@@ -875,9 +877,12 @@ async function sendRemotePost (localUser: any, post: any) {
   }
 
   if(post.privacy == 0) {
-    const hosts = await FederatedHost.findAll()
-    const hostInboxs = hosts.map((host: any) => host.publicInbox)
-    usersToSendThePost = usersToSendThePost.concat(hostInboxs)
+    const allUserInbox = (await User.findAll({
+      where: {
+        remoteInbox: {[Op.ne]: null}
+      }
+    })).map((elem: any) => elem.remoteInbox)
+    usersToSendThePost = allUserInbox
   }
   if(usersToSendThePost && usersToSendThePost.length > 0) {
     
