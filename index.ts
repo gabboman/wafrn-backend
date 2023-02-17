@@ -114,6 +114,7 @@ app.get('/explore', async (req: any, res) => {
 app.get('/private',authenticateToken, async (req: any, res) => {
   const posterId = req.jwtData.userId
   const postsWithMentions = await getMentionsUser(posterId)
+  postsWithMentions.push(posterId)
   const rawPostsByFollowed = await Post.findAll({
     where: {
       // date the user has started scrolling
