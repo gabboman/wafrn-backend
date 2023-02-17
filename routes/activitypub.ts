@@ -889,7 +889,7 @@ async function sendRemotePost (localUser: any, post: any) {
         remoteInbox: {[Op.ne]: null}
       }
     })).map((elem: any) => elem.remoteInbox)
-    usersToSendThePost = allUserInbox
+    usersToSendThePost = allUserInbox.filter((elem: string) => elem != 'DELETED_USER')
   }
   if(usersToSendThePost && usersToSendThePost.length > 0) {
     
