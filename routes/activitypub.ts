@@ -825,7 +825,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     type: 'Create',
     actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
     published: post.createdAt,
-    to: post.privacy == 2 ? mentionedUsers : [
+    to: post.privacy == 10 ? mentionedUsers : [
        post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : stringMyFollowers 
     ],
     cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
@@ -837,7 +837,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       published: post.createdAt,
       url: environment.frontendUrl + '/post/' + post.id, 
       attributedTo: environment.frontendurl + '/fediverse/blog/' + localUser.url,
-      to: post.privacy == 2 ? mentionedUsers : [
+      to: post.privacy == 10 ? mentionedUsers : [
         post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
      ],
      cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],

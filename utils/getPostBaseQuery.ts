@@ -13,7 +13,7 @@ export default function getPostBaseQuery (req: Request) {
         include: [
           {
             model: User,
-            attributes: ['avatar', 'url', 'description']
+            attributes: ['avatar', 'url', 'description', 'id']
           },
           {
             model: Media,
@@ -29,7 +29,7 @@ export default function getPostBaseQuery (req: Request) {
             include: [
               {
                 model: User,
-                attributes: ['avatar', 'url', 'description']
+                attributes: ['avatar', 'url', 'description', 'id']
               }
             ]
           }
@@ -37,7 +37,7 @@ export default function getPostBaseQuery (req: Request) {
       },
       {
         model: User,
-        attributes: ['avatar', 'url', 'description']
+        attributes: ['avatar', 'url', 'description', 'id']
       },
       {
         model: Media,
@@ -53,7 +53,7 @@ export default function getPostBaseQuery (req: Request) {
         include: [
           {
             model: User,
-            attributes: ['avatar', 'url', 'description']
+            attributes: ['avatar', 'url', 'description', 'id']
           }
         ]
       }
