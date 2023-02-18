@@ -22,7 +22,8 @@ export default function postsRoutes (app: Application) {
     if (req.params && req.params.id) {
       const post = await Post.findOne({
         where: {
-          id: req.params.id
+          id: req.params.id,
+          privacy: {[Op.ne]: 10}
         },
         ...getPostBaseQuery(req)
       })
