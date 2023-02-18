@@ -57,7 +57,8 @@ export default function postsRoutes (app: Application) {
           where: {
             userId: blogId,
             // date the user has started scrolling
-            createdAt: { [Op.lt]: getStartScrollParam(req) }
+            createdAt: { [Op.lt]: getStartScrollParam(req) },
+            privacy: 0
           },
           ...getPostBaseQuery(req)
         })
