@@ -470,7 +470,15 @@ function return404 (res: any) {
   res.sendStatus(404)
 }
 
-async function getRemoteActor (actorUrl: string, user: any): Promise<any> {
+async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<any> {
+  if(level == 11) {
+    //Actor is not valid.
+    return await User.findOne({
+      where: {
+        url: environment.deletedUser
+      }
+    })
+  } 
   const url = new URL(actorUrl)
 
   // TODO properly sign petition
@@ -484,8 +492,8 @@ async function getRemoteActor (actorUrl: string, user: any): Promise<any> {
 
   if (!remoteUser) {
     if (currentlyWritingPosts.indexOf(actorUrl) !== -1) {
-      await new Promise(resolve => setTimeout(resolve, 250))
-      return await getRemoteActor(actorUrl, user)
+      await new Promise(resolve => setTimeout(resolve, 2500))
+      return await getRemoteActor(actorUrl, user, level + 1)
     } else {
       currentlyWritingPosts.push(actorUrl)
       const currentlyWritingObject = currentlyWritingPosts.indexOf(actorUrl) 
@@ -501,7 +509,8 @@ async function getRemoteActor (actorUrl: string, user: any): Promise<any> {
           password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
           publicKey: userPetition.publicKey?.publicKeyPem,
           remoteInbox: userPetition.inbox,
-          remoteId: actorUrl
+          remoteId: actorUrl,
+          active: true
         }
         remoteUser = await User.create(userToCreate)
     
