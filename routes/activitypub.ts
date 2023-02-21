@@ -430,7 +430,7 @@ function activityPubRoutes (app: Application) {
                 }
                 default: {
                   console.log('DELETE not implemented ' + body.type)
-                  console.log(req.body)
+                  //console.log(req.body)
                 }
               break
               }
@@ -549,7 +549,6 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
 }
 
 async function postPetitionSigned (message: object, user: any, target: string): Promise<any> {
-  console.log('http post signed to ' + target + ' started by ' + user.url )
   const url = new URL(target)
   const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')
   const signer = createSign('sha256')
@@ -570,10 +569,8 @@ async function postPetitionSigned (message: object, user: any, target: string): 
   let res;
   try {
     res =  await axios.post(target, message, {headers: headers})
-    console.log('http post signed to ' + target + ' completed by ' + user.url )
   } catch (error) {
-    console.log('Error during petition')
-    //console.log(error)
+    console.log('http post signed to ' + target + ' FAILED by ' + user.url )
   }
   return res
 
@@ -598,7 +595,6 @@ function signedGetPetition (user: any, target: string): Promise<any> {
         let data = ''
         response.on('data', (chunk: any) => data = data + chunk)
         response.on('end', () => {
-          console.log('http get request to ' + url.href + ' has finished successfully, initiated by user ' + user.url)
           resolve(JSON.parse(data))
         })
       } else {
@@ -612,7 +608,6 @@ function signedGetPetition (user: any, target: string): Promise<any> {
       authorizationHeaderName: 'signature',
       headers: ['(request-target)', 'host', 'date', 'accept' ]
     });
-    console.log('http get request to ' + url.href + ' initiated by user ' + user.url)
     httpPetition.end();
   })
   return res
