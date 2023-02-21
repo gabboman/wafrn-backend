@@ -327,7 +327,17 @@ function activityPubRoutes (app: Application) {
                   const postToEdit = await Post.findOne({
                     where: {
                       remotePostId: body.id
-                    }
+                    },
+                    include: [
+                      {
+                        model: Media,
+                        attributes: ['id']
+                      }
+                    ]
+                  });
+                  let mediaString = '';
+                  postToEdit.medias.forEach((mediaInPost: any) => {
+                    mediaString = mediaString +'[wafrnmediaid="' + mediaInPost.id + '"]'
                   })
                   postToEdit.content = body.content + '<p>Post edited at '+ body.updated + '</p>'
                   postToEdit.updatedAt = body.updated
