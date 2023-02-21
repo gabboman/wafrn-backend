@@ -406,14 +406,21 @@ function activityPubRoutes (app: Application) {
                   // we assume its just the url of an user
                   const userToRemove = await User.findOne({where: {remoteId: req.body.object}})
                   if(userToRemove) {
+                    const ownerOfDeletedPost = await User.findOne({
+                      where: {
+                        url: environment.deletedUser
+                      }
+                    });
                     userToRemove.url = userToRemove.url + '_DEACTIVATED'
                     userToRemove.remoteId = 'DELETED_USER'
+                    userToRemove.active = false
                     const postsToRemove = userToRemove.getPosts()
                     if (postsToRemove && postsToRemove.length > 0) {
                       for await (const postToDelete of postsToRemove) {
                         const children = await postToDelete.getChildren()
                         if(children && children.length > 0) {
                           postToDelete.content = 'Post has been deleted'
+                          postToDelete.userId = ownerOfDeletedPost.id
                           await postToDelete.save()
                         } else {
                           await postToDelete.destroy()
@@ -900,7 +907,8 @@ async function sendRemotePost (localUser: any, post: any) {
   if(post.privacy == 0) {
     const allUserInbox = (await User.findAll({
       where: {
-        remoteInbox: {[Op.ne]: null}
+        remoteInbox: {[Op.ne]: null},
+        active: true
       }
     })).map((elem: any) => elem.remoteInbox)
     usersToSendThePost = allUserInbox.filter((elem: string) => elem != 'DELETED_USER')
