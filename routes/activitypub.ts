@@ -413,7 +413,7 @@ function activityPubRoutes (app: Application) {
                     });
                     userToRemove.url = userToRemove.url + '_DEACTIVATED'
                     userToRemove.remoteId = 'DELETED_USER'
-                    userToRemove.active = false
+                    userToRemove.activated = false
                     const postsToRemove = userToRemove.getPosts()
                     if (postsToRemove && postsToRemove.length > 0) {
                       for await (const postToDelete of postsToRemove) {
@@ -527,7 +527,7 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
           publicKey: userPetition.publicKey?.publicKeyPem,
           remoteInbox: userPetition.inbox,
           remoteId: actorUrl,
-          active: true
+          activated: true
         }
         remoteUser = await User.create(userToCreate)
     
@@ -908,7 +908,7 @@ async function sendRemotePost (localUser: any, post: any) {
     const allUserInbox = (await User.findAll({
       where: {
         remoteInbox: {[Op.ne]: null},
-        active: true
+        activated: true
       }
     })).map((elem: any) => elem.remoteInbox)
     usersToSendThePost = allUserInbox.filter((elem: string) => elem != 'DELETED_USER')
