@@ -1,4 +1,4 @@
-const request = require('request-promise')
+import axios from 'axios'
 const environment = require('../environment')
 
 export interface HCaptchaSiteVerifyResponse {
@@ -10,7 +10,7 @@ export default async function checkCaptcha (response: string, ip: string) {
   let res = false
   const secretKey = environment.captchaPrivateKey
   const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${response}&remoteip=${ip}`
-  const googleResponse = await request(url)
-  res = JSON.parse(googleResponse).success
+  const googleResponse = await axios.get(url)
+  res = googleResponse.data.success
   return res
 }
