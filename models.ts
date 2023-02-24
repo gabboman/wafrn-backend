@@ -134,6 +134,29 @@ const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {
   }
 })
 
+const UserLikesPostRelations = sequelize.define('userLikesPostRelations', {
+  userId: {
+    type: Sequelize.UUID,
+    allowNull: false,
+    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    unique: false
+  },
+  postId: {
+    type: Sequelize.UUID,
+    allowNull: false,
+    primaryKey: true,
+    references: {
+      model: 'posts',
+      key: 'id'
+    },
+    unique: false
+  }
+})
+
 const FederatedHost = sequelize.define('federatedHosts', {
   id: {
     type: Sequelize.UUID,
@@ -202,6 +225,11 @@ PostMentionsUserRelation.belongsTo(User)
 PostMentionsUserRelation.belongsTo(Post)
 User.hasMany(PostMentionsUserRelation)
 Post.hasMany(PostMentionsUserRelation)
+
+UserLikesPostRelations.belongsTo(User)
+UserLikesPostRelations.belongsTo(Post)
+User.hasMany(UserLikesPostRelations)
+Post.hasMany(UserLikesPostRelations)
 
 export {
   User,

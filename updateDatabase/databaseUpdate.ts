@@ -12,23 +12,33 @@ const queryInterface = sequelize.getQueryInterface()
 async function dbUpdate() {
 // Add new table
 
- await queryInterface.createTable('federatedHosts', {
-  id: {
+ await queryInterface.createTable('userLikesPostRelations', {
+  userId: {
     type: Sequelize.UUID,
-    defaultValue: Sequelize.UUIDV4,
     allowNull: false,
-    primaryKey: true
+    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    unique: false
   },
-  displayName: Sequelize.TEXT,
-  publicInbox: Sequelize.TEXT,
-  publicKey: Sequelize.TEXT,
-  detail: Sequelize.STRING,
-  blocked: Sequelize.BOOLEAN,
+  postId: {
+    type: Sequelize.UUID,
+    allowNull: false,
+    primaryKey: true,
+    references: {
+      model: 'posts',
+      key: 'id'
+    },
+    unique: false
+  },
   createdAt: Sequelize.DATE,
   updatedAt: Sequelize.DATE
-})
+  })
 // add column
 
+/*
  await queryInterface.addColumn(
   'posts',
   'privacy', {
@@ -39,79 +49,7 @@ async function dbUpdate() {
   }
 )
 
- await queryInterface.addColumn(
-  'posts',
-  'remotePostId', {
-    type: Sequelize.TEXT,
-    allowNull: true,
-    unique: true
-  }
-)
-
- await queryInterface.addColumn(
-  'follows',
-  'remoteFollowId', {
-    type: Sequelize.TEXT,
-    allowNull: true
-  }
-)
-
- await queryInterface.addColumn(
-  'medias',
-  'external', {
-    defaultValue: false,
-    type: Sequelize.BOOLEAN,
-    allowNull: false
-  }
-)
-
- await queryInterface.addColumn(
-  'users',
-  'federatedHostId', {
-    type: Sequelize.UUID,
-    allowNull: true,
-    references: {
-      model: 'federatedHosts',
-      key: 'id'
-    },
-    unique: false
-  }
-)
-
- await queryInterface.addColumn(
-  'users',
-  'publicKey', {
-    type: Sequelize.TEXT,
-    allowNull: false,
-    unique: false
-  }
-)
-
- await queryInterface.addColumn(
-  'users',
-  'privateKey', {
-    type: Sequelize.TEXT,
-    allowNull: true,
-    unique: false
-  }
-)
- await queryInterface.addColumn(
-  'users',
-  'remoteInbox', {
-    type: Sequelize.TEXT,
-    allowNull: true,
-    unique: false
-  }
-)
-
- await queryInterface.addColumn(
-  'users',
-  'remoteId', {
-    type: Sequelize.TEXT,
-    allowNull: true,
-    unique: false
-  }
-)
+*/
 
 }
 
