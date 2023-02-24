@@ -1,5 +1,5 @@
 const swaggerAutogen = require('swagger-autogen')
-const environment = require('./environment.json')
+import { environment } from './environment'
 
 const config = {
   info: {

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { User } from '../models';
 import { signedGetPetition } from '../routes/activitypub';
-const environment = require('../environment')
+import { environment } from '../environment'
 var httpSignature = require('@peertube/http-signature');
 
 const user = User.findOne({

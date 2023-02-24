@@ -23,14 +23,14 @@ import { activityPubRoutes } from './routes/activitypub'
 import overrideContentType from './utils/overrideContentType'
 import getMentionsUser from './utils/getMentionsUser'
 
-const environment = require('./environment')
+import { environment } from './environment'
 
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
 
 // rest of the code remains same
 const app = express()
-const PORT = process.env.PORT || environment.port
+const PORT = environment.port
 
 app.use(overrideContentType)
 app.use(bodyParser.json())

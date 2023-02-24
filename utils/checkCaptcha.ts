@@ -1,5 +1,5 @@
 import axios from 'axios'
-const environment = require('../environment')
+import { environment } from '../environment'
 
 export interface HCaptchaSiteVerifyResponse {
   success: boolean

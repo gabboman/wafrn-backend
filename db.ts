@@ -1,4 +1,4 @@
-const environment = require('./environment')
+import { environment } from './environment'
 
 const { Sequelize } = require('sequelize')
 require('sequelize-hierarchy-fork')(Sequelize)

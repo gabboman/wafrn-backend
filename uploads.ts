@@ -1,6 +1,6 @@
 import multer from 'multer'
 import generateRandomString from './utils/generateRandomString'
-const environment = require('./environment')
+import { environment } from './environment'
 
 const imageStorage = multer.diskStorage({
   // Destination to store image
@@ -16,7 +16,7 @@ const imageStorage = multer.diskStorage({
 const uploadHandler = multer({
   storage: imageStorage,
   limits: {
-    fileSize: environment.uploadSize * 1024 * 1024 // 15 MB.
+    fileSize: environment.uploadLimit * 1024 * 1024 // 15 MB.
   },
   fileFilter (req, file, cb) {
     const name = file.originalname.toLowerCase()

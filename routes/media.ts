@@ -9,7 +9,7 @@ import uploadHandler from '../uploads'
 import authenticateToken from '../utils/authenticateToken'
 import getIp from '../utils/getIP'
 import optimizeMedia from '../utils/optimizeMedia'
-const environment = require('../environment')
+import { environment } from '../environment'
 
 export default function mediaRoutes (app: Application) {
   app.post('/uploadMedia', authenticateToken, uploadHandler.array('image'), async (req, res) => {

@@ -14,7 +14,7 @@ import optimizeMedia from '../utils/optimizeMedia'
 import uploadHandler from '../uploads'
 import * as ed from '@noble/ed25519'
 import { generateKeyPairSync } from 'crypto'
-const environment = require('../environment')
+import { environment } from '../environment'
 
 export default function userRoutes (app: Application) {
   app.post('/register', uploadHandler.single('avatar'), async (req, res) => {
@@ -82,17 +82,6 @@ export default function userRoutes (app: Application) {
           }
 
           const userWithEmail = User.create(user)
-          if (environment.adminId) {
-            const adminUser = await User.findOne({
-              where: {
-                id: environment.adminId
-              }
-            })
-            // follow staff!
-            if (adminUser) {
-              adminUser.addFollower(userWithEmail)
-            }
-          }
           const emailSent = sendActivationEmail(
             req.body.email.toLowerCase(),
             activationCode,

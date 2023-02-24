@@ -10,7 +10,7 @@ import { Op } from 'sequelize'
 var https = require('https');
 var httpSignature = require('@peertube/http-signature');
 
-const environment = require('../environment')
+import { environment } from '../environment'
 
 // global activitypub variables
 const currentlyWritingPosts: Array<string> = []
@@ -395,6 +395,7 @@ function activityPubRoutes (app: Application) {
                     const children = await postToDelete.getChildren()
                     if(children && children.length > 0) {
                       postToDelete.content = 'Post has been deleted'
+                      await postToDelete.save()
                     } else {
                       await postToDelete.destroy()
                     }

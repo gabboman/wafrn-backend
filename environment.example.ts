@@ -1,4 +1,4 @@
-{
+export const environment = {
     "prod": false,
     "logSQLQueries": false,
     "forceSync": false,

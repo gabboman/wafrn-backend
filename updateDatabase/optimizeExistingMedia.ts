@@ -1,7 +1,7 @@
 import sequelize from './db'
 import { Media, User } from './models'
 import optimizeMedia from './utils/optimizeMedia'
-const environment = require('./environment')
+import { environment } from './environment'
 
 sequelize
   .sync({
