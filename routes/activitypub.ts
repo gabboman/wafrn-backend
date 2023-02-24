@@ -857,7 +857,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       inReplyTo: parentPostString,
       published: post.createdAt,
       url: environment.frontendUrl + '/post/' + post.id, 
-      attributedTo: environment.frontendurl + '/fediverse/blog/' + localUser.url,
+      attributedTo: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
       to: post.privacy == 10 ? mentionedUsers : [
         post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
      ],
