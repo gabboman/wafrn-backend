@@ -410,9 +410,9 @@ function activityPubRoutes (app: Application) {
                 await signAndAccept(req, remoteUser, user)
               } else {
                 console.log('Post not found')
-                console.log({id: fullUrlPostToBeLiked.substring(partToRemove.length), fullUrlPostToBeLiked  })
+                console.log(req.body)
               }
-
+              break;
             }
             case 'Delete': {
               res.sendStatus(200)
