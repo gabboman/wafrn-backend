@@ -401,16 +401,13 @@ function activityPubRoutes (app: Application) {
                   id: fullUrlPostToBeLiked.substring(partToRemove.length)
                 }
               })
-              if(localPost) {
+              if(localPost && req.body.object.startsWith(environment.frontendUrl)) {
                 const like = await UserLikesPostRelations.create({
                   userId: remoteUser.id,
                   postId: localPost.id,
                   remoteId: req.body.id
                 })
                 await signAndAccept(req, remoteUser, user)
-              } else {
-                console.log('Post not found')
-                console.log(req.body)
               }
               break;
             }
