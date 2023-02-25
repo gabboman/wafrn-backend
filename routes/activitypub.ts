@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { Application } from 'express'
-import { User, FederatedHost, Follows, Post, Media, PostMentionsUserRelation } from '../models'
+import { User, FederatedHost, Follows, Post, Media, PostMentionsUserRelation, UserLikesPostRelations } from '../models'
 import checkFediverseSignature from '../utils/checkFediverseSignature'
 import { createHash, createSign, randomBytes } from 'crypto'
 import sequelize from '../db'
@@ -373,13 +373,42 @@ function activityPubRoutes (app: Application) {
                   }
                   await signAndAccept(req, remoteUser, user)
                 }
+                case 'Undo': {
+                  // just undo? Might be like might be something else.
+                  const likeToRemove = await UserLikesPostRelations.findOne({
+                    where: {
+                      remoteId: req.body.object.id
+                    }
+                  });
+                  if(likeToRemove) {
+                    await likeToRemove.destroy();
+                  }
+                }
                 default: {
                   console.log('UNDO NOT IMPLEMENTED: ' + req.body.type)
+                  console.log(req.body)
 
 
                 }
               }
               break
+            }
+            case 'Like': {
+              const fullUrlPostToBeLiked = req.body.object
+              const partToRemove = environment.frontendUrl + '/fediverse/post/'
+              const localPost = await Post.findOne({
+                where: {
+                  id: fullUrlPostToBeLiked.substring(partToRemove.length)
+                }
+              })
+
+              const like = await UserLikesPostRelations.create({
+                userId: remoteUser.id,
+                postId: localPost.id,
+                remoteId: req.body.id
+              })
+              await signAndAccept(req, remoteUser, user)
+
             }
             case 'Delete': {
               res.sendStatus(200)
@@ -403,6 +432,7 @@ function activityPubRoutes (app: Application) {
                   await signAndAccept(req, remoteUser, user)
                   break
                 }
+                /*
                 case undefined: {
                   // we assume its just the url of an user
                   const userToRemove = await User.findOne({where: {remoteId: req.body.object}})
@@ -436,6 +466,7 @@ function activityPubRoutes (app: Application) {
                   }
                   break;
                 }
+                */
                 default: {
                   console.log('DELETE not implemented ' + body.type)
                   //console.log(req.body)
@@ -489,7 +520,7 @@ function return404 (res: any) {
 }
 
 async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<any> {
-  if(level == 11) {
+  if(level == 100) {
     //Actor is not valid.
     return await User.findOne({
       where: {
@@ -547,6 +578,7 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
     
         await federatedHost.addUser(remoteUser)
       } catch (error) {
+        console.log(error)
       }
       currentlyWritingPosts[currentlyWritingObject] = '_OBJECT_FINALLY_WRITTEN_'
 

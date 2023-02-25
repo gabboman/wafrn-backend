@@ -33,6 +33,10 @@ async function dbUpdate() {
     },
     unique: false
   },
+  remoteId: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
   createdAt: Sequelize.DATE,
   updatedAt: Sequelize.DATE
   })

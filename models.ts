@@ -154,6 +154,10 @@ const UserLikesPostRelations = sequelize.define('userLikesPostRelations', {
       key: 'id'
     },
     unique: false
+  },
+  remoteId: {
+    type: Sequelize.STRING,
+    allowNull: true
   }
 })
 
@@ -240,5 +244,6 @@ export {
   Follows,
   Media,
   PostMentionsUserRelation,
+  UserLikesPostRelations,
   FederatedHost
 }
