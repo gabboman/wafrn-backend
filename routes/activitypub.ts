@@ -401,13 +401,14 @@ function activityPubRoutes (app: Application) {
                   id: fullUrlPostToBeLiked.substring(partToRemove.length)
                 }
               })
-
-              const like = await UserLikesPostRelations.create({
-                userId: remoteUser.id,
-                postId: localPost.id,
-                remoteId: req.body.id
-              })
-              await signAndAccept(req, remoteUser, user)
+              if(localPost) {
+                const like = await UserLikesPostRelations.create({
+                  userId: remoteUser.id,
+                  postId: localPost.id,
+                  remoteId: req.body.id
+                })
+                await signAndAccept(req, remoteUser, user)
+              }
 
             }
             case 'Delete': {
