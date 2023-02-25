@@ -723,7 +723,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     }
     const postToCreate = {
       content: postPetition.content + mediasString,
-      content_warning: postPetition.sensitive ? postPetition.summary : '',
+      content_warning: postPetition.sensitive ? postPetition.summary : remoteUser.NSFW ? 'User is marked as NSFW by this instance staff. Possible NSFW without tagging' : '',
       createdAt: new Date(postPetition.published),
       updatedAt: new Date(),
       userId: remoteUser.id,
