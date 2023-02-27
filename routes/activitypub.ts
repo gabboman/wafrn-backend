@@ -285,11 +285,11 @@ function activityPubRoutes (app: Application) {
                     currentlyWritingPosts[tmpIndex] = '_POST_ALREADY_WRITTEN_'
                   }
                 } else {
-                  req.log.info('post type not implemented: ' + postRecived.type)
+                  logger.info('post type not implemented: ' + postRecived.type)
                 }
                 
               } else {
-                req.log.info('DEADLOCK AVOIDED')
+                logger.info('DEADLOCK AVOIDED')
               }
               break
               
@@ -349,7 +349,7 @@ function activityPubRoutes (app: Application) {
                   break
                 }
                 default: {
-                  req.log.info('update not implemented ' + body.type)
+                  logger.info('update not implemented ' + body.type)
                 }
               }
 
@@ -386,8 +386,8 @@ function activityPubRoutes (app: Application) {
                   }
                 }
                 default: {
-                  req.log.info('UNDO NOT IMPLEMENTED: ' + req.body.type)
-                  req.log.info(req.body)
+                  logger.info('UNDO NOT IMPLEMENTED: ' + req.body.type)
+                  logger.info(req.body)
 
 
                 }
@@ -470,21 +470,21 @@ function activityPubRoutes (app: Application) {
                 }
                 */
                 default: {
-                  req.log.info('DELETE not implemented ' + body.type)
-                  //req.log.info(req.body)
+                  logger.info('DELETE not implemented ' + body.type)
+                  //logger.info(req.body)
                 }
               break
               }
               break
             }
             default: {
-              req.log.info('NOT IMPLEMENTED: ' + req.body.type)
+              logger.info('NOT IMPLEMENTED: ' + req.body.type)
               res.sendStatus(200)
             }
           }
         } catch (error) {
-          req.log.info('error happened: more detail');
-          req.log.info(error)
+          logger.info('error happened: more detail');
+          logger.info(error)
         }
       } else {
         return404(res)

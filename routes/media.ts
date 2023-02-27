@@ -10,6 +10,7 @@ import authenticateToken from '../utils/authenticateToken'
 import getIp from '../utils/getIP'
 import optimizeMedia from '../utils/optimizeMedia'
 import { environment } from '../environment'
+import { logger } from '../utils/logger'
 
 export default function mediaRoutes (app: Application) {
   app.post('/uploadMedia', authenticateToken, uploadHandler.array('image'), async (req, res) => {
@@ -72,7 +73,7 @@ export default function mediaRoutes (app: Application) {
         }
       }
     } catch (error) {
-      req.log.error(error)
+      logger.error(error)
     }
 
     res.send({

@@ -37,8 +37,8 @@ app.use(overrideContentType)
 app.use(bodyParser.json())
 app.use(cors())
 
-const pino = require('pino-http')()
-app.use(pino)
+//const pino = require('pino-http')()
+//app.use(pino)
 
 app.use('/apidocs', swagger.serve, swagger.setup(swaggerJSON))
 

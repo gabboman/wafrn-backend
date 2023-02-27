@@ -3,6 +3,7 @@ import { User } from '../models'
 import authenticateToken from '../utils/authenticateToken'
 import getBlockedIds from '../utils/getBlockedIds'
 import getFollowedsIds from '../utils/getFollowedsIds'
+import { logger } from '../utils/logger'
 import { remoteFollow, remoteUnfollow } from './activitypub'
 
 export default function followsRoutes (app: Application) {
@@ -22,11 +23,11 @@ export default function followsRoutes (app: Application) {
         success = true
         if(userFollowed.remoteId){
           const localUser = await User.findOne({where: {id: posterId}})
-          remoteFollow(localUser , userFollowed).then(() => {}).catch((error)=> {req.log.info('error following remote user')})
+          remoteFollow(localUser , userFollowed).then(() => {}).catch((error)=> {logger.info('error following remote user')})
         }
       }
     } catch (error) {
-      req.log.error(error)
+      logger.error(error)
     }
 
     res.send({
@@ -48,7 +49,7 @@ export default function followsRoutes (app: Application) {
 
         if(userUnfollowed.remoteId) {
           const localUser = await User.findOne({where: {id: posterId}})
-          remoteUnfollow(localUser , userUnfollowed).then(() => {}).catch((error)=> {req.log.info('error following remote user')})
+          remoteUnfollow(localUser , userUnfollowed).then(() => {}).catch((error)=> {logger.info('error following remote user')})
 
         }
 
@@ -56,7 +57,7 @@ export default function followsRoutes (app: Application) {
         success = true
       }
     } catch (error) {
-      req.log.error(error)
+      logger.error(error)
     }
 
     res.send({

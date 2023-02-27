@@ -4,6 +4,7 @@ import { Post, PostMentionsUserRelation, User } from '../models'
 import authenticateToken from '../utils/authenticateToken'
 import getBlockedIds from '../utils/getBlockedIds'
 import getReblogs from '../utils/getReblogs'
+import { logger } from '../utils/logger'
 
 export default function notificationRoutes (app: Application) {
   app.post('/readNotifications', authenticateToken, async (req: any, res) => {
@@ -19,7 +20,7 @@ export default function notificationRoutes (app: Application) {
         user.save()
       }
     } catch (error) {
-      req.log.error(error)
+      logger.error(error)
     }
     res.send({
       success: true
