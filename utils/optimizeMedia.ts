@@ -1,3 +1,5 @@
+import { logger } from "./logger"
+
 /* eslint-disable max-len */
 const fs = require('fs')
 const FfmpegCommand = require('fluent-ffmpeg')
@@ -19,7 +21,7 @@ export default function optimizeMedia (inputPath: string): string {
           try {
             fs.unlinkSync(inputPath, () => {})
           } catch (exc) {
-            console.warn(exc)
+            logger.warn(exc)
           }
         })
       break
@@ -37,7 +39,7 @@ export default function optimizeMedia (inputPath: string): string {
           try {
             fs.unlinkSync(inputPath, () => {})
           } catch (exc) {
-            console.warn(exc)
+            logger.warn(exc)
           }
         })
       break
@@ -51,10 +53,10 @@ export default function optimizeMedia (inputPath: string): string {
             try {
               fs.unlinkSync(inputPath, () => {})
             } catch (exc) {
-              console.warn(exc)
+              logger.warn(exc)
             }
           } else {
-            console.log(err)
+            logger.info(err)
           }
         })
   }

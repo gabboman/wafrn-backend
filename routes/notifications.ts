@@ -19,7 +19,7 @@ export default function notificationRoutes (app: Application) {
         user.save()
       }
     } catch (error) {
-      console.error(error)
+      req.log.error(error)
     }
     res.send({
       success: true

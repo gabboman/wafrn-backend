@@ -1,6 +1,7 @@
 import { Application } from 'express'
 import { User } from '../models'
 import authenticateToken from '../utils/authenticateToken'
+import { logger } from '../utils/logger'
 
 export default function blockRoutes (app: Application) {
   app.post('/block', authenticateToken, async (req: any, res) => {
@@ -18,7 +19,7 @@ export default function blockRoutes (app: Application) {
         success = true
       }
     } catch (error) {
-      console.error(error)
+      logger.error(error)
     }
 
     res.send({

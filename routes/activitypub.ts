@@ -11,6 +11,7 @@ var https = require('https');
 var httpSignature = require('@peertube/http-signature');
 
 import { environment } from '../environment'
+import { logger } from '../utils/logger'
 
 // global activitypub variables
 const currentlyWritingPosts: Array<string> = []
@@ -284,11 +285,11 @@ function activityPubRoutes (app: Application) {
                     currentlyWritingPosts[tmpIndex] = '_POST_ALREADY_WRITTEN_'
                   }
                 } else {
-                  console.log('post type not implemented: ' + postRecived.type)
+                  req.log.info('post type not implemented: ' + postRecived.type)
                 }
                 
               } else {
-                console.log('DEADLOCK AVOIDED')
+                req.log.info('DEADLOCK AVOIDED')
               }
               break
               
@@ -348,7 +349,7 @@ function activityPubRoutes (app: Application) {
                   break
                 }
                 default: {
-                  console.log('update not implemented ' + body.type)
+                  req.log.info('update not implemented ' + body.type)
                 }
               }
 
@@ -385,8 +386,8 @@ function activityPubRoutes (app: Application) {
                   }
                 }
                 default: {
-                  console.log('UNDO NOT IMPLEMENTED: ' + req.body.type)
-                  console.log(req.body)
+                  req.log.info('UNDO NOT IMPLEMENTED: ' + req.body.type)
+                  req.log.info(req.body)
 
 
                 }
@@ -469,21 +470,21 @@ function activityPubRoutes (app: Application) {
                 }
                 */
                 default: {
-                  console.log('DELETE not implemented ' + body.type)
-                  //console.log(req.body)
+                  req.log.info('DELETE not implemented ' + body.type)
+                  //req.log.info(req.body)
                 }
               break
               }
               break
             }
             default: {
-              console.log('NOT IMPLEMENTED: ' + req.body.type)
+              req.log.info('NOT IMPLEMENTED: ' + req.body.type)
               res.sendStatus(200)
             }
           }
         } catch (error) {
-          console.log('error happened: more detail');
-          console.log(error)
+          req.log.info('error happened: more detail');
+          req.log.info(error)
         }
       } else {
         return404(res)
@@ -579,7 +580,7 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
     
         await federatedHost.addUser(remoteUser)
       } catch (error) {
-        console.log(error)
+        logger.info(error)
       }
       currentlyWritingPosts[currentlyWritingObject] = '_OBJECT_FINALLY_WRITTEN_'
 
@@ -611,7 +612,7 @@ async function postPetitionSigned (message: object, user: any, target: string): 
   try {
     res =  await axios.post(target, message, {headers: headers})
   } catch (error) {
-    console.log('http post signed to ' + target + ' FAILED by ' + user.url )
+    logger.info('http post signed to ' + target + ' FAILED by ' + user.url )
   }
   return res
 
@@ -715,7 +716,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
           axios.get(environment.externalCacheurl + encodeURIComponent(wafrnMedia.url)).then((res)=> {
 
           }).catch((error) => {
-            console.log('Error caching image')
+            logger.info('Error caching image')
           })
         }, 2000)
         mediasString = mediasString + '[wafrnmediaid="' + wafrnMedia.id + '"]'
@@ -750,7 +751,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
       }
       
     } catch (error) {
-      console.log('problem processing mentions')
+      logger.info('problem processing mentions')
     }
     if (postPetition.inReplyTo) {
       const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
@@ -955,7 +956,7 @@ async function sendRemotePost (localUser: any, post: any) {
         const response = await postPetitionSigned(objectToSend, localUser, remoteuser)
 
       } catch (error) {
-        console.log('Could not send post to ' + remoteuser)
+        logger.info('Could not send post to ' + remoteuser)
       }
     }
   }
@@ -981,7 +982,7 @@ async function searchRemoteUser(searchTerm: string, user: any){
         };
 
       } catch (error) {
-        console.log('webfinger petition failed')
+        logger.info('webfinger petition failed')
 
       }
       

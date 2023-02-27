@@ -22,11 +22,11 @@ export default function followsRoutes (app: Application) {
         success = true
         if(userFollowed.remoteId){
           const localUser = await User.findOne({where: {id: posterId}})
-          remoteFollow(localUser , userFollowed).then(() => {}).catch((error)=> {console.log('error following remote user')})
+          remoteFollow(localUser , userFollowed).then(() => {}).catch((error)=> {req.log.info('error following remote user')})
         }
       }
     } catch (error) {
-      console.error(error)
+      req.log.error(error)
     }
 
     res.send({
@@ -48,7 +48,7 @@ export default function followsRoutes (app: Application) {
 
         if(userUnfollowed.remoteId) {
           const localUser = await User.findOne({where: {id: posterId}})
-          remoteUnfollow(localUser , userUnfollowed).then(() => {}).catch((error)=> {console.log('error following remote user')})
+          remoteUnfollow(localUser , userUnfollowed).then(() => {}).catch((error)=> {req.log.info('error following remote user')})
 
         }
 
@@ -56,7 +56,7 @@ export default function followsRoutes (app: Application) {
         success = true
       }
     } catch (error) {
-      console.error(error)
+      req.log.error(error)
     }
 
     res.send({

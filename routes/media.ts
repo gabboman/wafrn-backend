@@ -72,7 +72,7 @@ export default function mediaRoutes (app: Application) {
         }
       }
     } catch (error) {
-      console.error(error)
+      req.log.error(error)
     }
 
     res.send({

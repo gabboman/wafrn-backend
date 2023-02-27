@@ -24,6 +24,7 @@ import overrideContentType from './utils/overrideContentType'
 import getMentionsUser from './utils/getMentionsUser'
 
 import { environment } from './environment'
+import { logger } from './utils/logger'
 
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
@@ -35,6 +36,10 @@ const PORT = environment.port
 app.use(overrideContentType)
 app.use(bodyParser.json())
 app.use(cors())
+
+const pino = require('pino-http')()
+app.use(pino)
+
 app.use('/apidocs', swagger.serve, swagger.setup(swaggerJSON))
 
 sequelize
@@ -42,9 +47,9 @@ sequelize
     force: environment.forceSync
   })
   .then(async () => {
-    console.log('Database & tables ready!')
+    logger.info('Database & tables ready!')
     if (environment.forceSync) {
-      console.log('CLEANING DATA')
+      logger.info('CLEANING DATA')
       // seeder();
     }
   })
@@ -141,5 +146,5 @@ deletePost(app)
 activityPubRoutes(app)
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`⚡️Server is running at https://localhost:${PORT}`)
+  logger.info(`⚡️Server is running at https://localhost:${PORT}`)
 })

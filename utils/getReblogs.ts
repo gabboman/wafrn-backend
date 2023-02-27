@@ -1,5 +1,6 @@
 import { Op } from 'sequelize'
 import { Post, User } from '../models'
+import { logger } from './logger'
 
 export default async function getReblogs (user: any) {
   const userId = user.id
@@ -39,7 +40,7 @@ export default async function getReblogs (user: any) {
         result.push(elemProcessed)
       })
     } catch (error) {
-      console.error(error)
+      logger.error(error)
     }
   })
   return result

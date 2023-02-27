@@ -1,4 +1,5 @@
 import { environment } from '../environment'
+import { logger } from '../utils/logger'
 
 const { Sequelize } = require('sequelize') // sequelize plugins
 require('sequelize-hierarchy-fork')(Sequelize)
@@ -66,7 +67,7 @@ async function dbUpdate() {
 */
 
 dbUpdate().then(()=> {
-  console.log('done')
+  logger.info('done')
 }).catch(error => {
-  console.log(error)
+  logger.info(error)
 })

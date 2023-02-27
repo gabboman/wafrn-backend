@@ -1,6 +1,7 @@
 import { Application } from 'express'
 import { Post, PostMentionsUserRelation } from '../models'
 import authenticateToken from '../utils/authenticateToken'
+import { logger } from '../utils/logger'
 
 export default function deletePost (app: Application) {
   app.delete('/deletePost', authenticateToken, async (req: any, res) => {
@@ -35,7 +36,7 @@ export default function deletePost (app: Application) {
         success = true
       }
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       success = false
     }
 

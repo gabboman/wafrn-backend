@@ -2,15 +2,16 @@ import sequelize from './db'
 import { Media, User } from './models'
 import optimizeMedia from './utils/optimizeMedia'
 import { environment } from './environment'
+import { logger } from '../utils/logger'
 
 sequelize
   .sync({
     force: environment.forceSync
   })
   .then(async () => {
-    console.log('Database & tables ready!')
+    logger.info('Database & tables ready!')
     if (environment.forceSync) {
-      console.log('CLEANING DATA')
+      logger.info('CLEANING DATA')
       // seeder();
     }
   })
@@ -33,7 +34,7 @@ async function start () {
 }
 
 start().then(() => {
-  console.log('all good')
+  logger.info('all good')
 }).catch(() => {
-  console.warn('oh no')
+  logger.warn('oh no')
 })

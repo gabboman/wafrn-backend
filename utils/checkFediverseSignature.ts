@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { User } from '../models';
 import { signedGetPetition } from '../routes/activitypub';
 import { environment } from '../environment'
+import { logger } from './logger';
 var httpSignature = require('@peertube/http-signature');
 
 const user = User.findOne({
@@ -30,7 +31,7 @@ export default async function checkFediverseSignature (
       //success = httpSignature.verifySignature(sigHead,  remoteKey)
 
     } catch (error) {
-      console.log('Error while parsing.')
+      logger.debug('Error while parsing.')
       // success = true
     }
   }

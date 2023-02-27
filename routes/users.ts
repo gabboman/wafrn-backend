@@ -15,6 +15,7 @@ import uploadHandler from '../uploads'
 import * as ed from '@noble/ed25519'
 import { generateKeyPairSync } from 'crypto'
 import { environment } from '../environment'
+import { logger } from '../utils/logger'
 
 export default function userRoutes (app: Application) {
   app.post('/register', uploadHandler.single('avatar'), async (req, res) => {
@@ -102,7 +103,7 @@ export default function userRoutes (app: Application) {
         }
       }
     } catch (error) {
-      console.error(error)
+      logger.error(error)
     }
     if (!success) {
       res.statusCode = 401
@@ -136,7 +137,7 @@ export default function userRoutes (app: Application) {
         success = true
       }
     } catch (error) {
-      console.error(error)
+      logger.error(error)
     }
 
     res.send({
@@ -179,7 +180,7 @@ export default function userRoutes (app: Application) {
         }
       }
     } catch (error) {
-      console.error(error)
+      logger.error(error)
     }
 
     res.send({ success: true })
@@ -245,7 +246,7 @@ export default function userRoutes (app: Application) {
         }
       }
     } catch (error) {
-      console.error(error)
+      logger.error(error)
     }
 
     res.send({
@@ -299,7 +300,7 @@ export default function userRoutes (app: Application) {
         }
       }
     } catch (error) {
-      console.error(error)
+      logger.error(error)
     }
 
     if (!success) {

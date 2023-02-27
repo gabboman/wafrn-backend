@@ -193,7 +193,7 @@ export default function postsRoutes (app: Application) {
         sendRemotePost(await User.findOne({where: {id: posterId}}), post)
       }
     } catch (error) {
-      console.error(error)
+      req.log.error(error)
     }
     if (!success) {
       res.statusCode = 400
@@ -223,7 +223,7 @@ export default function postsRoutes (app: Application) {
         res.send(report)
       }
     } catch (error) {
-      console.error(error)
+      req.log.error(error)
     }
     if (!success) {
       res.send({
