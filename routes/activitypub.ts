@@ -612,7 +612,7 @@ async function postPetitionSigned (message: object, user: any, target: string): 
   try {
     res =  await axios.post(target, message, {headers: headers})
   } catch (error) {
-    logger.info('http post signed to ' + target + ' FAILED by ' + user.url )
+    logger.debug(error)
   }
   return res
 

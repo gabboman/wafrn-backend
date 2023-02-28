@@ -15,6 +15,13 @@ export const environment = {
     "removeFolderNameFromFileUploads": false,
     "adminUser": "ADMIN_USER_URL",
     "uploadSize": 50,
+    pinoTransportOptions: {
+        targets: [
+          { target: 'pino/file', level: 'error', options: {
+            destination: 'ROUTE-TO-FILE'
+          } },
+        ],
+      },
     "emailConfig": {
         "host": "smtp_host",
         "port": 25,
