@@ -788,7 +788,7 @@ async function remoteFollow (localUser: any, remoteUser: any) {
   const petitionBody = { '@context': 'https://www.w3.org/ns/activitystreams',
   id: environment.frontendUrl + '/fediverse/follows/'+ localUser.id + '/' + remoteUser.id,
   type: 'Follow',
-  actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
+  actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
   object: remoteUser.remoteId
  }
  const followPetition = await postPetitionSigned(petitionBody, localUser, remoteUser.remoteInbox)
@@ -799,9 +799,9 @@ async function remoteUnfollow(localUser: any, remoteUser: any) {
   const petitionBody = { '@context': 'https://www.w3.org/ns/activitystreams',
   id: environment.frontendUrl + '/fediverse/follows/'+ localUser.id + '/' + remoteUser.id + '/undo',
   type: 'Undo',
-  actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
+  actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
   object: {
-    actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
+    actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
     type: 'Follow',
     object: remoteUser.remoteId,
     id: environment.frontendUrl + '/fediverse/follows/'+ localUser.id + '/' + remoteUser.id,
@@ -818,7 +818,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       id: post.userId
     }
   })
-  const stringMyFollowers = environment.frontendUrl + '/fediverse/blog' + localUser.url + '/followers'
+  const stringMyFollowers = environment.frontendUrl + '/fediverse/blog' + localUser.url.toLowerCase() + '/followers'
   const dbMentions = await post.getPostMentionsUserRelations();
   let mentionedUsers: string[] = []
 
@@ -883,7 +883,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     ],
     id: environment.frontendUrl + '/fediverse/post/' + post.id,
     type: 'Create',
-    actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
+    actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
     published: post.createdAt.toISOString(),
     to: post.privacy == 10 ? mentionedUsers : 
        post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers] : [stringMyFollowers] 
@@ -896,7 +896,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       inReplyTo: parentPostString,
       published: post.createdAt.toISOString(),
       url: environment.frontendUrl + '/fediverse/post/' + post.id, 
-      attributedTo: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
+      attributedTo: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
       to: post.privacy == 10 ? mentionedUsers : [],
      cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
       sensitive: !!post.content_warning || contentWarning,
