@@ -64,6 +64,7 @@ export default function searchRoutes (app: Application) {
           ]
         },
         attributes: [
+            'id',
             'url',
             'description',
             'avatar',

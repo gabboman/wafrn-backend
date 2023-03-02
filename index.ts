@@ -66,6 +66,8 @@ app.get('/', (req, res) =>
 // serve static images
 app.use('/uploads', express.static('uploads'))
 
+app.use('/contexts', express.static('contexts'))
+
 app.get('/dashboard', authenticateToken, async (req: any, res) => {
   const posterId = req.jwtData.userId
   const usersFollowed = await getFollowedsIds(posterId)

@@ -6,6 +6,8 @@ import { createHash, createSign, randomBytes } from 'crypto'
 import sequelize from '../db'
 import getRemoteFollowers from '../utils/getRemoteFollowers'
 import { Op } from 'sequelize'
+import { LdSignature } from '../utils/rsa2017'
+
 
 var https = require('https');
 var httpSignature = require('@peertube/http-signature');
@@ -471,6 +473,7 @@ function activityPubRoutes (app: Application) {
                 */
                 default: {
                   logger.info('DELETE not implemented ' + body.type)
+                  logger.debug(req.body)
                   //logger.info(req.body)
                 }
               break
@@ -580,7 +583,7 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
     
         await federatedHost.addUser(remoteUser)
       } catch (error) {
-        logger.info(error)
+        logger.debug(error)
       }
       currentlyWritingPosts[currentlyWritingObject] = '_OBJECT_FINALLY_WRITTEN_'
 
@@ -595,14 +598,15 @@ async function postPetitionSigned (message: object, user: any, target: string): 
   const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')
   const signer = createSign('sha256')
   const sendDate = new Date()
-  const stringToSign = `(request-target): post ${url.pathname}\nhost: ${url.host}\ndate: ${sendDate.toUTCString()}\ndigest: SHA-256=${digest}`
+  const stringToSign = `(request-target): post ${url.pathname}\nhost: ${url.host}\ndate: ${sendDate.toUTCString()}\nalgorithm: rsa-sha256\ndigest: SHA-256=${digest}`
   signer.update(stringToSign)
   signer.end()
   const signature = signer.sign(user.privateKey).toString('base64')
-  const header = `keyId="${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key",headers="(request-target) host date digest",signature="${signature}"`
+  const header = `keyId="${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key",algorithm="rsa-sha256",headers="(request-target) host date algorithm digest",signature="${signature}"`
   const headers =  {
     'Content-Type': 'application/activity+json',
     Accept: 'application/activity+json',
+    Algorithm: 'rsa-sha256',
     Host: url.host,
     Date: sendDate.toUTCString(),
     Digest: `SHA-256=${digest}`,
@@ -691,7 +695,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     const medias = []
     const fediMentions = postPetition.tag.filter((elem: any) => elem.type == 'Mention' ).filter((elem: any) => elem.href.startsWith(environment.frontendUrl))
     let privacy = 10
-    if(postPetition.to[0] == 'https://www.w3.org/ns/activitystreams#Public') {
+    if(postPetition.to.indexOf('https://www.w3.org/ns/activitystreams#Public') != -1 ) {
       // post is PUBLIC
       privacy = 0
     }
@@ -880,22 +884,20 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     id: environment.frontendUrl + '/fediverse/post/' + post.id,
     type: 'Create',
     actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
-    published: post.createdAt,
-    to: post.privacy == 10 ? mentionedUsers : [
-       post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : stringMyFollowers 
-    ],
-    cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+    published: post.createdAt.toISOString(),
+    to: post.privacy == 10 ? mentionedUsers : 
+       post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers] : [stringMyFollowers] 
+    ,
+    cc: post.privacy == 0 ? [...mentionedUsers] : [],
     object: {
       id: environment.frontendUrl + '/fediverse/post/' + post.id,
       type: "Note",
       summary: post.content_warning,
       inReplyTo: parentPostString,
-      published: post.createdAt,
-      url: environment.frontendUrl + '/post/' + post.id, 
+      published: post.createdAt.toISOString(),
+      url: environment.frontendUrl + '/fediverse/post/' + post.id, 
       attributedTo: environment.frontendUrl + '/fediverse/blog/' + localUser.url,
-      to: post.privacy == 10 ? mentionedUsers : [
-        post.privacy === 0 ? 'https://www.w3.org/ns/activitystreams#Public' : stringMyFollowers 
-     ],
+      to: post.privacy == 10 ? mentionedUsers : [],
      cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
       sensitive: !!post.content_warning || contentWarning,
       atomUri: environment.frontendUrl + '/fediverse/post/' + post.id,
@@ -951,12 +953,17 @@ async function sendRemotePost (localUser: any, post: any) {
   if(usersToSendThePost && usersToSendThePost.length > 0) {
     
     const objectToSend = await postToJSONLD(post, usersToSendThePost )
+    const ldSignature = new LdSignature()
+    //const bodySignature: any = await ldSignature.signRsaSignature2017(objectToSend, localUser.privateKey, `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLocaleLowerCase()}`, environment.instanceUrl, new Date(post.createdAt))
+
     for await (const remoteuser of usersToSendThePost) {
       try {
+        //const response = await postPetitionSigned({...objectToSend, signature: bodySignature.signature}, localUser, remoteuser)
         const response = await postPetitionSigned(objectToSend, localUser, remoteuser)
-
+        logger.trace(response)
       } catch (error) {
         logger.info('Could not send post to ' + remoteuser)
+        logger.info(error)
       }
     }
   }
