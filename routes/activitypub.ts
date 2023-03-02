@@ -886,9 +886,8 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
     published: post.createdAt.toISOString(),
     to: post.privacy == 10 ? mentionedUsers : 
-       post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers] : [stringMyFollowers] 
-    ,
-    cc: post.privacy == 0 ? [...mentionedUsers] : [],
+      post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
+    cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
     object: {
       id: environment.frontendUrl + '/fediverse/post/' + post.id,
       type: "Note",
@@ -897,8 +896,9 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       published: post.createdAt.toISOString(),
       url: environment.frontendUrl + '/fediverse/post/' + post.id, 
       attributedTo: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
-      to: post.privacy == 10 ? mentionedUsers : [],
-     cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+      to: post.privacy == 10 ? mentionedUsers : 
+      post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
+    cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
       sensitive: !!post.content_warning || contentWarning,
       atomUri: environment.frontendUrl + '/fediverse/post/' + post.id,
       inReplyToAtomUri: parentPostString,
