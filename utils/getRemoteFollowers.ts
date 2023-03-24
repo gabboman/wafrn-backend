@@ -1,13 +1,14 @@
 import { User } from '../db'
+import { Op } from 'sequelize'
 
-export default async function getRemoteFollowers (userId: string) {
+export default async function getRemoteFollowers (usr: any) {
   try {
-    const usr = await User.findOne({
-      where: { id: userId },
-      attributes: ['id']
+    const followed = await usr.getFollowed({
+      where: {
+        remoteInbox: {[Op.ne]: null}
+      }
     })
-    const followed = await usr.getFollowed()
-    const result = followed.map((followed: any) => followed.remoteInbox).filter((elem: string) => elem)
+    const result = followed.map((followed: any) => followed.remoteInbox)
     return result
   } catch (error) {
     return []

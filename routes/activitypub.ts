@@ -931,15 +931,16 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
 }
 
 async function sendRemotePost (localUser: any, post: any) {
-  let usersToSendThePost= await getRemoteFollowers(localUser.id)
+  let usersToSendThePost= await getRemoteFollowers(localUser)
   if(post.privacy == 10) {
     const userIdsToSendPost =  (await post.getPostMentionsUserRelations()).map((mention: any)=> mention.userId);
     const mentionedUsersFullModel = await User.findAll({
       where: {
-        id: {[Op.in]: userIdsToSendPost}
+        id: {[Op.in]: userIdsToSendPost},
+        remoteInbox: {[Op.ne]: null}
       }
     });
-    usersToSendThePost = mentionedUsersFullModel.filter((user: any)=> user.remoteInbox).map((user: any) => user.remoteInbox)
+    usersToSendThePost = mentionedUsersFullModel.map((user: any) => user.remoteInbox)
   }
 
   if(post.privacy == 0) {
@@ -960,8 +961,9 @@ async function sendRemotePost (localUser: any, post: any) {
     for await (const remoteuser of usersToSendThePost) {
       try {
         //const response = await postPetitionSigned({...objectToSend, signature: bodySignature.signature}, localUser, remoteuser)
-        const response = await postPetitionSigned(objectToSend, localUser, remoteuser)
-        logger.trace(response)
+        //const response = await postPetitionSigned(objectToSend, localUser, remoteuser)
+        //logger.trace(response)
+        logger.error('Petition not send because debug mode you doofus')
       } catch (error) {
         logger.info(`Could not send post to ${remoteuser}`)
         logger.info(error)
