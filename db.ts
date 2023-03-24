@@ -1,7 +1,7 @@
 import { environment } from './environment'
 import { logger } from './utils/logger'
-
 const { Sequelize } = require('sequelize')
+import { Table, Column, Model, HasMany } from 'sequelize-typescript';
 require('sequelize-hierarchy-fork')(Sequelize)
 
 const sequelize = new Sequelize(environment.databaseConnectionString, {

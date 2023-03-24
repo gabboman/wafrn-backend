@@ -12,6 +12,7 @@ import { LdSignature } from '../utils/rsa2017'
 
 var https = require('https');
 var httpSignature = require('@peertube/http-signature');
+const _ = require('underscore');
 
 import { environment } from '../environment'
 import { logger } from '../utils/logger'
@@ -940,33 +941,40 @@ async function sendRemotePost (localUser: any, post: any) {
         remoteInbox: {[Op.ne]: null}
       }
     });
-    usersToSendThePost = mentionedUsersFullModel.map((user: any) => user.remoteInbox)
+    usersToSendThePost = _.groupBy(mentionedUsersFullModel, 'federatedHostId')
   }
 
   if(post.privacy == 0) {
     const allUserInbox = (await User.findAll({
       where: {
-        remoteInbox: {[Op.ne]: null},
+        remoteInbox: {[Op.and]: [{[Op.ne]: null},{ [Op.ne]: 'DELETED_USER'}]},
         activated: true
       }
-    })).map((elem: any) => elem.remoteInbox)
-    usersToSendThePost = allUserInbox.filter((elem: string) => elem != 'DELETED_USER')
+    }))
+    usersToSendThePost = _.groupBy(allUserInbox, 'federatedHostId')
   }
-  if(usersToSendThePost && usersToSendThePost.length > 0) {
+  if(usersToSendThePost && Object.keys(usersToSendThePost).length > 0) {
     
     const objectToSend = await postToJSONLD(post, usersToSendThePost )
     const ldSignature = new LdSignature()
     //const bodySignature: any = await ldSignature.signRsaSignature2017(objectToSend, localUser.privateKey, `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLocaleLowerCase()}`, environment.instanceUrl, new Date(post.createdAt))
 
-    for await (const remoteuser of usersToSendThePost) {
-      try {
-        //const response = await postPetitionSigned({...objectToSend, signature: bodySignature.signature}, localUser, remoteuser)
-        //const response = await postPetitionSigned(objectToSend, localUser, remoteuser)
-        //logger.trace(response)
-        logger.error('Petition not send because debug mode you doofus')
-      } catch (error) {
-        logger.info(`Could not send post to ${remoteuser}`)
-        logger.info(error)
+    for (const remoteHost of Object.keys(usersToSendThePost)) {
+      let remainingUsers = 5; // we send a post up to 5 times. may work may wont work
+      for await (const remoteuser of usersToSendThePost[remoteHost]){
+        try {
+          //const response = await postPetitionSigned({...objectToSend, signature: bodySignature.signature}, localUser, remoteuser)
+          const response = await postPetitionSigned(objectToSend, localUser, remoteuser.remoteInbox)
+          logger.trace(response)
+          remainingUsers --;
+          if(remainingUsers === 0) {
+            break;
+          }
+        } catch (error) {
+          logger.info(`Could not send post to ${remoteuser.remoteInbox}`)
+          logger.info(error)
+        }
+
       }
     }
   }

@@ -16,7 +16,6 @@
     "@types/bcrypt": "^5.0.0",
     "@types/express": "^4.17.13",
     "@types/jsonwebtoken": "^8.5.8",
-    "@types/node": "^17.0.5",
     "axios": "^1.2.2",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.20.1",
@@ -32,23 +31,27 @@
     "pino": "^8.11.0",
     "pino-http": "^8.3.3",
     "pino-pretty": "^9.4.0",
+    "reflect-metadata": "^0.1.13",
     "sequelize": "^6.29.0",
     "sequelize-hierarchy-fork": "^1.0.0",
     "swagger-autogen": "^2.21.5",
     "swagger-ui-express": "^4.5.0",
     "ts-node": "^10.4.0",
-    "typescript": "^4.5.4"
+    "typescript": "^4.5.4",
+    "underscore": "^1.13.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
     "@types/jsonld": "^1.5.8",
     "@types/multer": "^1.4.7",
+    "@types/node": "^18.15.7",
+    "@types/validator": "^13.7.14",
     "@typescript-eslint/eslint-plugin": "^5.9.0",
     "@typescript-eslint/parser": "^5.9.0",
     "eslint": "^8.6.0",
     "eslint-config-google": "^0.14.0",
     "nodemon": "^2.0.15",
     "sequelize-cli": "^6.4.1",
-    "sequelize-typescript": "^2.1.2"
+    "sequelize-typescript": "^2.1.5"
   }
 }
