@@ -4,7 +4,7 @@ import {
 } from 'express'
 import {
   Media
-} from '../models'
+} from '../db'
 import uploadHandler from '../uploads'
 import authenticateToken from '../utils/authenticateToken'
 import getIp from '../utils/getIP'

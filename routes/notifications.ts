@@ -1,6 +1,6 @@
 import { Application } from 'express'
 import { Op } from 'sequelize'
-import { Post, PostMentionsUserRelation, User } from '../models'
+import { Post, PostMentionsUserRelation, User } from '../db'
 import authenticateToken from '../utils/authenticateToken'
 import getBlockedIds from '../utils/getBlockedIds'
 import getReblogs from '../utils/getReblogs'

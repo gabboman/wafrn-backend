@@ -1,5 +1,5 @@
 import sequelize from './db'
-import { Media, User } from './models'
+import { Media, User } from './db'
 import optimizeMedia from './utils/optimizeMedia'
 import { environment } from './environment'
 import { logger } from '../utils/logger'

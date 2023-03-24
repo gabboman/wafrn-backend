@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { User } from '../models';
+import { User } from '../db';
 import { signedGetPetition } from '../routes/activitypub';
 import { environment } from '../environment'
 import { logger } from './logger';

@@ -1,5 +1,5 @@
 import { Application } from 'express'
-import { Post, PostMentionsUserRelation } from '../models'
+import { Post, PostMentionsUserRelation } from '../db'
 import authenticateToken from '../utils/authenticateToken'
 import { logger } from '../utils/logger'
 

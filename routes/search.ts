@@ -1,8 +1,9 @@
 import { Application } from 'express'
 import { Op } from 'sequelize'
-import { Tag, User } from '../models'
+import { Tag, User } from '../db'
 import getPostBaseQuery from '../utils/getPostBaseQuery'
-import sequelize from '../db'
+import { sequelize } from '../db'
+
 import getStartScrollParam from '../utils/getStartScrollParam'
 import getPosstGroupDetails from '../utils/getPostGroupDetails'
 import axios from 'axios'

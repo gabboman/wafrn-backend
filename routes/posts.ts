@@ -6,12 +6,13 @@ import {
   PostReport,
   Tag,
   User
-} from '../models'
+} from '../db'
 import authenticateToken from '../utils/authenticateToken'
 import checkCaptcha from '../utils/checkCaptcha'
 import getIp from '../utils/getIP'
 import getPostBaseQuery from '../utils/getPostBaseQuery'
-import sequelize from '../db'
+import { sequelize } from '../db'
+
 import getStartScrollParam from '../utils/getStartScrollParam'
 import getPosstGroupDetails from '../utils/getPostGroupDetails'
 import { sendRemotePost } from './activitypub'

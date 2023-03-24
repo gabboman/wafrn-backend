@@ -1,10 +1,9 @@
 import express from 'express'
-import { Post, User } from './models'
+import { Post, User, sequelize } from './db'
 import { Op } from 'sequelize'
 
 import cors from 'cors'
 import bodyParser from 'body-parser'
-import sequelize from './db'
 import authenticateToken from './utils/authenticateToken'
 import getFollowedsIds from './utils/getFollowedsIds'
 import getPostBaseQuery from './utils/getPostBaseQuery'
@@ -41,18 +40,6 @@ app.use(cors())
 //app.use(pino)
 
 app.use('/apidocs', swagger.serve, swagger.setup(swaggerJSON))
-
-sequelize
-  .sync({
-    force: environment.forceSync
-  })
-  .then(async () => {
-    logger.info('Database & tables ready!')
-    if (environment.forceSync) {
-      logger.info('CLEANING DATA')
-      // seeder();
-    }
-  })
 
 app.get('/', (req, res) =>
   res.send({

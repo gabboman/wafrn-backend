@@ -1,5 +1,5 @@
 import { Application } from 'express'
-import { User } from '../models'
+import { User } from '../db'
 import authenticateToken from '../utils/authenticateToken'
 import getBlockedIds from '../utils/getBlockedIds'
 import getFollowedsIds from '../utils/getFollowedsIds'

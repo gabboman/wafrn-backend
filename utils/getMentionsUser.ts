@@ -1,4 +1,4 @@
-import { PostMentionsUserRelation } from '../models'
+import { PostMentionsUserRelation } from '../db'
 
 export default async function getMentionsUser (userId: string) {
   try {

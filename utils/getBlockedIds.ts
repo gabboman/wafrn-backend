@@ -1,4 +1,4 @@
-import { User } from '../models'
+import { User } from '../db'
 
 export default async function getBlockedIds (userId: string): Promise<string[]> {
   try {

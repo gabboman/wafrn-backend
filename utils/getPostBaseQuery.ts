@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { Media, Post, PostMentionsUserRelation, Tag, User } from '../models'
+import { Media, Post, PostMentionsUserRelation, Tag, User } from '../db'
 
 const POSTS_PER_PAGE = 20
 

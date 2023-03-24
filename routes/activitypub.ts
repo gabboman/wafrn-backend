@@ -1,9 +1,10 @@
 import axios from 'axios'
 import { Application } from 'express'
-import { User, FederatedHost, Follows, Post, Media, PostMentionsUserRelation, UserLikesPostRelations } from '../models'
+import { User, FederatedHost, Follows, Post, Media, PostMentionsUserRelation, UserLikesPostRelations } from '../db'
 import checkFediverseSignature from '../utils/checkFediverseSignature'
 import { createHash, createSign, randomBytes } from 'crypto'
-import sequelize from '../db'
+import { sequelize } from '../db'
+
 import getRemoteFollowers from '../utils/getRemoteFollowers'
 import { Op } from 'sequelize'
 import { LdSignature } from '../utils/rsa2017'

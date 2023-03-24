@@ -1,4 +1,4 @@
-import { User } from './models'
+import { User } from './db'
 import { logger } from './utils/logger'
 
 User.findAll({
