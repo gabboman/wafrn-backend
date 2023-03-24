@@ -23,8 +23,7 @@ export default function userRoutes (app: Application) {
     let success = false
     try {
       if (
-        req.body &&
-        req.body.email &&
+        req.body?.email &&
         req.body.url &&
         req.body.url.indexOf('@') === -1 &&
         validateEmail(req.body.email) &&
@@ -38,7 +37,7 @@ export default function userRoutes (app: Application) {
               sequelize.where(
                 sequelize.fn('LOWER', sequelize.col('url')),
                 'LIKE',
-                '%' + req.body.url.toLowerCase().trim() + '%'
+                `%${req.body.url.toLowerCase().trim()}%`
               )
             ]
           }
@@ -46,7 +45,7 @@ export default function userRoutes (app: Application) {
         if (!emailExists) {
           let avatarURL = '/uploads/default.webp'
           if (req.file != null) {
-            avatarURL = '/' + await optimizeMedia(req.file.path)
+            avatarURL = `/${await optimizeMedia(req.file.path)}`
           }
           if (environment.removeFolderNameFromFileUploads) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1)
@@ -88,13 +87,7 @@ export default function userRoutes (app: Application) {
             req.body.email.toLowerCase(),
             activationCode,
             'Welcome to wafrn!',
-            '<h1>Welcome to wafrn</h1> To activate your account <a href="' +
-              environment.frontendUrl +
-              '/activate/' +
-              encodeURIComponent(req.body.email.toLowerCase()) +
-              '/' +
-              activationCode +
-              '">click here!</a>'
+            `<h1>Welcome to wafrn</h1> To activate your account <a href="${environment.frontendUrl}/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
           )
           await Promise.all([userWithEmail, emailSent])
           success = true
@@ -127,7 +120,7 @@ export default function userRoutes (app: Application) {
         }
 
         if (req.file != null) {
-          let avatarURL = '/' + optimizeMedia(req.file.path)
+          let avatarURL = `/${optimizeMedia(req.file.path)}`
           if (environment.removeFolderNameFromFileUploads) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1)
             user.avatar = avatarURL
@@ -150,8 +143,7 @@ export default function userRoutes (app: Application) {
     const resetCode = generateRandomString()
     try {
       if (
-        req.body &&
-        req.body.email &&
+        req.body?.email &&
         validateEmail(req.body.email) &&
         req.body.captchaResponse &&
         (await checkCaptcha(req.body.captchaResponse, getIp(req)))
@@ -170,13 +162,7 @@ export default function userRoutes (app: Application) {
             req.body.email.toLowerCase(),
             '',
             'So you forgot your wafrn password',
-            '<h1>Use this link to reset your password</h1> Click <a href="' +
-              environment.frontendUrl +
-              '/resetPassword/' +
-              encodeURIComponent(req.body.email.toLowerCase()) +
-              '/' +
-              resetCode +
-              '">here</a> to reset your password'
+            `<h1>Use this link to reset your password</h1> Click <a href="${environment.frontendUrl}/resetPassword/${encodeURIComponent(req.body.email.toLowerCase())}/${resetCode}">here</a> to reset your password`
           )
         }
       }
@@ -190,8 +176,7 @@ export default function userRoutes (app: Application) {
   app.post('/activateUser', async (req, res) => {
     let success = false
     if (
-      req.body &&
-      req.body.email &&
+      req.body?.email &&
       validateEmail(req.body.email) &&
       req.body.code
     ) {
@@ -218,8 +203,7 @@ export default function userRoutes (app: Application) {
 
     try {
       if (
-        req.body &&
-        req.body.email &&
+        req.body?.email &&
         req.body.code &&
         req.body.password &&
         validateEmail(req.body.email)
@@ -259,8 +243,7 @@ export default function userRoutes (app: Application) {
     let success = false
     try {
       if (
-        req.body &&
-        req.body.email &&
+        req.body?.email &&
         req.body.password &&
         req.body.captchaResponse &&
         (await checkCaptcha(req.body.captchaResponse, getIp(req)))
@@ -315,7 +298,7 @@ export default function userRoutes (app: Application) {
 
   app.get('/user', async (req, res) => {
     let success = false
-    if (req.query && req.query.id) {
+    if (req.query?.id) {
       const blogId: string = (req.query.id || '').toString().toLowerCase().trim()
       const blog = await User.findOne({
         attributes: {
