@@ -718,13 +718,6 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
           external: true
         })
         medias.push(wafrnMedia)
-        setTimeout(() => {
-          axios.get(environment.externalCacheurl + encodeURIComponent(wafrnMedia.url)).then((res)=> {
-
-          }).catch((error) => {
-            logger.info('Error caching image')
-          })
-        }, 2000)
         mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
       }
     }
