@@ -543,6 +543,19 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
       remoteId: actorUrl
     }
   })
+  // we check if the user has changed avatar and stuff
+  const validUntil = new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
+  if(remoteUser.updatedAt < validUntil) {
+    try {
+      const userPetition = await  signedGetPetition(user, actorUrl)
+      remoteUser.description = userPetition.summary;
+      remoteUser.avatar = userPetition.icon?.url ? userPetition.icon.url : '/uploads/default.webp';
+      remoteUser.updatedAt = new Date()
+      await remoteUser.save()
+    } catch (error) {
+      logger.info(`Failed to update user ${remoteUser.url}`)
+    }
+  }
 
   
 
