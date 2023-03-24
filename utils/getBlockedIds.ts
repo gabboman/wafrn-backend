@@ -13,7 +13,7 @@ export default async function getBlockedIds (userId: string): Promise<string[]> 
     await Promise.all([blocked, blockedBy])
     let result = (await blocked).map((blocked: any) => blocked.id)
     result = result.concat((await blockedBy).map((blocker: any) => blocker.id))
-    return result.filter((elem: string) => elem != userId)
+    return result.filter((elem: string) => elem !== userId)
   } catch (error) {
     return []
   }

@@ -9,7 +9,8 @@ User.findAll({
   logger.info('EMAIL,FIRSTNAME')
   users.forEach((singleUser: any) => {
     const csvLine =
-      singleUser.email + ',' + singleUser.url.replace(',', '') /* + ',' +
+      `${singleUser.email},${singleUser.url.replace(',', '') /* + ',' +
+            singleUser.createdAt + ',1' */}` /* + ',' +
             singleUser.createdAt + ',1' */
     logger.info(csvLine)
   })

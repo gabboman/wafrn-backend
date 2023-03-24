@@ -20,18 +20,18 @@ export default function mediaRoutes (app: Application) {
     if (req.files != null) {
       const files = req.files as Express.Multer.File[]
       for (const file of files) {
-        let fileUrl = '/' + file.path
+        let fileUrl = `/${file.path}`
         const originalNameArray = fileUrl.split('.')
         const extension = originalNameArray[originalNameArray.length - 1].toLowerCase()
         const formatsToNotConvert = ['webp']
         if (!formatsToNotConvert.includes(extension)) {
-          fileUrl = '/' + await optimizeMedia(file.path)
+          fileUrl = `/${await optimizeMedia(file.path)}`
         }
         if (environment.removeFolderNameFromFileUploads) {
           fileUrl = fileUrl.slice('/uploads/'.length - 1)
         }
 
-        const isAdultContent = req.body.adultContent == 'true'
+        const isAdultContent = req.body.adultContent === 'true'
         const isNSFW = req.body.nsfw === 'true'
 
         picturesPromise.push(
@@ -65,8 +65,8 @@ export default function mediaRoutes (app: Application) {
           }
         })
         if (mediaToUpdate) {
-          mediaToUpdate.NSFW = req.query.adultContent == 'true' ? true : req.query.NSFW === 'true'
-          mediaToUpdate.adultContent = req.query.adultContent == 'true'
+          mediaToUpdate.NSFW = req.query.adultContent === 'true' ? true : req.query.NSFW === 'true'
+          mediaToUpdate.adultContent = req.query.adultContent === 'true'
           mediaToUpdate.description = req.query.description
           await mediaToUpdate.save()
           success = true

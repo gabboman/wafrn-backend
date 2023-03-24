@@ -527,7 +527,7 @@ function return404 (res: any) {
 }
 
 async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<any> {
-  if(level == 100) {
+  if(level === 100) {
     //Actor is not valid.
     return await User.findOne({
       where: {
@@ -639,7 +639,7 @@ function signedGetPetition (user: any, target: string): Promise<any> {
       }
     };
     const httpPetition = https.request(options, (response:any)=> {
-      if(response.statusCode == 200){
+      if(response.statusCode === 200){
         let data = ''
         response.on('data', (chunk: any) => data = data + chunk)
         response.on('end', () => {
@@ -695,9 +695,9 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
     let mediasString = ''
     const medias = []
-    const fediMentions = postPetition.tag.filter((elem: any) => elem.type == 'Mention' ).filter((elem: any) => elem.href.startsWith(environment.frontendUrl))
+    const fediMentions = postPetition.tag.filter((elem: any) => elem.type === 'Mention' ).filter((elem: any) => elem.href.startsWith(environment.frontendUrl))
     let privacy = 10
-    if(postPetition.to.indexOf('https://www.w3.org/ns/activitystreams#Public') != -1 ) {
+    if(postPetition.to.indexOf('https://www.w3.org/ns/activitystreams#Public') !== -1 ) {
       // post is PUBLIC
       privacy = 0
     }
@@ -887,20 +887,20 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     type: 'Create',
     actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
     published: post.createdAt.toISOString(),
-    to: post.privacy == 10 ? mentionedUsers : 
+    to: post.privacy === 10 ? mentionedUsers : 
       post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
-    cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+    cc: post.privacy === 0 ? [stringMyFollowers, ...mentionedUsers] : [],
     object: {
-      id: environment.frontendUrl + '/fediverse/post/' + post.id,
+      id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       type: "Note",
       summary: post.content_warning,
       inReplyTo: parentPostString,
       published: post.createdAt.toISOString(),
       url: `${environment.frontendUrl}/fediverse/post/${post.id}`, 
       attributedTo: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
-      to: post.privacy == 10 ? mentionedUsers : 
+      to: post.privacy === 10 ? mentionedUsers : 
       post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
-    cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+    cc: post.privacy === 0 ? [stringMyFollowers, ...mentionedUsers] : [],
       sensitive: !!post.content_warning || contentWarning,
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
@@ -910,7 +910,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
         const extension = (media.url.split('.')[media.url.split('.').length - 1]).toLowerCase()
         return {
           type: 'Document',
-          mediaType: extension == 'mp4' ? 'video/mp4' : 'image/webp',
+          mediaType: extension === 'mp4' ? 'video/mp4' : 'image/webp',
           url: environment.mediaUrl + media.url,
           sensitive: media.NSFW ? `Marked as NSFW: ${media.description}` : '',
           name: media.description
@@ -933,7 +933,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
 
 async function sendRemotePost (localUser: any, post: any) {
   let usersToSendThePost= await getRemoteFollowers(localUser)
-  if(post.privacy == 10) {
+  if(post.privacy === 10) {
     const userIdsToSendPost =  (await post.getPostMentionsUserRelations()).map((mention: any)=> mention.userId);
     const mentionedUsersFullModel = await User.findAll({
       where: {
@@ -944,7 +944,7 @@ async function sendRemotePost (localUser: any, post: any) {
     usersToSendThePost = _.groupBy(mentionedUsersFullModel, 'federatedHostId')
   }
 
-  if(post.privacy == 0) {
+  if(post.privacy === 0) {
     const allUserInbox = (await User.findAll({
       where: {
         remoteInbox: {[Op.and]: [{[Op.ne]: null},{ [Op.ne]: 'DELETED_USER'}]},
@@ -985,7 +985,7 @@ async function sendRemotePost (localUser: any, post: any) {
 async function searchRemoteUser(searchTerm: string, user: any){
   const usernameAndDomain = searchTerm.split('@');
   const users: Array<any> = []
-  if(searchTerm.startsWith('@') && searchTerm.length > 3 && usernameAndDomain.length == 3 ) {
+  if(searchTerm.startsWith('@') && searchTerm.length > 3 && usernameAndDomain.length === 3 ) {
     const userToSearch = searchTerm.substring(1)
     // fediverse users are like emails right? god I hope so
       const username = usernameAndDomain[1]
@@ -994,7 +994,7 @@ async function searchRemoteUser(searchTerm: string, user: any){
         const remoteResponse = await axios.get(`https://${domain}/.well-known/webfinger/?resource=acct:${username}@${domain}`)
         const links = remoteResponse.data.links;
         for await (const responseLink of links) {
-          if(responseLink.rel == 'self') {
+          if(responseLink.rel === 'self') {
             users.push( await getRemoteActor(responseLink.href, user))
           }
         };

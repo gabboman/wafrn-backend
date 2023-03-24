@@ -26,7 +26,7 @@ export default function optimizeMedia (inputPath: string): string {
         })
       break
     case 'mp4':
-      fileAndExtension[0] = fileAndExtension[0] + '_processed'
+      fileAndExtension[0] = `${fileAndExtension[0]}_processed`
     case 'webm': case 'mov': case 'mkv':
       fileAndExtension[1] = 'mp4'
       outputPath = fileAndExtension.join('.')
