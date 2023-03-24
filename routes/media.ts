@@ -57,7 +57,7 @@ export default function mediaRoutes (app: Application) {
     let success = false
     try {
       const posterId = req.jwtData.userId
-      if (req.query && req.query.id) {
+      if (req.query?.id) {
         const mediaToUpdate = await Media.findOne({
           where: {
             id: req.query.id,

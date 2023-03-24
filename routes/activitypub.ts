@@ -26,11 +26,11 @@ function activityPubRoutes (app: Application) {
   // webfinger protocol
   app.get('/.well-known/host-meta', (req: any, res) => {
     res.send(
-      '<?xml version="1.0" encoding="UTF-8"?><XRD xmlns="http://docs.oasis-open.org/ns/xri/xrd-1.0"><Link rel="lrdd" template="' + environment.frontendUrl + '/.well-known/webfinger?resource={uri}"/></XRD>'
+      `<?xml version="1.0" encoding="UTF-8"?><XRD xmlns="http://docs.oasis-open.org/ns/xri/xrd-1.0"><Link rel="lrdd" template="${environment.frontendUrl}/.well-known/webfinger?resource={uri}"/></XRD>`
     )
   })
   app.get('/.well-known/webfinger/', async (req: any, res) => {
-    if (req.query && req.query.resource) {
+    if (req.query?.resource) {
       const urlQueryResource: string = req.query.resource
       if (urlQueryResource.startsWith('acct:') && urlQueryResource.endsWith(environment.instanceUrl)) {
         const userUrl = urlQueryResource.slice(5).slice(0, -(environment.instanceUrl.length + 1))
@@ -48,18 +48,18 @@ function activityPubRoutes (app: Application) {
         const response = {
           subject: urlQueryResource,
           aliases: [
-            environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
-            environment.frontendUrl + '/blog/' + user.url.toLowerCase()
+            `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
+            `${environment.frontendUrl}/blog/${user.url.toLowerCase()}`
           ],
           links: [
             {
               rel: 'self',
               type: 'application/activity+json',
-              href: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase()
+              href: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`
             },
             {
               rel: 'http://ostatus.org/schema/1.0/subscribe',
-              template: environment.frontendUrl + '/fediverse/authorize_interaction?uri={uri}'
+              template: `${environment.frontendUrl}/fediverse/authorize_interaction?uri={uri}`
             }
           ]
         }
@@ -75,7 +75,7 @@ function activityPubRoutes (app: Application) {
   })
   // get post
   app.get('/fediverse/post/:id', async (req: any, res) => {
-    if(req.params && req.params.id) {
+    if(req.params?.id) {
       const post = await Post.findOne({
         where: {
           id: req.params.id
@@ -94,7 +94,7 @@ function activityPubRoutes (app: Application) {
   })
   // Get blog for fediverse
   app.get('/fediverse/blog/:url', async (req: any, res) => {
-    if (req.params && req.params.url) {
+    if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
         where: sequelize.where(
@@ -109,17 +109,17 @@ function activityPubRoutes (app: Application) {
             'https://www.w3.org/ns/activitystreams',
             'https://w3id.org/security/v1'
           ],
-          id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
+          id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
           type: 'Person',
-          following: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/following',
-          followers: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers',
-          featured: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/featured',
-          inbox: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/inbox',
-          outbox: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/outbox',
+          following: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following`,
+          followers: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`,
+          featured: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/featured`,
+          inbox: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/inbox`,
+          outbox: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/outbox`,
           preferredUsername: user.url.toLowerCase(),
           name: user.url,
           summary: user.description,
-          url: environment.frontendUrl + '/blog/' + user.url.toLowerCase(),
+          url: `${environment.frontendUrl}/blog/${user.url.toLowerCase()}`,
           manuallyApprovesFollowers: false,
           discoverable: true,
           published: user.createdAt,
@@ -134,8 +134,8 @@ function activityPubRoutes (app: Application) {
             url: environment.mediaUrl + user.avatar
           },
           publicKey: {
-            id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '#main-key',
-            owner: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
+            id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}#main-key`,
+            owner: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
             publicKeyPem: user.publicKey
           }
         }
@@ -152,7 +152,7 @@ function activityPubRoutes (app: Application) {
   })
 
   app.get('/fediverse/blog/:url/following', async (req: any, res) => {
-    if (req.params && req.params.url) {
+    if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
         where: sequelize.where(
@@ -165,20 +165,20 @@ function activityPubRoutes (app: Application) {
         const followed = await user.getFollowed()
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
-          id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/following',
+          id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following`,
           type: 'OrderedCollection',
           totalItems: followed.length,
-          first: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/following?page=1'
+          first: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=1`
         }
-        if (req.query && req.query.page) {
+        if (req.query?.page) {
           response = {
             '@context': 'https://www.w3.org/ns/activitystreams',
-            id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/following',
+            id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following`,
             type: 'OrderedCollection',
             totalItems: followed.length,
-            partOf: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/following',
+            partOf: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following`,
             orderedItems: followed.map(
-              (elem: any) => elem.remoteId ? elem.remoteId : environment.frontendUrl + '/fediverse/blog/' + elem.url
+              (elem: any) => elem.remoteId ? elem.remoteId : `${environment.frontendUrl}/fediverse/blog/${elem.url}`
             )
           }
         }
@@ -193,7 +193,7 @@ function activityPubRoutes (app: Application) {
   )
 
   app.get('/fediverse/blog/:url/followers', async (req: any, res) => {
-    if (req.params && req.params.url) {
+    if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
         where: sequelize.where(
@@ -206,20 +206,20 @@ function activityPubRoutes (app: Application) {
         const followers = await user.getFollower()
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
-          id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers',
+          id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`,
           type: 'OrderedCollection',
           totalItems: followers.length,
-          first: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers?page=1'
+          first: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=1`
         }
-        if (req.query && req.query.page) {
+        if (req.query?.page) {
           response = {
             '@context': 'https://www.w3.org/ns/activitystreams',
-            id: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers',
+            id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`,
             type: 'OrderedCollection',
             totalItems: followers.length,
-            partOf: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase() + '/followers',
+            partOf: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`,
             orderedItems: followers.map(
-              (elem: any) => elem.remoteId ? elem.remoteId : environment.frontendUrl + '/fediverse/blog/' + elem.url
+              (elem: any) => elem.remoteId ? elem.remoteId : `${environment.frontendUrl}/fediverse/blog/${elem.url}`
             )
           }
         }
@@ -238,7 +238,7 @@ function activityPubRoutes (app: Application) {
   })
 
   app.post('/fediverse/blog/:url/inbox', checkFediverseSignature, async (req: any, res) => {
-    if (req.params && req.params.url) {
+    if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
         where: sequelize.where(
@@ -284,11 +284,11 @@ function activityPubRoutes (app: Application) {
                   const tmpIndex = currentlyWritingPosts.indexOf(postRecived.id)
                   await getPostThreadRecursive(user, postRecived.id, postRecived)
                   await signAndAccept(req, remoteUser, user)
-                  if (tmpIndex != -1) {
+                  if (tmpIndex !== -1) {
                     currentlyWritingPosts[tmpIndex] = '_POST_ALREADY_WRITTEN_'
                   }
                 } else {
-                  logger.info('post type not implemented: ' + postRecived.type)
+                  logger.info(`post type not implemented: ${postRecived.type}`)
                 }
                 
               } else {
@@ -341,9 +341,9 @@ function activityPubRoutes (app: Application) {
                   });
                   let mediaString = '';
                   postToEdit.medias.forEach((mediaInPost: any) => {
-                    mediaString = mediaString +'[wafrnmediaid="' + mediaInPost.id + '"]'
+                    mediaString = `${mediaString}[wafrnmediaid="${mediaInPost.id}"]`
                   })
-                  postToEdit.content = body.content + '<p>Post edited at '+ body.updated + '</p>'
+                  postToEdit.content = `${body.content}<p>Post edited at ${body.updated}</p>`
                   postToEdit.updatedAt = body.updated
                   await postToEdit.save()
                   const acceptResponse = await signAndAccept(req, remoteUser, user)
@@ -352,7 +352,7 @@ function activityPubRoutes (app: Application) {
                   break
                 }
                 default: {
-                  logger.info('update not implemented ' + body.type)
+                  logger.info(`update not implemented ${body.type}`)
                 }
               }
 
@@ -389,7 +389,7 @@ function activityPubRoutes (app: Application) {
                   }
                 }
                 default: {
-                  logger.info('UNDO NOT IMPLEMENTED: ' + req.body.type)
+                  logger.info(`UNDO NOT IMPLEMENTED: ${req.body.type}`)
                   logger.info(req.body)
 
 
@@ -399,7 +399,7 @@ function activityPubRoutes (app: Application) {
             }
             case 'Like': {
               const fullUrlPostToBeLiked = req.body.object
-              const partToRemove = environment.frontendUrl + '/fediverse/post/'
+              const partToRemove = `${environment.frontendUrl}/fediverse/post/`
               const localPost = await Post.findOne({
                 where: {
                   id: fullUrlPostToBeLiked.substring(partToRemove.length)
@@ -473,7 +473,7 @@ function activityPubRoutes (app: Application) {
                 }
                 */
                 default: {
-                  logger.info('DELETE not implemented ' + body.type)
+                  logger.info(`DELETE not implemented ${body.type}`)
                   logger.debug(req.body)
                   //logger.info(req.body)
                 }
@@ -482,7 +482,7 @@ function activityPubRoutes (app: Application) {
               break
             }
             default: {
-              logger.info('NOT IMPLEMENTED: ' + req.body.type)
+              logger.info(`NOT IMPLEMENTED: ${req.body.type}`)
               res.sendStatus(200)
             }
           }
@@ -503,7 +503,7 @@ function activityPubRoutes (app: Application) {
   })
 
   app.get('/fediverse/blog/:url/outbox', async (req: any, res) => {
-    if (req.params && req.params.url) {
+    if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
         where: {
@@ -557,7 +557,7 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
         const currentlyWritingObject = currentlyWritingPosts.indexOf(actorUrl) 
         const userPetition = await  signedGetPetition(user, actorUrl)
         const userToCreate = {
-          url: '@' + userPetition.preferredUsername + '@' + url.host,
+          url: `@${userPetition.preferredUsername}@${url.host}`,
           email: null,
           description: userPetition.summary,
           avatar: userPetition.icon?.url ? userPetition.icon.url : '/uploads/default.webp',
@@ -665,16 +665,16 @@ async function signAndAccept (req: any, remoteUser: any, user: any) {
     '@context': 'https://www.w3.org/ns/activitystreams',
     id: req.body.id,
     type: 'Accept',
-    actor: environment.frontendUrl + '/fediverse/blog/' + user.url.toLowerCase(),
+    actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
     object: req.body
   }
   return await postPetitionSigned(acceptMessage, user, remoteUser.remoteInbox)
 }
 
 async function getPostThreadRecursive (user: any, remotePostId: string, remotePostObject?: any) {
-  if(remotePostId.startsWith(environment.frontendUrl + '/fediverse/post/')) {
+  if(remotePostId.startsWith(`${environment.frontendUrl}/fediverse/post/`)) {
     // we are looking at a local post
-    const partToRemove = environment.frontendUrl + '/fediverse/post/'
+    const partToRemove = `${environment.frontendUrl}/fediverse/post/`
     const postId = remotePostId.substring(partToRemove.length)
     return await Post.findOne({where: {
       id: postId
@@ -724,7 +724,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
             logger.info('Error caching image')
           })
         }, 2000)
-        mediasString = mediasString + '[wafrnmediaid="' + wafrnMedia.id + '"]'
+        mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
       }
     }
     const postToCreate = {
@@ -739,7 +739,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
     const mentionedUsersIds = []
     try {
       for await (const mention of fediMentions) {
-        const username = mention.href.substring((environment.frontendUrl + '/fediverse/blog/').length)
+        const username = mention.href.substring((`${environment.frontendUrl}/fediverse/blog/`).length)
         const mentionedUser = await  User.findOne({
           where: {
             [Op.or]: [
@@ -787,9 +787,9 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
 
 async function remoteFollow (localUser: any, remoteUser: any) {
   const petitionBody = { '@context': 'https://www.w3.org/ns/activitystreams',
-  id: environment.frontendUrl + '/fediverse/follows/'+ localUser.id + '/' + remoteUser.id,
+  id: `${environment.frontendUrl}/fediverse/follows/${localUser.id}/${remoteUser.id}`,
   type: 'Follow',
-  actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
+  actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
   object: remoteUser.remoteId
  }
  const followPetition = await postPetitionSigned(petitionBody, localUser, remoteUser.remoteInbox)
@@ -798,14 +798,14 @@ async function remoteFollow (localUser: any, remoteUser: any) {
 
 async function remoteUnfollow(localUser: any, remoteUser: any) {
   const petitionBody = { '@context': 'https://www.w3.org/ns/activitystreams',
-  id: environment.frontendUrl + '/fediverse/follows/'+ localUser.id + '/' + remoteUser.id + '/undo',
+  id: `${environment.frontendUrl}/fediverse/follows/${localUser.id}/${remoteUser.id}/undo`,
   type: 'Undo',
-  actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
+  actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
   object: {
-    actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
+    actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
     type: 'Follow',
     object: remoteUser.remoteId,
-    id: environment.frontendUrl + '/fediverse/follows/'+ localUser.id + '/' + remoteUser.id,
+    id: `${environment.frontendUrl}/fediverse/follows/${localUser.id}/${remoteUser.id}`,
   }
  }
  const followPetition = await postPetitionSigned(petitionBody, localUser, remoteUser.remoteInbox)
@@ -819,7 +819,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       id: post.userId
     }
   })
-  const stringMyFollowers = environment.frontendUrl + '/fediverse/blog' + localUser.url.toLowerCase() + '/followers'
+  const stringMyFollowers = `${environment.frontendUrl}/fediverse/blog${localUser.url.toLowerCase()}/followers`
   const dbMentions = await post.getPostMentionsUserRelations();
   let mentionedUsers: string[] = []
 
@@ -834,7 +834,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     const parentPost = post.parentId ? (await Post.findOne({where: {id: post.parentId}})) : null
     let parentPostString = null
     if(parentPost) {
-      parentPostString = parentPost.remotePostId ? parentPost.remotePostId : environment.frontendUrl + '/fediverse/post/' + parentPost.id
+      parentPostString = parentPost.remotePostId ? parentPost.remotePostId : `${environment.frontendUrl}/fediverse/post/${parentPost.id}`
     }
   const postMedias = await post.getMedias()
   let processedContent = post.content;
@@ -850,11 +850,11 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
   for await (const mention of mentions) {
     const userId = mention[0].match(uuidRegex)[0]
     const user = await User.findOne({where : {id: userId}})
-    processedContent = processedContent.replace(mention, `<a href="${user.remoteId ? user.remoteId : environment.frontendUrl + '/fediverse/blog/'+ user.url}" >@${user.url.startsWith('@') ? user.url.substring(1) : user.url}</a>`)
+    processedContent = processedContent.replace(mention, `<a href="${user.remoteId ? user.remoteId : `${environment.frontendUrl}/fediverse/blog/${user.url}`}" >@${user.url.startsWith('@') ? user.url.substring(1) : user.url}</a>`)
     fediMentions.push({
       type: 'Mention',
       name: user.url.startsWith('@') ? user.url.substring(1) : user.url,
-      href: user.remoteId ? user.remoteId : environment.frontendUrl + '/blog/'+ user.url
+      href: user.remoteId ? user.remoteId : `${environment.frontendUrl}/blog/${user.url}`
     })
   }
 
@@ -882,9 +882,9 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
         }
       }
     ],
-    id: environment.frontendUrl + '/fediverse/post/' + post.id,
+    id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
     type: 'Create',
-    actor: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
+    actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
     published: post.createdAt.toISOString(),
     to: post.privacy == 10 ? mentionedUsers : 
       post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
@@ -895,13 +895,13 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       summary: post.content_warning,
       inReplyTo: parentPostString,
       published: post.createdAt.toISOString(),
-      url: environment.frontendUrl + '/fediverse/post/' + post.id, 
-      attributedTo: environment.frontendUrl + '/fediverse/blog/' + localUser.url.toLowerCase(),
+      url: `${environment.frontendUrl}/fediverse/post/${post.id}`, 
+      attributedTo: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
       to: post.privacy == 10 ? mentionedUsers : 
       post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
     cc: post.privacy == 0 ? [stringMyFollowers, ...mentionedUsers] : [],
       sensitive: !!post.content_warning || contentWarning,
-      atomUri: environment.frontendUrl + '/fediverse/post/' + post.id,
+      atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
       "conversation": '',
       content: processedContent,
@@ -917,12 +917,12 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       }),
       "tag": fediMentions,
       "replies": {
-        "id": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
+        "id": `${environment.frontendUrl}/fediverse/post/${post.id}/replies`,
         "type": "Collection",
         "first": {
           "type": "CollectionPage",
-          "next": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies&page=true',
-          "partOf": environment.frontendUrl + '/fediverse/post/' + post.id + '/replies',
+          "next": `${environment.frontendUrl}/fediverse/post/${post.id}/replies&page=true`,
+          "partOf": `${environment.frontendUrl}/fediverse/post/${post.id}/replies`,
           "items": []
         }
       }
@@ -963,7 +963,7 @@ async function sendRemotePost (localUser: any, post: any) {
         const response = await postPetitionSigned(objectToSend, localUser, remoteuser)
         logger.trace(response)
       } catch (error) {
-        logger.info('Could not send post to ' + remoteuser)
+        logger.info(`Could not send post to ${remoteuser}`)
         logger.info(error)
       }
     }

@@ -55,12 +55,12 @@ export default function searchRoutes (app: Application) {
             sequelize.where(
               sequelize.fn('LOWER', sequelize.col('url')),
               'LIKE',
-              '%' + searchTerm + '%'
+              `%${searchTerm}%`
             ),
             sequelize.where(
               sequelize.fn('LOWER', sequelize.col('description')),
               'LIKE',
-              '%' + searchTerm + '%'
+              `%${searchTerm}%`
             )
           ]
         },
@@ -98,7 +98,7 @@ export default function searchRoutes (app: Application) {
           sequelize.where(
             sequelize.fn('LOWER', sequelize.col('url')),
             'LIKE',
-            '%' + searchTerm + '%'
+            `%${searchTerm}%`
           )
         ]
       },

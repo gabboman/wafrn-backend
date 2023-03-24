@@ -12,7 +12,7 @@ export default function followsRoutes (app: Application) {
     let success = false
     try {
       const posterId = req.jwtData.userId
-      if (req.body && req.body.userId) {
+      if (req.body?.userId) {
         const userFollowed = await User.findOne({
           where: {
             id: req.body.userId
@@ -40,7 +40,7 @@ export default function followsRoutes (app: Application) {
     let success = false
     try {
       const posterId = req.jwtData.userId
-      if (req.body && req.body.userId) {
+      if (req.body?.userId) {
         const userUnfollowed = await User.findOne({
           where: {
             id: req.body.userId

@@ -21,7 +21,7 @@ import { logger } from '../utils/logger'
 export default function postsRoutes (app: Application) {
   app.get('/singlePost/:id', async (req: any, res) => {
     let success = false
-    if (req.params && req.params.id) {
+    if (req.params?.id) {
       const post = await Post.findOne({
         where: {
           id: req.params.id,
@@ -80,8 +80,7 @@ export default function postsRoutes (app: Application) {
     const posterId = req.jwtData.userId
     try {
       if (
-        req.body &&
-        req.body.captchaKey &&
+        req.body?.captchaKey &&
         (await checkCaptcha(req.body.captchaKey, getIp(req)))
       ) {
         if (req.body.parent) {
@@ -209,8 +208,7 @@ export default function postsRoutes (app: Application) {
     try {
       const posterId = req.jwtData.userId
       if (
-        req.body &&
-        req.body.postId &&
+        req.body?.postId &&
         req.body.severity &&
         req.body.description
       ) {
