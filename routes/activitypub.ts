@@ -354,6 +354,7 @@ function activityPubRoutes (app: Application) {
                 }
                 default: {
                   logger.info(`update not implemented ${body.type}`)
+                  logger.info(body.object)
                 }
               }
 
@@ -499,8 +500,7 @@ function activityPubRoutes (app: Application) {
                 */
                 default: {
                   logger.info(`DELETE not implemented ${body.type}`)
-                  logger.debug(req.body)
-                  //logger.info(req.body)
+                  logger.info(body.object)
                 }
               break
               }
@@ -508,6 +508,7 @@ function activityPubRoutes (app: Application) {
             }
             default: {
               logger.info(`NOT IMPLEMENTED: ${req.body.type}`)
+              logger.info(req.body.object)
               res.sendStatus(200)
             }
           }
