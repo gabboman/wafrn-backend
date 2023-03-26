@@ -5,7 +5,13 @@ import { Table, Column, Model, HasMany } from 'sequelize-typescript';
 require('sequelize-hierarchy-fork')(Sequelize)
 
 const sequelize = new Sequelize(environment.databaseConnectionString, {
-  logging: environment.logSQLQueries ? logger.debug : false
+  logging: environment.logSQLQueries ? logger.debug : false,
+  pool: {
+    max: 20,
+    min: 1,
+    acquire: 30000,
+    idle: 100000
+  },
 })
 
 
