@@ -682,7 +682,7 @@ async function signAndAccept (req: any, remoteUser: any, user: any) {
     actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
     object: req.body
   }
-  return await postPetitionSigned(acceptMessage, user, remoteUser.remoteInbox)
+  return await postPetitionSigned(acceptMessage, user, await remoteUser.remoteInbox)
 }
 
 async function getPostThreadRecursive (user: any, remotePostId: string, remotePostObject?: any) {
@@ -724,10 +724,10 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
         const wafrnMedia = await Media.create({
           url: remoteFile.url,
           NSFW: remotePostObject?.sensitive,
+          adultContent: !! remotePostObject?.sensitive,
           userId: remoteUser.id,
           description: remoteFile.name,
           ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
-          adultContent: remotePostObject?.sensitive,
           external: true
         })
         medias.push(wafrnMedia)
