@@ -463,7 +463,7 @@ function activityPubRoutes (app: Application) {
                   await signAndAccept(req, remoteUser, user)
                   break
                 }
-                /*
+                
                 case undefined: {
                   // we assume its just the url of an user
                   const userToRemove = await User.findOne({where: {remoteId: req.body.object}})
@@ -473,7 +473,7 @@ function activityPubRoutes (app: Application) {
                         url: environment.deletedUser
                       }
                     });
-                    userToRemove.url = userToRemove.url + '_DEACTIVATED'
+                    userToRemove.url = `${userToRemove.url}_DEACTIVATED`
                     userToRemove.remoteId = 'DELETED_USER'
                     userToRemove.activated = false
                     const postsToRemove = userToRemove.getPosts()
@@ -497,10 +497,9 @@ function activityPubRoutes (app: Application) {
                   }
                   break;
                 }
-                */
                 default: {
                   logger.info(`DELETE not implemented ${body.type}`)
-                  logger.info(req.body)
+                  logger.info(body)
                 }
               break
               }
