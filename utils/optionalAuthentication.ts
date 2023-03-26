@@ -17,16 +17,14 @@ export default function optionalAuthentication (
       (err: any, jwtData: any) => {
         if (err) {
           (req as any).jwtData = false;
-          next()
         }
   
         (req as any).jwtData = jwtData
-        next()
       }
     )
   } catch (error) {
     (req as any).jwtData = false;
-    next()
   }
+  next()
 
 }

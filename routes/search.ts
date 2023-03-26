@@ -14,7 +14,7 @@ import authenticateToken from '../utils/authenticateToken';
 
 export default function searchRoutes (app: Application) {
   app.get('/search/', optionalAuthentication, async (req: any, res) => {
-    const posterId = req.jwtData.userId
+    const posterId = req.jwtData?.userId
     // const success = false;
     // eslint-disable-next-line max-len
     const searchTerm: string = (req.query.term || '').toString().toLowerCase().trim()
