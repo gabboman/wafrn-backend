@@ -377,6 +377,7 @@ function activityPubRoutes (app: Application) {
                     await remoteFollow.destroy()
                   }
                   await signAndAccept(req, remoteUser, user)
+                  break
                 }
                 case 'Undo': {
                   // just undo? Might be like might be something else.
@@ -388,6 +389,29 @@ function activityPubRoutes (app: Application) {
                   if(likeToRemove) {
                     await likeToRemove.destroy();
                   }
+                  break
+                }
+                case 'Announce': {
+                  const postToDelete = await Post.findOne({
+                    where: {
+                      remotePostId: req.body.object.id 
+                    }
+                  })
+                  if(postToDelete) {
+                    const orphans = await postToDelete.getChildren({
+                      where: {
+                        hierarchyLevel: postToDelete.hierarchyLevel + 1
+                      }
+                    })
+                    for(const orphan of orphans) {
+                      orphan.parentId = postToDelete.parentId
+                      await orphan.save()
+                    }
+                    await postToDelete.destroy()
+
+                  }
+                  await signAndAccept(req, remoteUser, user)
+                  break
                 }
                 default: {
                   logger.info(`UNDO NOT IMPLEMENTED: ${req.body.type}`)
@@ -549,7 +573,7 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
     try {
       const userPetition = await  signedGetPetition(user, actorUrl)
       remoteUser.description = userPetition.summary;
-      remoteUser.avatar = userPetition.icon?.url ? userPetition.icon.url : '/uploads/default.webp';
+      remoteUser.avatar = userPetition.icon?.url ? userPetition.icon.url : `${environment.mediaUrl}/uploads/default.webp`;
       remoteUser.updatedAt = new Date()
       await remoteUser.save()
     } catch (error) {
@@ -574,7 +598,7 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
           url: `@${userPetition.preferredUsername}@${url.host}`,
           email: null,
           description: userPetition.summary,
-          avatar: userPetition.icon?.url ? userPetition.icon.url : '/uploads/default.webp',
+          avatar: userPetition.icon?.url ? userPetition.icon.url : `${environment.mediaUrl}/uploads/default.webp`,
           password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
           publicKey: userPetition.publicKey?.publicKeyPem,
           remoteInbox: userPetition.inbox,
