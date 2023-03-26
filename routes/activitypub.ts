@@ -545,7 +545,7 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
   })
   // we check if the user has changed avatar and stuff
   const validUntil = new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
-  if(remoteUser.updatedAt < validUntil) {
+  if(remoteUser?.updatedAt < validUntil) {
     try {
       const userPetition = await  signedGetPetition(user, actorUrl)
       remoteUser.description = userPetition.summary;
