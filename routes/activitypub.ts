@@ -500,8 +500,7 @@ function activityPubRoutes (app: Application) {
                 */
                 default: {
                   logger.info(`DELETE not implemented ${body.type}`)
-                  logger.info(body)
-                  logger.trace(req.body)
+                  logger.info(req.body)
                 }
               break
               }
