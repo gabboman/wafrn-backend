@@ -186,6 +186,7 @@ export default function postsRoutes (app: Application) {
               // existing tag! so we just get the index and associate to the post
               await existingTags[existingTagIndex].addPost(post)
               await existingTags[existingTagIndex].save()
+              await post.save()
             }
           };
           success = true

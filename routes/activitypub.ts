@@ -4,7 +4,7 @@ import { User, FederatedHost, Follows, Post, Media, PostMentionsUserRelation, Us
 import checkFediverseSignature from '../utils/checkFediverseSignature'
 import { createHash, createSign, randomBytes } from 'crypto'
 import { sequelize } from '../db'
-
+import { wait } from '../utils/wait'
 import getRemoteFollowers from '../utils/getRemoteFollowers'
 import { Op } from 'sequelize'
 import { LdSignature } from '../utils/rsa2017'
@@ -895,7 +895,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       contentWarning = true
     }
   });
-  return {
+  let postAsJSONLD: any = {
     "@context": [
       "https://www.w3.org/ns/activitystreams",
       {
@@ -959,6 +959,35 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       }
     }
   }
+  if(post.content === '') {
+
+    let dbPost = await Post.findOne({
+      where: {
+        id: post.parentId
+      }
+    })
+    while (dbPost.content === '' && dbPost.hierarchyLevel != 0) {
+      // TODO optimize this
+      const tmpPost = await dbPost.getParent()
+      dbPost = tmpPost;
+    }
+
+    postAsJSONLD = {
+      "@context": "https://www.w3.org/ns/activitystreams",
+      id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
+      type: "Announce",
+      actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
+      published: post.createdAt.toISOString(),
+      to: dbPost.privacy === 10 ? mentionedUsers : 
+      dbPost.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
+      cc: [
+        `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
+        stringMyFollowers
+      ],
+      object: dbPost.remotePostId ? dbPost.remotePostId : `${environment.frontendUrl}/fediverse/post/${dbPost.id}`
+    }
+  }
+  return postAsJSONLD;
 }
 
 async function sendRemotePost (localUser: any, post: any) {

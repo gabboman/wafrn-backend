@@ -37,7 +37,7 @@ export default function userRoutes (app: Application) {
               sequelize.where(
                 sequelize.fn('LOWER', sequelize.col('url')),
                 'LIKE',
-                `%${req.body.url.toLowerCase().trim()}%`
+                `%${req.body.url.toLowerCase().trim().replace(' ', '_')}%`
               )
             ]
           }
@@ -66,7 +66,7 @@ export default function userRoutes (app: Application) {
           const user = {
             email: req.body.email.toLowerCase(),
             description: req.body.description.trim(),
-            url: req.body.url,
+            url: req.body.url.trim().replace(' ', '_'),
             NSFW: req.body.nsfw === 'true',
             password: await bcrypt.hash(
               req.body.password,
