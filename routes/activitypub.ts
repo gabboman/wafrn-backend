@@ -862,10 +862,19 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     });
     mentionedUsers = mentionedUsersFullModel.filter((elem: any) => elem.remoteInbox).map((elem : any) => elem.remoteInbox )
   }
-    const parentPost = post.parentId ? (await Post.findOne({where: {id: post.parentId}})) : null
     let parentPostString = null
-    if(parentPost) {
-      parentPostString = parentPost.remotePostId ? parentPost.remotePostId : `${environment.frontendUrl}/fediverse/post/${parentPost.id}`
+    if(post.parentId) {
+      let dbPost = await Post.findOne({
+        where: {
+          id: post.parentId
+        }
+      })
+      while (dbPost.content === '' && dbPost.hierarchyLevel !== 0) {
+        // TODO optimize this
+        const tmpPost = await dbPost.getParent()
+        dbPost = tmpPost;
+      }
+      parentPostString = dbPost.remotePostId ? dbPost.remotePostId : `${environment.frontendUrl}/fediverse/post/${dbPost.id}`
     }
   const postMedias = await post.getMedias()
   let processedContent = post.content;
@@ -917,9 +926,9 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     type: 'Create',
     actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
     published: post.createdAt.toISOString(),
-    to: post.privacy === 10 ? mentionedUsers : 
-      post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
-    cc: post.privacy === 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+    to: post.privacy/1 === 10 ? mentionedUsers : 
+      post.privacy/1 === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
+    cc: post.privacy/1 === 0 ? [stringMyFollowers, ...mentionedUsers] : [],
     object: {
       id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       type: "Note",
@@ -928,9 +937,9 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       published: post.createdAt.toISOString(),
       url: `${environment.frontendUrl}/fediverse/post/${post.id}`, 
       attributedTo: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
-      to: post.privacy === 10 ? mentionedUsers : 
-      post.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
-    cc: post.privacy === 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+      to: post.privacy/1 === 10 ? mentionedUsers : 
+      post.privacy/1 === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
+    cc: post.privacy/1 === 0 ? [stringMyFollowers, ...mentionedUsers] : [],
       sensitive: !!post.content_warning || contentWarning,
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
@@ -960,31 +969,19 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     }
   }
   if(post.content === '') {
-
-    let dbPost = await Post.findOne({
-      where: {
-        id: post.parentId
-      }
-    })
-    while (dbPost.content === '' && dbPost.hierarchyLevel != 0) {
-      // TODO optimize this
-      const tmpPost = await dbPost.getParent()
-      dbPost = tmpPost;
-    }
-
     postAsJSONLD = {
       "@context": "https://www.w3.org/ns/activitystreams",
       id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       type: "Announce",
       actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
       published: post.createdAt.toISOString(),
-      to: dbPost.privacy === 10 ? mentionedUsers : 
-      dbPost.privacy === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
+      to: post.privacy/1 === 10 ? mentionedUsers : 
+      post.privacy/1 === 0 ? ['https://www.w3.org/ns/activitystreams#Public'] : [stringMyFollowers],
       cc: [
         `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
         stringMyFollowers
       ],
-      object: dbPost.remotePostId ? dbPost.remotePostId : `${environment.frontendUrl}/fediverse/post/${dbPost.id}`
+      object: parentPostString
     }
   }
   return postAsJSONLD;
@@ -992,7 +989,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
 
 async function sendRemotePost (localUser: any, post: any) {
   let usersToSendThePost= await getRemoteFollowers(localUser)
-  if(post.privacy === 10) {
+  if(post.privacy/1 === 10) {
     const userIdsToSendPost =  (await post.getPostMentionsUserRelations()).map((mention: any)=> mention.userId);
     const mentionedUsersFullModel = await User.findAll({
       where: {
@@ -1003,7 +1000,7 @@ async function sendRemotePost (localUser: any, post: any) {
     usersToSendThePost = _.groupBy(mentionedUsersFullModel, 'federatedHostId')
   }
 
-  if(post.privacy === 0) {
+  if(post.privacy/1 === 0) {
     const allUserInbox = (await User.findAll({
       where: {
         remoteInbox: {[Op.and]: [{[Op.ne]: null},{ [Op.ne]: 'DELETED_USER'}]},
