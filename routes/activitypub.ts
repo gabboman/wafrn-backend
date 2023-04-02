@@ -235,7 +235,31 @@ function activityPubRoutes (app: Application) {
   )
 
   app.get('/fediverse/blog/:url/featured', async (req: any, res) => {
-    return404(res)
+    if (req.params?.url) {
+      const url = req.params.url.toLowerCase()
+      const user = await User.findOne({
+        where: sequelize.where(
+          sequelize.fn('LOWER', sequelize.col('url')),
+          'LIKE',
+          url.toLowerCase()
+        )
+      })
+      if(user) {
+        res.send({
+          "@context": "https://www.w3.org/ns/activitystreams",
+          //id: "https://paquita.masto.host/users/juandjara/collections/featured",
+          id: `${environment.frontendUrl}/fediverse/blog/${req.params.url}/featured`,
+          type: "OrderedCollection",
+          totalItems: 0,
+          orderedItems: []
+        })
+      } else {
+        return404(res)
+      }
+
+    } else {
+      return404(res)
+    }
   })
 
   app.post('/fediverse/blog/:url/inbox', checkFediverseSignature, async (req: any, res) => {
