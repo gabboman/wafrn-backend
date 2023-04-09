@@ -16,6 +16,7 @@ const _ = require('underscore');
 
 import { environment } from '../environment'
 import { logger } from '../utils/logger'
+import getPostBaseQuery from '../utils/getPostBaseQuery'
 
 // global activitypub variables
 const currentlyWritingPosts: Array<string> = []
@@ -73,6 +74,55 @@ function activityPubRoutes (app: Application) {
     } else {
       return404(res)
     }
+  })
+
+  app.get('/.well-known/nodeinfo', (req, res) => {
+    res.send({
+      "links": [
+          {
+              "rel": "http://nodeinfo.diaspora.software/ns/schema/2.0",
+              "href": `${environment.frontendUrl}/.well-known/nodeinfo/2.0`
+          }
+      ]
+  })
+  })
+
+  app.get('/.well-known/nodeinfo/2.0', async (req, res) => {
+    const localUsersIds = await User.findAll({
+      where: {
+        remoteInbox: {[Op.eq]: null}
+      },
+      attributes: ['id']
+    })
+    res.send({
+      version: "2.0",
+      software: {
+          name: "wafrn",
+          version: "0.0.2"
+      },
+      protocols: [
+          "activitypub"
+      ],
+      services: {
+          outbound: [],
+          inbound: []
+      },
+      usage: {
+          users: {
+              "total": localUsersIds.length,
+              //"activeMonth": 792,
+              //"activeHalfyear": 1675
+          },
+          localPosts: (await Post.findAll({
+            where: {
+              userId: { [Op.in]: localUsersIds.map((user: any) => user.id) },
+              privacy: 0,
+            }
+          })).length
+      },
+      openRegistrations: true,
+      metadata: {}
+  })
   })
   // get post
   app.get('/fediverse/post/:id', async (req: any, res) => {
@@ -305,6 +355,7 @@ function activityPubRoutes (app: Application) {
               const postRecived = req.body.object
               if (currentlyWritingPosts.indexOf(postRecived.id) === -1 ){
                 if(postRecived.type === 'Note'){
+                  logger.debug(postRecived)
                   currentlyWritingPosts.push(postRecived.id)
                   const tmpIndex = currentlyWritingPosts.indexOf(postRecived.id)
                   await getPostThreadRecursive(user, postRecived.id, postRecived)
@@ -345,7 +396,9 @@ function activityPubRoutes (app: Application) {
               remoteFollow.remoteFollowId = req.body.id
               remoteFollow.save()
               // we accept it
-              const acceptResponse = await signAndAccept(req, remoteUser, user)
+              setTimeout( async () => {
+                const acceptResponse = await signAndAccept(req, remoteUser, user)
+              }, 10000)
               break
             }
             case 'Update': {
@@ -887,6 +940,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     mentionedUsers = mentionedUsersFullModel.filter((elem: any) => elem.remoteInbox).map((elem : any) => elem.remoteInbox )
   }
     let parentPostString = null
+    let conversationString = `${environment.frontendUrl}/fediverse/conversation/${post.id}`
     if(post.parentId) {
       let dbPost = await Post.findOne({
         where: {
@@ -928,6 +982,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       contentWarning = true
     }
   });
+  
   let postAsJSONLD: any = {
     "@context": [
       "https://www.w3.org/ns/activitystreams",
@@ -946,7 +1001,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
         }
       }
     ],
-    id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
+    id: `${environment.frontendUrl}/fediverse/activity/post/${post.id}`,
     type: 'Create',
     actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
     published: post.createdAt.toISOString(),
@@ -956,7 +1011,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     object: {
       id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       type: "Note",
-      summary: post.content_warning,
+      summary: post.content_warning ? post.content_warning : '',
       inReplyTo: parentPostString,
       published: post.createdAt.toISOString(),
       url: `${environment.frontendUrl}/fediverse/post/${post.id}`, 
@@ -967,7 +1022,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       sensitive: !!post.content_warning || contentWarning,
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
-      "conversation": '',
+      conversation: conversationString,
       content: processedContent,
       attachment: postMedias.map((media: any) => {
         const extension = (media.url.split('.')[media.url.split('.').length - 1]).toLowerCase()
@@ -1036,14 +1091,14 @@ async function sendRemotePost (localUser: any, post: any) {
   if(usersToSendThePost && Object.keys(usersToSendThePost).length > 0) {
     
     const objectToSend = await postToJSONLD(post, usersToSendThePost )
-    const ldSignature = new LdSignature()
+    //const ldSignature = new LdSignature()
     //const bodySignature: any = await ldSignature.signRsaSignature2017(objectToSend, localUser.privateKey, `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLocaleLowerCase()}`, environment.instanceUrl, new Date(post.createdAt))
 
     for (const remoteHost of Object.keys(usersToSendThePost)) {
       let remainingUsers = 5; // we send a post up to 5 times. may work may wont work
       for await (const remoteuser of usersToSendThePost[remoteHost]){
         try {
-          //const response = await postPetitionSigned({...objectToSend, signature: bodySignature.signature}, localUser, remoteuser)
+          //const response = await postPetitionSigned({...objectToSend, signature: bodySignature.signature}, localUser, remoteuser.remoteInbox)
           const response = await postPetitionSigned(objectToSend, localUser, remoteuser.remoteInbox)
           logger.trace(response)
           remainingUsers --;

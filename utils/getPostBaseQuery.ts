@@ -3,8 +3,8 @@ import { Media, Post, PostMentionsUserRelation, Tag, User } from '../db'
 
 const POSTS_PER_PAGE = 20
 
-export default function getPostBaseQuery (req: Request) {
-  const page = Number(req.query.page) || 0
+export default function getPostBaseQuery (req?: Request) {
+  const page = Number(req?.query.page) || 0
   return {
     include: [
       {
