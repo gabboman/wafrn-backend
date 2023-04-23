@@ -3,3 +3,4 @@ environment.json
 environment.ts
 public
 uploads
+logs

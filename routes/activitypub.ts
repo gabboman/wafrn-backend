@@ -358,7 +358,6 @@ function activityPubRoutes (app: Application) {
               const postRecived = req.body.object
               if (currentlyWritingPosts.indexOf(postRecived.id) === -1 ){
                 if(postRecived.type === 'Note'){
-                  logger.debug(postRecived)
                   currentlyWritingPosts.push(postRecived.id)
                   const tmpIndex = currentlyWritingPosts.indexOf(postRecived.id)
                   await getPostThreadRecursive(user, postRecived.id, postRecived)
@@ -699,7 +698,7 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
     
         await federatedHost.addUser(remoteUser)
       } catch (error) {
-        logger.debug(error)
+        logger.debug('error fetching user?', error)
       }
       currentlyWritingPosts[currentlyWritingObject] = '_OBJECT_FINALLY_WRITTEN_'
 
@@ -732,7 +731,7 @@ async function postPetitionSigned (message: object, user: any, target: string): 
   try {
     res =  await axios.post(target, message, {headers: headers})
   } catch (error) {
-    logger.debug(error)
+    logger.debug('error with signed post petition',error)
   }
   return res
 

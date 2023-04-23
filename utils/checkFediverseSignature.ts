@@ -31,7 +31,7 @@ export default async function checkFediverseSignature (
       //success = httpSignature.verifySignature(sigHead,  remoteKey)
 
     } catch (error) {
-      logger.debug('Error while parsing.')
+      logger.debug('Error while parsing signature', error)
       // success = true
     }
   }
