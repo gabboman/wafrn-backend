@@ -15,6 +15,7 @@ export const environment = {
     "removeFolderNameFromFileUploads": false,
     "adminUser": "ADMIN_USER_URL",
     "uploadSize": 50,
+    logLevel: 'debug',
     pinoTransportOptions: {
         targets: [
           { target: 'pino/file', level: 'error', options: {

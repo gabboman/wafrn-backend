@@ -5,7 +5,7 @@ import { Table, Column, Model, HasMany } from 'sequelize-typescript';
 require('sequelize-hierarchy-fork')(Sequelize)
 
 const sequelize = new Sequelize(environment.databaseConnectionString, {
-  logging: environment.logSQLQueries ? logger.debug : false,
+  logging: environment.logSQLQueries ? (sql: any) => logger.trace(sql): false,
   pool: {
     max: 20,
     min: 1,
@@ -258,6 +258,8 @@ sequelize
   })
   .then(async () => {
     logger.info('Database & tables ready!')
+    logger.debug('debug enabled')
+    logger.trace('trace enabled')
     if (environment.forceSync) {
       logger.info('CLEANING DATA')
       // seeder();

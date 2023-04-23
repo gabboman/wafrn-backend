@@ -174,6 +174,9 @@ function activityPubRoutes (app: Application) {
           manuallyApprovesFollowers: false,
           discoverable: true,
           published: user.createdAt,
+          endpoints: {
+            sharedInbox: `https://${environment.frontendUrl}/fediverse/sharedInbox`
+        },
           icon: {
             type: 'Image',
             mediaType: 'image/webp',
@@ -312,9 +315,9 @@ function activityPubRoutes (app: Application) {
     }
   })
 
-  app.post('/fediverse/blog/:url/inbox', checkFediverseSignature, async (req: any, res) => {
-    if (req.params?.url) {
-      const url = req.params.url.toLowerCase()
+  app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
+    const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
+      const url = urlToSearch.toLowerCase()
       const user = await User.findOne({
         where: sequelize.where(
           sequelize.fn('LOWER', sequelize.col('url')),
@@ -396,10 +399,7 @@ function activityPubRoutes (app: Application) {
               remoteFollow.remoteFollowId = req.body.id
               remoteFollow.save()
               // we accept it
-              setTimeout( async () => {
-                const acceptResponse = await signAndAccept(req, remoteUser, user)
-                logger.trace(acceptResponse)
-              }, 100)
+              const acceptResponse = await signAndAccept(req, remoteUser, user)
               break
             }
             case 'Update': {
@@ -597,9 +597,7 @@ function activityPubRoutes (app: Application) {
       } else {
         return404(res)
       }
-    } else {
-      return404(res)
-    }
+    
   })
 
   app.post('/fediverse/inbox', async (req: any, res) => {
