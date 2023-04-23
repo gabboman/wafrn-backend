@@ -125,7 +125,7 @@ function activityPubRoutes (app: Application) {
   })
   })
   // get post
-  app.get('/fediverse/post/:id', async (req: any, res) => {
+  app.get(['/fediverse/post/:id', '/fediverse/activity/post/:id'], async (req: any, res) => {
     if(req.params?.id) {
       const post = await Post.findOne({
         where: {
@@ -398,7 +398,8 @@ function activityPubRoutes (app: Application) {
               // we accept it
               setTimeout( async () => {
                 const acceptResponse = await signAndAccept(req, remoteUser, user)
-              }, 10000)
+                logger.trace(acceptResponse)
+              }, 100)
               break
             }
             case 'Update': {
@@ -446,8 +447,9 @@ function activityPubRoutes (app: Application) {
                 case 'Follow': {
                   const remoteFollow = await Follows.findOne({
                     where: {
-                      followerId: remoteUser.id,
-                      followedId: user.id,
+                      // I think i was doing something wrong here. Changed so when remote unfollow does not cause you to unfollow them instead lol
+                      followedId: remoteUser.id,
+                      followerId: user.id,
                       remoteFollowId: body.object.id
                     }
                   })
@@ -927,7 +929,7 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
       id: post.userId
     }
   })
-  const stringMyFollowers = `${environment.frontendUrl}/fediverse/blog${localUser.url.toLowerCase()}/followers`
+  const stringMyFollowers = `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}/followers`
   const dbMentions = await post.getPostMentionsUserRelations();
   let mentionedUsers: string[] = []
 
