@@ -551,8 +551,6 @@ function activityPubRoutes (app: Application) {
                         url: environment.deletedUser
                       }
                     });
-                    userToRemove.url = `${userToRemove.url}_DEACTIVATED`
-                    userToRemove.remoteId = 'DELETED_USER'
                     userToRemove.activated = false
                     const postsToRemove = userToRemove.getPosts()
                     if (postsToRemove && postsToRemove.length > 0) {
@@ -567,6 +565,7 @@ function activityPubRoutes (app: Application) {
                         }
                       }
                     }
+                    userToRemove.destroy()
                   }
                   await signAndAccept(req, remoteUser, user)
                   if(userToRemove) {
