@@ -106,9 +106,7 @@ app.get('/private',authenticateToken, async (req: any, res) => {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: 10,
-      literal: sequelize.literal(`id in
-        (select postId from postMentionsUserRelations where userId like "${posterId}"
-        OR userId like "${posterId}" )`
+      literal: sequelize.literal(`id in (select postId from postMentionsUserRelations where userId like "${posterId}") or userId like "${posterId}" and privacy=10`
       )
     },
     ...getPostBaseQuery(req)
