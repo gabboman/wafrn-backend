@@ -5,7 +5,6 @@ import { Op } from 'sequelize'
 import cors from 'cors'
 import bodyParser from 'body-parser'
 import authenticateToken from './utils/authenticateToken'
-import getFollowedsIds from './utils/getFollowedsIds'
 import getPostBaseQuery from './utils/getPostBaseQuery'
 
 import userRoutes from './routes/users'
@@ -20,7 +19,6 @@ import deletePost from './routes/deletepost'
 import getPosstGroupDetails from './utils/getPostGroupDetails'
 import { activityPubRoutes } from './routes/activitypub'
 import overrideContentType from './utils/overrideContentType'
-import getMentionsUser from './utils/getMentionsUser'
 
 import { environment } from './environment'
 import { logger } from './utils/logger'
@@ -57,12 +55,13 @@ app.use('/contexts', express.static('contexts'))
 
 app.get('/dashboard', authenticateToken, async (req: any, res) => {
   const posterId = req.jwtData.userId
-  const usersFollowed = await getFollowedsIds(posterId)
   const rawPostsByFollowed = await Post.findAll({
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      userId: { [Op.in]: usersFollowed },
+      literal: sequelize.literal(`userId in
+        (select followerId from follows where followedId like "${posterId}") OR userId like "${posterId}" `
+      ),
       privacy: {[Op.in]: [0, 1] }
     },
     ...getPostBaseQuery(req)
@@ -72,19 +71,14 @@ app.get('/dashboard', authenticateToken, async (req: any, res) => {
 })
 
 app.get('/exploreLocal', async (req: any, res) => {
-  const localUsers = await User.findAll({
-    where: {
-      remoteInbox: {[Op.eq]: null}
-    },
-    attributes: ['id']
-  })
   const rawPosts = await Post.findAll({
     ...getPostBaseQuery(req),
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      userId: { [Op.in]: localUsers.map((user: any) => user.id) },
+      //userId: { [Op.in]: localUsers.map((user: any) => user.id) },
       privacy: 0,
+      literal:  sequelize.literal(`userId in (select id from users where url not like '@%')`)
     },
   })
   const responseWithNotes = await getPosstGroupDetails(rawPosts)
@@ -107,14 +101,15 @@ app.get('/explore', async (req: any, res) => {
 
 app.get('/private',authenticateToken, async (req: any, res) => {
   const posterId = req.jwtData.userId
-  const postsWithMentions = await getMentionsUser(posterId)
-  postsWithMentions.push(posterId)
   const rawPostsByFollowed = await Post.findAll({
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      id: { [Op.in]: postsWithMentions },
-      privacy: 10
+      privacy: 10,
+      literal: sequelize.literal(`id in
+        (select postId from postMentionsUserRelations where userId like "${posterId}"
+        OR userId like "${posterId}" )`
+      )
     },
     ...getPostBaseQuery(req)
   })
