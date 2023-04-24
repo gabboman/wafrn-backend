@@ -1,10 +1,11 @@
 import { Application } from 'express'
 import { Op } from 'sequelize'
-import { Post, PostMentionsUserRelation, User } from '../db'
+import { Post, PostMentionsUserRelation, User, UserLikesPostRelations } from '../db'
 import authenticateToken from '../utils/authenticateToken'
 import getBlockedIds from '../utils/getBlockedIds'
 import getReblogs from '../utils/getReblogs'
 import { logger } from '../utils/logger'
+import { sequelize } from '../db'
 
 export default function notificationRoutes (app: Application) {
   app.post('/readNotifications', authenticateToken, async (req: any, res) => {
@@ -63,6 +64,21 @@ export default function notificationRoutes (app: Application) {
         }
       ]
     })
+
+    const newLikes = UserLikesPostRelations.findAll({
+      where: {
+        createdAt: {
+          [Op.gt]: new Date(user.lastTimeNotificationsCheck)
+        },
+        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
+      },
+      include: [
+        {
+          model: User,
+          attributes: ['avatar', 'url', 'description', 'id']
+        }
+      ]
+    })
     res.send({
       follows: (await newFollows).filter(
         (newFollow: any) => !blockedUsers.includes(newFollow.id)
@@ -82,7 +98,8 @@ export default function notificationRoutes (app: Application) {
             createdAt: mention.createdAt,
             parentId: mention.post.parentId
           }
-        })
+        }),
+      likes: await newLikes
     })
   })
 }
