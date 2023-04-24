@@ -730,7 +730,7 @@ async function postPetitionSigned (message: object, user: any, target: string): 
   try {
     res =  await axios.post(target, message, {headers: headers})
   } catch (error) {
-    logger.debug('error with signed post petition',error)
+    logger.debug({message: 'error with signed post petition', error: error })
   }
   return res
 
