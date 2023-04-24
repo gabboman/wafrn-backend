@@ -30,9 +30,15 @@ export default async function checkFediverseSignature (
       success = true
       //success = httpSignature.verifySignature(sigHead,  remoteKey)
 
-    } catch (error) {
-      logger.trace({message: 'error while parsing signature', error: error})
-      // success = true
+    } catch (error: any) {
+      if(error?.code_get === 410) {
+        // TODO. the user has been deleted
+        
+      } else {
+        logger.trace({message: 'error while parsing signature', error: error})
+        // success = true
+      }
+      
     }
   }
   if (!success) {
