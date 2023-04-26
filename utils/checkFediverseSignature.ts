@@ -4,7 +4,7 @@ import { signedGetPetition } from '../routes/activitypub';
 import { environment } from '../environment'
 import { logger } from './logger';
 import { getRemoteActor } from '../routes/activitypub';
-var httpSignature = require('@peertube/http-signature');
+const httpSignature = require('@peertube/http-signature');
 
 const user = User.findOne({
   where: {
@@ -24,7 +24,7 @@ export default async function checkFediverseSignature (
     success = true
     try {
       const sigHead = httpSignature.parse(req)
-      const remoteUserUrl = sigHead.keyId.splice('#')[0]
+      const remoteUserUrl = sigHead.keyId.split('#')[0]
       const remoteUser = await getRemoteActor(remoteUserUrl, user)
       const remoteKey = remoteUser.publicKey
       // TODO still not finished
@@ -33,7 +33,6 @@ export default async function checkFediverseSignature (
 
     } catch (error: any) {
       if(error?.code_get === 410) {
-        // TODO. the user has been deleted
         success = false;
         
       } else {
