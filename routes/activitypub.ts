@@ -592,7 +592,7 @@ function activityPubRoutes (app: Application) {
           }
         } catch (error) {
           logger.debug({
-            error: error
+            error: error, type: req.body.type
           })
         }
       } else {
@@ -741,37 +741,42 @@ async function postPetitionSigned (message: object, user: any, target: string): 
 
 function signedGetPetition (user: any, target: string): Promise<any> {
   const res =  new Promise((resolve: any, reject: any) => {
-    const url = new URL(target)
-    const privKey = user.privateKey
-    const options = {
-      host: url.host,
-      port: 443,
-      path: url.pathname,
-      method: 'GET',
-      headers: {
-        //'Content-Type': 'application/activity+json',
-        Accept: 'application/activity+json',
-      }
-    };
-    const httpPetition = https.request(options, (response:any)=> {
-      if(response.statusCode === 200){
-        let data = ''
-        response.on('data', (chunk: any) => data = data + chunk)
-        response.on('end', () => {
-          resolve(JSON.parse(data))
-        })
-      } else {
-        reject({'code_get': response.statusCode, 'url': url.href, 'initiatedBy': user.url})
-      }
-    })
-    httpSignature.signRequest(httpPetition, {
-      key: privKey,
-      keyId: `${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key`,
-      algorithm: 'rsa-sha256',
-      authorizationHeaderName: 'signature',
-      headers: ['(request-target)', 'host', 'date', 'accept' ]
-    });
-    httpPetition.end();
+    try {
+      const url = new URL(target)
+      const privKey = user.privateKey
+      const options = {
+        host: url.host,
+        port: 443,
+        path: url.pathname,
+        method: 'GET',
+        headers: {
+          //'Content-Type': 'application/activity+json',
+          Accept: 'application/activity+json',
+        }
+      };
+      const httpPetition = https.request(options, (response:any)=> {
+        if(response.statusCode === 200){
+          let data = ''
+          response.on('data', (chunk: any) => data = data + chunk)
+          response.on('end', () => {
+            resolve(JSON.parse(data))
+          })
+        } else {
+          reject({'code_get': response.statusCode, 'url': url.href, 'initiatedBy': user.url})
+        }
+      })
+      httpSignature.signRequest(httpPetition, {
+        key: privKey,
+        keyId: `${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key`,
+        algorithm: 'rsa-sha256',
+        authorizationHeaderName: 'signature',
+        headers: ['(request-target)', 'host', 'date', 'accept' ]
+      });
+      httpPetition.end();
+    } catch (error) {
+      reject({'message': 'get petition signed failed', 'url': target, 'initiatedBy': user.url, error: error})
+    }
+    
   })
   return res
 }
@@ -859,7 +864,7 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
                 sequelize.fn('LOWER', sequelize.col('url')),
                 'LIKE',
                 // TODO fix
-                username
+                username.toLowerCase()
               )
             ]
           }
