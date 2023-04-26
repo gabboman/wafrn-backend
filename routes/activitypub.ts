@@ -30,6 +30,7 @@ function activityPubRoutes (app: Application) {
     res.send(
       `<?xml version="1.0" encoding="UTF-8"?><XRD xmlns="http://docs.oasis-open.org/ns/xri/xrd-1.0"><Link rel="lrdd" template="${environment.frontendUrl}/.well-known/webfinger?resource={uri}"/></XRD>`
     )
+    res.end()
   })
   app.get('/.well-known/webfinger/', async (req: any, res) => {
     if (req.query?.resource) {
@@ -74,6 +75,7 @@ function activityPubRoutes (app: Application) {
     } else {
       return404(res)
     }
+    res.end()
   })
 
   app.get('/.well-known/nodeinfo', (req, res) => {
@@ -84,8 +86,9 @@ function activityPubRoutes (app: Application) {
               "href": `${environment.frontendUrl}/.well-known/nodeinfo/2.0`
           }
       ]
-  })
-  })
+  })  
+  res.end()
+})
 
   app.get('/.well-known/nodeinfo/2.0', async (req, res) => {
     const localUsersIds = await User.findAll({
@@ -123,7 +126,8 @@ function activityPubRoutes (app: Application) {
       openRegistrations: true,
       metadata: {}
   })
-  })
+  res.end()
+})
   // get post
   app.get(['/fediverse/post/:id', '/fediverse/activity/post/:id'], async (req: any, res) => {
     if(req.params?.id) {
@@ -141,7 +145,7 @@ function activityPubRoutes (app: Application) {
     } else {
       res.sendStatus(404)
     }
-    
+    res.end()
   })
   // Get blog for fediverse
   app.get('/fediverse/blog/:url', async (req: any, res) => {
@@ -203,6 +207,7 @@ function activityPubRoutes (app: Application) {
     } else {
       return404(res)
     }
+    res.end()
   })
 
   app.get('/fediverse/blog/:url/following', async (req: any, res) => {
@@ -243,6 +248,7 @@ function activityPubRoutes (app: Application) {
     } else {
       return404(res)
     }
+    res.end()
   }
   )
 
@@ -284,6 +290,7 @@ function activityPubRoutes (app: Application) {
     } else {
       return404(res)
     }
+    res.end()
   }
   )
 
@@ -313,6 +320,7 @@ function activityPubRoutes (app: Application) {
     } else {
       return404(res)
     }
+    res.end()
   })
 
   app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
@@ -598,12 +606,9 @@ function activityPubRoutes (app: Application) {
       } else {
         return404(res)
       }
-    
-  })
+      res.end()
+    })
 
-  app.post('/fediverse/inbox', async (req: any, res) => {
-
-  })
 
   app.get('/fediverse/blog/:url/outbox', async (req: any, res) => {
     if (req.params?.url) {
@@ -621,6 +626,7 @@ function activityPubRoutes (app: Application) {
     } else {
       return404(res)
     }
+    res.end()
   })
 }
 
