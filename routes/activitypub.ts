@@ -7,11 +7,7 @@ import { sequelize } from '../db'
 import { wait } from '../utils/wait'
 import getRemoteFollowers from '../utils/getRemoteFollowers'
 import { Op } from 'sequelize'
-import { LdSignature } from '../utils/rsa2017'
-
-
-var https = require('https');
-var httpSignature = require('@peertube/http-signature');
+//import { LdSignature } from '../utils/rsa2017'
 const _ = require('underscore');
 
 import { environment } from '../environment'
@@ -745,46 +741,47 @@ async function postPetitionSigned (message: object, user: any, target: string): 
 
 }
 
-function signedGetPetition (user: any, target: string): Promise<any> {
-  const res =  new Promise((resolve: any, reject: any) => {
-    try {
-      const url = new URL(target)
-      const privKey = user.privateKey
-      const options = {
-        host: url.host,
-        port: 443,
-        path: url.pathname,
-        method: 'GET',
-        headers: {
-          //'Content-Type': 'application/activity+json',
-          Accept: 'application/activity+json',
-        }
-      };
-      const httpPetition = https.request(options, (response:any)=> {
-        if(response.statusCode === 200){
-          let data = ''
-          response.on('data', (chunk: any) => data = data + chunk)
-          response.on('end', () => {
-            resolve(JSON.parse(data))
-          })
-        } else {
-          reject({'code_get': response.statusCode, 'url': url.href, 'initiatedBy': user.url})
-        }
-      })
-      httpSignature.signRequest(httpPetition, {
-        key: privKey,
-        keyId: `${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key`,
-        algorithm: 'rsa-sha256',
-        authorizationHeaderName: 'signature',
-        headers: ['(request-target)', 'host', 'date', 'accept' ]
-      });
-      httpPetition.end();
-    } catch (error) {
-      reject({'message': 'get petition signed failed', 'url': target, 'initiatedBy': user.url, error: error})
+async function signedGetPetition (user: any, target: string): Promise<any> {
+  let res = undefined;
+  try {
+    const url = new URL(target)
+    const privKey = user.privateKey
+    const acceptedFormats = 'application/activity+json,application/json'
+    const signingOptions = {
+      key: privKey,
+      keyId: `${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key`,
+      algorithm: 'rsa-sha256',
+      authorizationHeaderName: 'signature',
+      headers: ['(request-target)', 'host', 'date', 'accept' ]
     }
-    
-  })
-  return res
+    const sendDate = new Date()
+    const stringToSign = `(request-target): get ${url.pathname}\nhost: ${url.host}\ndate: ${sendDate.toUTCString()}\naccept: ${acceptedFormats}`
+
+    const digest = createHash('sha256').update(stringToSign).digest('base64')
+    const signer = createSign('sha256')
+    signer.update(stringToSign)
+    signer.end()
+    const signature = signer.sign(user.privateKey).toString('base64')
+    const header = `keyId="${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key",algorithm="rsa-sha256",headers="(request-target) host date accept",signature="${signature}"`
+    const headers =  {
+      'Content-Type': 'application/activity+json',
+      Accept: acceptedFormats,
+      Algorithm: 'rsa-sha256',
+      Host: url.host,
+      Date: sendDate.toUTCString(),
+      Digest: `SHA-256=${digest}`,
+      signature: header
+    }
+      const axiosResponse= await axios.get(target, {headers: headers})
+      res = axiosResponse.data
+  } catch (error) {
+    logger.trace({
+      message: 'Error with signed get petition',
+      url: target,
+      error: error
+    })
+  }
+  return res;
 }
 
 async function signAndAccept (req: any, remoteUser: any, user: any) {
@@ -1149,7 +1146,7 @@ async function searchRemoteUser(searchTerm: string, user: any){
       const username = usernameAndDomain[1]
       const domain = usernameAndDomain[2]
       try {
-        const remoteResponse = await axios.get(`https://${domain}/.well-known/webfinger/?resource=acct:${username}@${domain}`)
+        const remoteResponse = await signedGetPetition(user, `https://${domain}/.well-known/webfinger/?resource=acct:${username}@${domain}`)
         const links = remoteResponse.data.links;
         for await (const responseLink of links) {
           if(responseLink.rel === 'self') {

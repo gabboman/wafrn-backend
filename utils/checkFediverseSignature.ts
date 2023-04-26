@@ -37,7 +37,7 @@ export default async function checkFediverseSignature (
         success = false;
         
       } else {
-        logger.trace({message: 'error while parsing signature', error: error})
+        //logger.trace({message: 'error while parsing signature', error: error,  })
         // success = true
       }
       
