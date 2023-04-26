@@ -812,8 +812,8 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
   if (postInDatabase) {
     return postInDatabase
   } else {
-    // TODO properly sign petition
-    const postPetition = remotePostObject ? remotePostObject : await signedGetPetition(user, remotePostId)
+    try {
+      const postPetition = remotePostObject ? remotePostObject : await signedGetPetition(user, remotePostId)
 
     const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
     let mediasString = ''
@@ -899,6 +899,14 @@ async function getPostThreadRecursive (user: any, remotePostId: string, remotePo
       }
       return post
     }
+    }catch(error
+      ){
+      logger.info({
+        message: 'error getting remote post', url: remotePostId, user: user.url, error: error
+      })
+      return null
+    }
+    
   }
 }
 

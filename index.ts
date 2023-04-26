@@ -59,10 +59,10 @@ app.get('/dashboard', authenticateToken, async (req: any, res) => {
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
+      privacy: {[Op.in]: [0, 1],
       literal: sequelize.literal(`userId in
         (select followerId from follows where followedId like "${posterId}") OR userId like "${posterId}" `
-      ),
-      privacy: {[Op.in]: [0, 1] }
+      ) }
     },
     ...getPostBaseQuery(req)
   })
@@ -76,7 +76,6 @@ app.get('/exploreLocal', async (req: any, res) => {
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      //userId: { [Op.in]: localUsers.map((user: any) => user.id) },
       privacy: 0,
       literal:  sequelize.literal(`userId in (select id from users where url not like '@%')`)
     },

@@ -29,6 +29,7 @@ export default async function checkFediverseSignature (
       const remoteKey = remoteUser.publicKey
       // TODO still not finished
       success = true
+      //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
       //success = httpSignature.verifySignature(sigHead,  remoteKey)
 
     } catch (error: any) {
