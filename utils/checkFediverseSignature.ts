@@ -3,6 +3,7 @@ import { User } from '../db';
 import { signedGetPetition } from '../routes/activitypub';
 import { environment } from '../environment'
 import { logger } from './logger';
+import { getRemoteActor } from '../routes/activitypub';
 var httpSignature = require('@peertube/http-signature');
 
 const user = User.findOne({
@@ -23,9 +24,8 @@ export default async function checkFediverseSignature (
     success = false
     try {
       const sigHead = httpSignature.parse(req)
-      // posible optimization: cache the key. Also we need an user to sign the petition
-      const keyPetitionResponse = await signedGetPetition(await user, sigHead.keyId)
-      const remoteKey = keyPetitionResponse.publicKey.publicKeyPem
+      const remoteUser = await getRemoteActor(sigHead.keyId.slice('#')[0], user)
+      const remoteKey = remoteUser.publicKey
       // TODO still not finished
       success = true
       //success = httpSignature.verifySignature(sigHead,  remoteKey)
@@ -33,6 +33,7 @@ export default async function checkFediverseSignature (
     } catch (error: any) {
       if(error?.code_get === 410) {
         // TODO. the user has been deleted
+        success = false;
         
       } else {
         logger.trace({message: 'error while parsing signature', error: error})

@@ -639,7 +639,6 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
   } 
   const url = new URL(actorUrl)
 
-  // TODO properly sign petition
   let remoteUser = await User.findOne({
     where: {
       remoteId: actorUrl
