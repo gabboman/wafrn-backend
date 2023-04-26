@@ -783,6 +783,9 @@ async function signAndAccept (req: any, remoteUser: any, user: any) {
     actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
     object: req.body
   }
+  if(remoteUser.remoteInbox == '') {
+    throw new Error("Remote inbox is empty");   
+  }
   return await postPetitionSigned(acceptMessage, user, await remoteUser.remoteInbox)
 }
 
