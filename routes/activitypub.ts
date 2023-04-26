@@ -589,8 +589,9 @@ function activityPubRoutes (app: Application) {
             }
           }
         } catch (error) {
-          logger.info('error happened: more detail');
-          logger.info(error)
+          logger.debug({
+            error: error
+          })
         }
       } else {
         return404(res)
@@ -708,6 +709,8 @@ async function getRemoteActor (actorUrl: string, user: any, level = 0): Promise<
 }
 
 async function postPetitionSigned (message: object, user: any, target: string): Promise<any> {
+  let res;
+  try {
   const url = new URL(target)
   const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')
   const signer = createSign('sha256')
@@ -726,11 +729,10 @@ async function postPetitionSigned (message: object, user: any, target: string): 
     Digest: `SHA-256=${digest}`,
     signature: header
   }
-  let res;
-  try {
+  
     res =  await axios.post(target, message, {headers: headers})
   } catch (error) {
-    logger.debug({message: 'error with signed post petition', error: error })
+    logger.debug({message: 'error with signed post petition', error: error, inputMessage: message, target: target })
   }
   return res
 
