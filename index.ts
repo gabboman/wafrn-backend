@@ -56,15 +56,13 @@ app.use('/contexts', express.static('contexts'))
 app.get('/dashboard', authenticateToken, async (req: any, res) => {
   const posterId = req.jwtData.userId
   const rawPostsByFollowed = await Post.findAll({
+    ...getPostBaseQuery(req),
     where: {
-      // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      privacy: {[Op.in]: [0, 1],
-      literal: sequelize.literal(`userId in
-        (select followerId from follows where followedId like "${posterId}") OR userId like "${posterId}" `
-      ) }
-    },
-    ...getPostBaseQuery(req)
+      privacy: {[Op.in]: [0, 1]},
+      literal: sequelize.literal(`userId in (select followerId from follows where followedId like "${posterId}") OR userId like "${posterId}"`)
+
+    }
   })
   const responseWithNotes = await getPosstGroupDetails(rawPostsByFollowed)
   res.send(responseWithNotes)
