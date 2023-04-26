@@ -21,10 +21,12 @@ export default async function checkFediverseSignature (
   const signature = req.headers.signature
   if (digest && signature) {
     // TODO check signatures for the love of god
-    success = false
+    success = true
     try {
       const sigHead = httpSignature.parse(req)
-      const remoteUser = await getRemoteActor(sigHead.keyId.slice('#')[0], user)
+      const remoteUserUrl = sigHead.keyId.slice('#')[0]
+      logger.trace(sigHead.keyId)
+      const remoteUser = await getRemoteActor(remoteUserUrl, user)
       const remoteKey = remoteUser.publicKey
       // TODO still not finished
       success = true
