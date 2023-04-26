@@ -14,6 +14,7 @@ import { environment } from '../environment'
 import { logger } from '../utils/logger'
 import getPostBaseQuery from '../utils/getPostBaseQuery'
 import { LdSignature } from '../utils/rsa2017'
+import removeUser from '../utils/removeUser'
 
 // global activitypub variables
 const currentlyWritingPosts: Array<string> = []
@@ -549,35 +550,9 @@ function activityPubRoutes (app: Application) {
                 
                 case undefined: {
                   // we assume its just the url of an user
-                  const userToRemove = await User.findOne({where: {remoteId: req.body.object}})
-                  if(userToRemove) {
-                    const ownerOfDeletedPost = await User.findOne({
-                      where: {
-                        url: environment.deletedUser
-                      }
-                    });
-                    userToRemove.activated = false
-                    const postsToRemove = userToRemove.getPosts()
-                    Post.update({
-                      userId: ownerOfDeletedPost.id,
-                      content: 'Post has been deleted because remote user has been deleted'
-                    }, {
-                      where: {
-                        userId: userToRemove.id
-                      }
-                    })
-                    await userToRemove.removeFollowers()
-                    await userToRemove.removeFolloweds()
-                    await PostMentionsUserRelation.update({
-                      userId: ownerOfDeletedPost.id
-                    },{
-                      where: {
-                        userId: userToRemove.id
-                      }
-                    })
-                    //await userToRemove.save()
-                    await userToRemove.destroy()
-                    await signAndAccept(req, remoteUser, user)
+                  const userDeleted = await removeUser(req.body.object)
+                  if(!userDeleted) {
+                    logger.debug(`User ${req.body.object} has NOT been deleted`)
                   }
                   break;
                 }
@@ -735,8 +710,19 @@ async function postPetitionSigned (message: object, user: any, target: string): 
   }
   
     res =  await axios.post(target, message, {headers: headers})
-  } catch (error) {
-    logger.debug({message: 'error with signed post petition', error: error, inputMessage: message, target: target })
+  } catch (error: any) {
+    if(error?.response?.status === 410) {
+      logger.debug(`should remove user ${target}`)
+      const userToRemove = await User.findOne({
+        where: {
+          remoteInbox: target
+        }
+      })
+      logger.trace(`removing user ${userToRemove.url} because got a 410`)
+      removeUser(userToRemove.id)
+    } else {
+      logger.debug({message: 'error with signed post petition', error: error, inputMessage: message, target: target })
+    }
   }
   return res
 
