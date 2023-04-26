@@ -553,24 +553,26 @@ function activityPubRoutes (app: Application) {
                     });
                     userToRemove.activated = false
                     const postsToRemove = userToRemove.getPosts()
-                    if (postsToRemove && postsToRemove.length > 0) {
-                      for await (const postToDelete of postsToRemove) {
-                        const children = await postToDelete.getChildren()
-                        if(children && children.length > 0) {
-                          postToDelete.content = 'Post has been deleted'
-                          postToDelete.userId = ownerOfDeletedPost.id
-                          await postToDelete.save()
-                        } else {
-                          await postToDelete.destroy()
-                        }
+                    Post.update({
+                      userId: ownerOfDeletedPost.id,
+                      content: 'Post has been deleted because remote user has been deleted'
+                    }, {
+                      where: {
+                        userId: userToRemove.id
                       }
-                    }
-                    userToRemove.destroy()
-                  }
-                  await signAndAccept(req, remoteUser, user)
-                  if(userToRemove) {
-                    userToRemove.remoteInbox = 'DELETED_USER'
-                    await userToRemove.save()
+                    })
+                    await userToRemove.removeFollowers()
+                    await userToRemove.removeFolloweds()
+                    await PostMentionsUserRelation.update({
+                      userId: ownerOfDeletedPost.id
+                    },{
+                      where: {
+                        userId: userToRemove.id
+                      }
+                    })
+                    //await userToRemove.save()
+                    await userToRemove.destroy()
+                    await signAndAccept(req, remoteUser, user)
                   }
                   break;
                 }
@@ -783,7 +785,7 @@ async function signAndAccept (req: any, remoteUser: any, user: any) {
     actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
     object: req.body
   }
-  if(remoteUser.remoteInbox == '') {
+  if(remoteUser.remoteInbox === '') {
     throw new Error("Remote inbox is empty");   
   }
   return await postPetitionSigned(acceptMessage, user, await remoteUser.remoteInbox)
