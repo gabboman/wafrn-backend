@@ -62,7 +62,7 @@ export class LdSignature {
 	}
 
 	public async createVerifyData(data: any, options: any) {
-		let res = 'aaa';
+		let res = '';
 		try {
 			const transformedOptions = {
 				...options,

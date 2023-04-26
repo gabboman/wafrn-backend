@@ -13,6 +13,7 @@ const _ = require('underscore');
 import { environment } from '../environment'
 import { logger } from '../utils/logger'
 import getPostBaseQuery from '../utils/getPostBaseQuery'
+import { LdSignature } from '../utils/rsa2017'
 
 // global activitypub variables
 const currentlyWritingPosts: Array<string> = []
@@ -1111,23 +1112,25 @@ async function sendRemotePost (localUser: any, post: any) {
   if(usersToSendThePost && Object.keys(usersToSendThePost).length > 0) {
     
     const objectToSend = await postToJSONLD(post, usersToSendThePost )
-    //const ldSignature = new LdSignature()
-    //const bodySignature: any = await ldSignature.signRsaSignature2017(objectToSend, localUser.privateKey, `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLocaleLowerCase()}`, environment.instanceUrl, new Date(post.createdAt))
+    const ldSignature = new LdSignature()
+    const bodySignature: any = await ldSignature.signRsaSignature2017(objectToSend, localUser.privateKey, `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLocaleLowerCase()}`, environment.instanceUrl, new Date(post.createdAt))
 
     for (const remoteHost of Object.keys(usersToSendThePost)) {
       let remainingUsers = 5; // we send a post up to 5 times. may work may wont work
       for await (const remoteuser of usersToSendThePost[remoteHost]){
         try {
-          //const response = await postPetitionSigned({...objectToSend, signature: bodySignature.signature}, localUser, remoteuser.remoteInbox)
-          const response = await postPetitionSigned(objectToSend, localUser, remoteuser.remoteInbox)
-          logger.trace(response)
+          const response = await postPetitionSigned({...objectToSend, signature: bodySignature.signature}, localUser, remoteuser.remoteInbox)
+          //const response = await postPetitionSigned(objectToSend, localUser, remoteuser.remoteInbox)
           remainingUsers --;
           if(remainingUsers === 0) {
             break;
           }
         } catch (error) {
-          logger.info(`Could not send post to ${remoteuser.remoteInbox}`)
-          logger.info(error)
+          logger.trace({
+            message: 'Could not send post to remote user',
+            url: remoteuser.remoteInbox,
+            error: error
+          })
         }
 
       }
