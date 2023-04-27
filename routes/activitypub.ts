@@ -95,6 +95,26 @@ function activityPubRoutes (app: Application) {
       },
       attributes: ['id']
     })
+
+    const activeUsersSixMonths = await  sequelize.query(`SELECT id
+    FROM users
+    WHERE id IN (
+      SELECT userId
+      FROM posts
+      WHERE createdAt between date_sub(now(),INTERVAL 6 MONTH) and now()
+      GROUP BY userId
+      HAVING COUNT(1) > 0
+    ) AND url NOT LIKE '@%';`)
+
+    const activeUsersLastMonth = await  sequelize.query(`SELECT id
+    FROM users
+    WHERE id IN (
+      SELECT userId
+      FROM posts
+      WHERE createdAt between date_sub(now(),INTERVAL 1 MONTH) and now()
+      GROUP BY userId
+      HAVING COUNT(1) > 0
+    ) AND url NOT LIKE '@%';`)
     res.send({
       version: "2.0",
       software: {
@@ -110,9 +130,9 @@ function activityPubRoutes (app: Application) {
       },
       usage: {
           users: {
-              "total": localUsersIds.length,
-              //"activeMonth": 792,
-              //"activeHalfyear": 1675
+              total: localUsersIds.length,
+              activeMonth: activeUsersLastMonth.length,
+              activeHalfyear: activeUsersSixMonths.length
           },
           localPosts: (await Post.findAll({
             where: {
