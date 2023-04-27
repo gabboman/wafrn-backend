@@ -104,7 +104,7 @@ function activityPubRoutes (app: Application) {
       WHERE createdAt between date_sub(now(),INTERVAL 6 MONTH) and now()
       GROUP BY userId
       HAVING COUNT(1) > 0
-    ) AND url NOT LIKE '@%';`)
+    ) AND url NOT LIKE '@%'`)
 
     const activeUsersLastMonth = await  sequelize.query(`SELECT id
     FROM users
@@ -114,7 +114,7 @@ function activityPubRoutes (app: Application) {
       WHERE createdAt between date_sub(now(),INTERVAL 1 MONTH) and now()
       GROUP BY userId
       HAVING COUNT(1) > 0
-    ) AND url NOT LIKE '@%';`)
+    ) AND url NOT LIKE '@%'`)
     res.send({
       version: "2.0",
       software: {
@@ -131,8 +131,8 @@ function activityPubRoutes (app: Application) {
       usage: {
           users: {
               total: localUsersIds.length,
-              activeMonth: activeUsersLastMonth.length,
-              activeHalfyear: activeUsersSixMonths.length
+              activeMonth: activeUsersLastMonth[0].length,
+              activeHalfyear: activeUsersSixMonths[0].length
           },
           localPosts: (await Post.findAll({
             where: {
