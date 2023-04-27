@@ -120,8 +120,14 @@ export default function notificationRoutes (app: Application) {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        literal: Sequelize.literal(`parentId IN (select id from posts where userId like "${userId}") AND userId NOT LIKE "${userId}"`)
+        literal: Sequelize.literal(`posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId like "${userId}")) AND userId NOT LIKE "${userId}"`)
       },
+      include: [
+        {
+          model: User,
+          attributes: ['avatar', 'url', 'description', 'id']
+        }
+      ],
       order: [['createdAt', 'DESC']],
       limit: environment.postsPerPage,
       offset: page * environment.postsPerPage
@@ -132,7 +138,7 @@ export default function notificationRoutes (app: Application) {
           [Op.lt]: getStartScrollParam(req)
         }
       },
-      attributes: ['url', 'avatar'],
+      attributes: ['url', 'avatar', 'createdAt'],
       order: [['createdAt', 'DESC']],
       limit: environment.postsPerPage,
       offset: page * environment.postsPerPage
