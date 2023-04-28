@@ -15,7 +15,7 @@ async function searchRemoteUser(searchTerm: string, user: any) {
         user,
         `https://${domain}/.well-known/webfinger/?resource=acct:${username}@${domain}`
       )
-      const links = remoteResponse.data.links
+      const links = remoteResponse.links
       for await (const responseLink of links) {
         if (responseLink.rel === 'self') {
           users.push(await getRemoteActor(responseLink.href, user))
