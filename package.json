@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.ts",
-    "debug": "nodemon --debug index.ts"
+    "debug": "nodemon --debug index.ts",
+    "lint": "eslint .",
+    "prettier-format": "prettier --config .prettierrc '**/*.ts' --write"
   },
   "author": "",
   "license": "MIT",
@@ -52,6 +54,9 @@
     "eslint-config-google": "^0.14.0",
     "nodemon": "^2.0.15",
     "sequelize-cli": "^6.4.1",
-    "sequelize-typescript": "^2.1.5"
+    "sequelize-typescript": "^2.1.5",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.8"
   }
 }
