@@ -572,8 +572,9 @@ function activityPubRoutes (app: Application) {
                   // we assume its just the url of an user
                   const userDeleted = await removeUser(req.body.object)
                   if(!userDeleted) {
-                    logger.debug(`User ${req.body.object} has NOT been deleted`)
+                    //logger.debug(`User ${req.body.object} has not been found because is already deleted probably`)
                   }
+                  await signAndAccept(req, remoteUser, user)
                   break;
                 }
                 default: {
