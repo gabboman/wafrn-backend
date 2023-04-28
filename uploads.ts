@@ -18,7 +18,7 @@ const uploadHandler = multer({
   limits: {
     fileSize: environment.uploadLimit * 1024 * 1024 // 15 MB.
   },
-  fileFilter (req, file, cb) {
+  fileFilter(req, file, cb) {
     const name = file.originalname.toLowerCase()
     const isFileAllowed = !(name.match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv)$/) == null)
     cb(null, isFileAllowed)

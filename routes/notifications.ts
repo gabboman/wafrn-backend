@@ -9,8 +9,7 @@ import { sequelize } from '../db'
 import getStartScrollParam from '../utils/getStartScrollParam'
 import { environment } from '../environment'
 
-
-export default function notificationRoutes (app: Application) {
+export default function notificationRoutes(app: Application) {
   app.post('/readNotifications', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.jwtData.userId
@@ -83,12 +82,8 @@ export default function notificationRoutes (app: Application) {
       ]
     })
     res.send({
-      follows: (await newFollows).filter(
-        (newFollow: any) => !blockedUsers.includes(newFollow.id)
-      ),
-      reblogs: (await perPostReblogs).filter(
-        (newReblog: any) => !blockedUsers.includes(newReblog.user.id)
-      ),
+      follows: (await newFollows).filter((newFollow: any) => !blockedUsers.includes(newFollow.id)),
+      reblogs: (await perPostReblogs).filter((newReblog: any) => !blockedUsers.includes(newReblog.user.id)),
       mentions: (await newMentions)
         .filter((newMention: any) => {
           return !blockedUsers.includes(newMention.post.userId)
@@ -115,12 +110,14 @@ export default function notificationRoutes (app: Application) {
       }
     })
     const blockedUsers = await getBlockedIds(userId)
-    const perPostReblogs = await  Post.findAll({
+    const perPostReblogs = await Post.findAll({
       where: {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        literal: Sequelize.literal(`posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId like "${userId}")) AND userId NOT LIKE "${userId}"`)
+        literal: Sequelize.literal(
+          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId like "${userId}")) AND userId NOT LIKE "${userId}"`
+        )
       },
       include: [
         {
@@ -186,19 +183,17 @@ export default function notificationRoutes (app: Application) {
     res.send({
       follows: await newFollows,
       reblogs: await perPostReblogs,
-      mentions: (await newMentions)
-        .map((mention: any) => {
-          return {
-            user: mention.post.user,
-            content: mention.post.content,
-            id: mention.post.id,
-            createdAt: mention.createdAt,
-            parentId: mention.post.parentId,
-            privacy: mention.post.privacy,
-          }
-        }),
+      mentions: (await newMentions).map((mention: any) => {
+        return {
+          user: mention.post.user,
+          content: mention.post.content,
+          id: mention.post.id,
+          createdAt: mention.createdAt,
+          parentId: mention.post.parentId,
+          privacy: mention.post.privacy
+        }
+      }),
       likes: await newLikes
     })
   })
-
 }

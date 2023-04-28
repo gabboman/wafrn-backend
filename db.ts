@@ -1,20 +1,18 @@
 import { environment } from './environment'
 import { logger } from './utils/logger'
 const { Sequelize } = require('sequelize')
-import { Table, Column, Model, HasMany } from 'sequelize-typescript';
+import { Table, Column, Model, HasMany } from 'sequelize-typescript'
 require('sequelize-hierarchy-fork')(Sequelize)
 
 const sequelize = new Sequelize(environment.databaseConnectionString, {
-  logging: environment.logSQLQueries ? (sql: any) => logger.trace(sql): false,
+  logging: environment.logSQLQueries ? (sql: any) => logger.trace(sql) : false,
   pool: {
     max: 20,
     min: 1,
     acquire: 30000,
     idle: 100000
-  },
+  }
 })
-
-
 
 const User = sequelize.define('users', {
   id: {
@@ -25,7 +23,7 @@ const User = sequelize.define('users', {
   },
   email: {
     type: Sequelize.STRING,
-    allowNull: true,
+    allowNull: true
     //unique: true
   },
   description: Sequelize.TEXT,
@@ -75,7 +73,6 @@ const Follows = sequelize.define('follows', {
     primaryKey: true
   },
   remoteFollowId: Sequelize.TEXT
-
 })
 
 const Post = sequelize.define('posts', {
@@ -249,8 +246,6 @@ UserLikesPostRelations.belongsTo(User)
 UserLikesPostRelations.belongsTo(Post)
 User.hasMany(UserLikesPostRelations)
 Post.hasMany(UserLikesPostRelations)
-
-
 
 sequelize
   .sync({

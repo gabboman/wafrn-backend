@@ -59,9 +59,10 @@ app.get('/dashboard', authenticateToken, async (req: any, res) => {
     ...getPostBaseQuery(req),
     where: {
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      privacy: {[Op.in]: [0, 1]},
-      literal: sequelize.literal(`userId in (select followerId from follows where followedId like "${posterId}") OR userId like "${posterId}"`)
-
+      privacy: { [Op.in]: [0, 1] },
+      literal: sequelize.literal(
+        `userId in (select followerId from follows where followedId like "${posterId}") OR userId like "${posterId}"`
+      )
     }
   })
   const responseWithNotes = await getPosstGroupDetails(rawPostsByFollowed)
@@ -75,8 +76,8 @@ app.get('/exploreLocal', async (req: any, res) => {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: 0,
-      literal:  sequelize.literal(`userId in (select id from users where url not like '@%')`)
-    },
+      literal: sequelize.literal(`userId in (select id from users where url not like '@%')`)
+    }
   })
   const responseWithNotes = await getPosstGroupDetails(rawPosts)
   res.send(responseWithNotes)
@@ -87,7 +88,7 @@ app.get('/explore', async (req: any, res) => {
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      privacy: 0,
+      privacy: 0
     },
     ...getPostBaseQuery(req)
   })
@@ -95,15 +96,15 @@ app.get('/explore', async (req: any, res) => {
   res.send(responseWithNotes)
 })
 
-
-app.get('/private',authenticateToken, async (req: any, res) => {
+app.get('/private', authenticateToken, async (req: any, res) => {
   const posterId = req.jwtData.userId
   const rawPostsByFollowed = await Post.findAll({
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: 10,
-      literal: sequelize.literal(`id in (select postId from postMentionsUserRelations where userId like "${posterId}") or userId like "${posterId}" and privacy=10`
+      literal: sequelize.literal(
+        `id in (select postId from postMentionsUserRelations where userId like "${posterId}") or userId like "${posterId}" and privacy=10`
       )
     },
     ...getPostBaseQuery(req)
@@ -111,8 +112,6 @@ app.get('/private',authenticateToken, async (req: any, res) => {
   const responseWithNotes = await getPosstGroupDetails(rawPostsByFollowed)
   res.send(responseWithNotes)
 })
-
-
 
 userRoutes(app)
 followsRoutes(app)

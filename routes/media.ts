@@ -1,10 +1,6 @@
 /* eslint-disable max-len */
-import {
-  Application
-} from 'express'
-import {
-  Media
-} from '../db'
+import { Application } from 'express'
+import { Media } from '../db'
 import uploadHandler from '../uploads'
 import authenticateToken from '../utils/authenticateToken'
 import getIp from '../utils/getIP'
@@ -12,7 +8,7 @@ import optimizeMedia from '../utils/optimizeMedia'
 import { environment } from '../environment'
 import { logger } from '../utils/logger'
 
-export default function mediaRoutes (app: Application) {
+export default function mediaRoutes(app: Application) {
   app.post('/uploadMedia', authenticateToken, uploadHandler.array('image'), async (req, res) => {
     let result = []
     const picturesPromise = [] as Array<Promise<any>>

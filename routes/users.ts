@@ -18,7 +18,7 @@ import { generateKeyPairSync } from 'crypto'
 import { environment } from '../environment'
 import { logger } from '../utils/logger'
 
-export default function userRoutes (app: Application) {
+export default function userRoutes(app: Application) {
   app.post('/register', uploadHandler.single('avatar'), async (req, res) => {
     let success = false
     try {
@@ -68,10 +68,7 @@ export default function userRoutes (app: Application) {
             description: req.body.description.trim(),
             url: req.body.url.trim().replace(' ', '_'),
             NSFW: req.body.nsfw === 'true',
-            password: await bcrypt.hash(
-              req.body.password,
-              environment.saltRounds
-            ),
+            password: await bcrypt.hash(req.body.password, environment.saltRounds),
             birthDate: new Date(req.body.birthDate),
             avatar: avatarURL,
             activated: false,
@@ -87,7 +84,9 @@ export default function userRoutes (app: Application) {
             req.body.email.toLowerCase(),
             activationCode,
             'Welcome to wafrn!',
-            `<h1>Welcome to wafrn</h1> To activate your account <a href="${environment.frontendUrl}/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
+            `<h1>Welcome to wafrn</h1> To activate your account <a href="${
+              environment.frontendUrl
+            }/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
           )
           await Promise.all([userWithEmail, emailSent])
           success = true
@@ -162,7 +161,11 @@ export default function userRoutes (app: Application) {
             req.body.email.toLowerCase(),
             '',
             'So you forgot your wafrn password',
-            `<h1>Use this link to reset your password</h1> Click <a href="${environment.frontendUrl}/resetPassword/${encodeURIComponent(req.body.email.toLowerCase())}/${resetCode}">here</a> to reset your password`
+            `<h1>Use this link to reset your password</h1> Click <a href="${
+              environment.frontendUrl
+            }/resetPassword/${encodeURIComponent(
+              req.body.email.toLowerCase()
+            )}/${resetCode}">here</a> to reset your password`
           )
         }
       }
@@ -175,11 +178,7 @@ export default function userRoutes (app: Application) {
 
   app.post('/activateUser', async (req, res) => {
     let success = false
-    if (
-      req.body?.email &&
-      validateEmail(req.body.email) &&
-      req.body.code
-    ) {
+    if (req.body?.email && validateEmail(req.body.email) && req.body.code) {
       const user = await User.findOne({
         where: {
           email: req.body.email.toLowerCase(),
@@ -202,16 +201,9 @@ export default function userRoutes (app: Application) {
     let success = false
 
     try {
-      if (
-        req.body?.email &&
-        req.body.code &&
-        req.body.password &&
-        validateEmail(req.body.email)
-      ) {
+      if (req.body?.email && req.body.code && req.body.password && validateEmail(req.body.email)) {
         const resetPasswordDeadline = new Date()
-        resetPasswordDeadline.setTime(
-          resetPasswordDeadline.getTime() + 3600 * 2 * 1000
-        )
+        resetPasswordDeadline.setTime(resetPasswordDeadline.getTime() + 3600 * 2 * 1000)
         const user = await User.findOne({
           where: {
             email: req.body.email.toLowerCase(),
@@ -220,10 +212,7 @@ export default function userRoutes (app: Application) {
           }
         })
         if (user) {
-          user.password = await bcrypt.hash(
-            req.body.password,
-            environment.saltRounds
-          )
+          user.password = await bcrypt.hash(req.body.password, environment.saltRounds)
           user.activated = 1
           user.requestedPasswordReset = null
           user.save()
@@ -252,10 +241,7 @@ export default function userRoutes (app: Application) {
           where: { email: req.body.email.toLowerCase() }
         })
         if (userWithEmail) {
-          const correctPassword = await bcrypt.compare(
-            req.body.password,
-            userWithEmail.password
-          )
+          const correctPassword = await bcrypt.compare(req.body.password, userWithEmail.password)
           if (correctPassword) {
             success = true
             if (userWithEmail.activated) {
@@ -317,11 +303,7 @@ export default function userRoutes (app: Application) {
           ]
         },
         where: {
-          url: sequelize.where(
-            sequelize.fn('LOWER', sequelize.col('url')),
-            'LIKE',
-            blogId
-          )
+          url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId)
         }
       })
       success = blog

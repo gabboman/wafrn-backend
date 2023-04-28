@@ -2,7 +2,7 @@
 import { Post } from '../db'
 import { Op } from 'sequelize'
 
-export default async function getPosstGroupDetails (postGroup: any[]) {
+export default async function getPosstGroupDetails(postGroup: any[]) {
   const getPostFirstParentId = (post: any) => {
     if (!post?.ancestors) {
       return post.id
@@ -27,16 +27,12 @@ export default async function getPosstGroupDetails (postGroup: any[]) {
     where: {
       id: { [Op.in]: postIds }
     },
-    attributes: [
-      'id'
-    ],
+    attributes: ['id'],
     include: [
       {
         model: Post,
         as: 'descendents',
-        attributes: [
-          'id'
-        ]
+        attributes: ['id']
       }
     ]
   })

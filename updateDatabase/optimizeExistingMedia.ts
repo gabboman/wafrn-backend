@@ -16,7 +16,7 @@ sequelize
     }
   })
 
-async function start () {
+async function start() {
   const medias = await Media.findAll()
   const users = await User.findAll()
   for (const media of medias) {
@@ -33,8 +33,10 @@ async function start () {
   }
 }
 
-start().then(() => {
-  logger.info('all good')
-}).catch(() => {
-  logger.warn('oh no')
-})
+start()
+  .then(() => {
+    logger.info('all good')
+  })
+  .catch(() => {
+    logger.warn('oh no')
+  })

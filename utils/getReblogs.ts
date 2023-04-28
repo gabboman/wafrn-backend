@@ -2,7 +2,7 @@ import { Op } from 'sequelize'
 import { Post, User } from '../db'
 import { logger } from './logger'
 
-export default async function getReblogs (user: any) {
+export default async function getReblogs(user: any) {
   const userId = user.id
   const userPostsWithReblogs = await Post.findAll({
     include: [

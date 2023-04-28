@@ -1,6 +1,6 @@
 import { User } from '../db'
 
-export default async function getBlockedIds (userId: string): Promise<string[]> {
+export default async function getBlockedIds(userId: string): Promise<string[]> {
   try {
     const usr = await User.findOne({
       where: {

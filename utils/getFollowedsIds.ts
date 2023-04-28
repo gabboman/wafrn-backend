@@ -1,6 +1,6 @@
 import { User } from '../db'
 
-export default async function getFollowedsIds (userId: string) {
+export default async function getFollowedsIds(userId: string) {
   try {
     const usr = await User.findOne({
       where: { id: userId },

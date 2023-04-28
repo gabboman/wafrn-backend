@@ -1,12 +1,6 @@
 import { Application } from 'express'
 import { Op } from 'sequelize'
-import {
-  Post,
-  PostMentionsUserRelation,
-  PostReport,
-  Tag,
-  User
-} from '../db'
+import { Post, PostMentionsUserRelation, PostReport, Tag, User } from '../db'
 import authenticateToken from '../utils/authenticateToken'
 import checkCaptcha from '../utils/checkCaptcha'
 import getIp from '../utils/getIP'
@@ -18,14 +12,14 @@ import getPosstGroupDetails from '../utils/getPostGroupDetails'
 import { sendRemotePost } from '../utils/activitypub/sendRemotePost'
 import { logger } from '../utils/logger'
 
-export default function postsRoutes (app: Application) {
+export default function postsRoutes(app: Application) {
   app.get('/singlePost/:id', async (req: any, res) => {
     let success = false
     if (req.params?.id) {
       const post = await Post.findOne({
         where: {
           id: req.params.id,
-          privacy: {[Op.ne]: 10}
+          privacy: { [Op.ne]: 10 }
         },
         ...getPostBaseQuery(req)
       })
@@ -47,11 +41,7 @@ export default function postsRoutes (app: Application) {
     if (id) {
       const blog = await User.findOne({
         where: {
-          url: sequelize.where(
-            sequelize.fn('LOWER', sequelize.col('url')),
-            'LIKE',
-            id.toLowerCase()
-          )
+          url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', id.toLowerCase())
         }
       })
       const blogId = blog?.id
@@ -79,10 +69,7 @@ export default function postsRoutes (app: Application) {
     let success = false
     const posterId = req.jwtData.userId
     try {
-      if (
-        req.body?.captchaKey &&
-        (await checkCaptcha(req.body.captchaKey, getIp(req)))
-      ) {
+      if (req.body?.captchaKey && (await checkCaptcha(req.body.captchaKey, getIp(req)))) {
         if (req.body.parent) {
           const parent = await Post.findOne({
             where: {
@@ -102,7 +89,6 @@ export default function postsRoutes (app: Application) {
           content_warning,
           userId: posterId,
           privacy: req.body.privacy ? req.body.privacy : 0
-          
         })
         if (req.body.parent) {
           post.setParent(req.body.parent)
@@ -111,10 +97,12 @@ export default function postsRoutes (app: Application) {
         // detect media in posts using regexes
 
         // eslint-disable-next-line max-len
-        const wafrnMediaRegex = /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
+        const wafrnMediaRegex =
+          /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
 
         // eslint-disable-next-line max-len
-        const mentionRegex = /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
+        const mentionRegex =
+          /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
 
         // eslint-disable-next-line max-len
         const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/
@@ -142,7 +130,7 @@ export default function postsRoutes (app: Application) {
             const mentionedUserUUID = elem.match(uuidRegex)
 
             if (
-              (mentionedUserUUID != null) &&
+              mentionedUserUUID != null &&
               mentionedUserUUID[0] !== null &&
               !mentionsToAdd.includes(mentionedUserUUID[0])
             ) {
@@ -188,11 +176,11 @@ export default function postsRoutes (app: Application) {
               await existingTags[existingTagIndex].save()
               await post.save()
             }
-          };
+          }
           success = true
         }
         res.send(post)
-        sendRemotePost(await User.findOne({where: {id: posterId}}), post)
+        sendRemotePost(await User.findOne({ where: { id: posterId } }), post)
       }
     } catch (error) {
       logger.error(error)
@@ -208,11 +196,7 @@ export default function postsRoutes (app: Application) {
     let report
     try {
       const posterId = req.jwtData.userId
-      if (
-        req.body?.postId &&
-        req.body.severity &&
-        req.body.description
-      ) {
+      if (req.body?.postId && req.body.severity && req.body.description) {
         report = await PostReport.create({
           resolved: false,
           severity: req.body.severity,

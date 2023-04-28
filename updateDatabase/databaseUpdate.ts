@@ -11,39 +11,39 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
 const queryInterface = sequelize.getQueryInterface()
 
 async function dbUpdate() {
-// Add new table
+  // Add new table
 
- await queryInterface.createTable('userLikesPostRelations', {
-  userId: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    primaryKey: true,
-    references: {
-      model: 'users',
-      key: 'id'
+  await queryInterface.createTable('userLikesPostRelations', {
+    userId: {
+      type: Sequelize.UUID,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      unique: false
     },
-    unique: false
-  },
-  postId: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    primaryKey: true,
-    references: {
-      model: 'posts',
-      key: 'id'
+    postId: {
+      type: Sequelize.UUID,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: 'posts',
+        key: 'id'
+      },
+      unique: false
     },
-    unique: false
-  },
-  remoteId: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  createdAt: Sequelize.DATE,
-  updatedAt: Sequelize.DATE
+    remoteId: {
+      type: Sequelize.STRING,
+      allowNull: true
+    },
+    createdAt: Sequelize.DATE,
+    updatedAt: Sequelize.DATE
   })
-// add column
+  // add column
 
-/*
+  /*
  await queryInterface.addColumn(
   'posts',
   'privacy', {
@@ -55,9 +55,7 @@ async function dbUpdate() {
 )
 
 */
-
 }
-
 
 /*
  await queryInterface.removeColumn(
@@ -66,8 +64,10 @@ async function dbUpdate() {
 );
 */
 
-dbUpdate().then(()=> {
-  logger.info('done')
-}).catch(error => {
-  logger.info(error)
-})
+dbUpdate()
+  .then(() => {
+    logger.info('done')
+  })
+  .catch((error) => {
+    logger.info(error)
+  })

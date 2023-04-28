@@ -1,10 +1,10 @@
-import { logger } from "./logger"
+import { logger } from './logger'
 
 /* eslint-disable max-len */
 const fs = require('fs')
 const FfmpegCommand = require('fluent-ffmpeg')
 const gm = require('gm')
-export default function optimizeMedia (inputPath: string): string {
+export default function optimizeMedia(inputPath: string): string {
   const fileAndExtension = inputPath.split('.')
   const originalExtension = fileAndExtension[1].toLowerCase()
   fileAndExtension[1] = 'webp'
@@ -27,7 +27,9 @@ export default function optimizeMedia (inputPath: string): string {
       break
     case 'mp4':
       fileAndExtension[0] = `${fileAndExtension[0]}_processed`
-    case 'webm': case 'mov': case 'mkv':
+    case 'webm':
+    case 'mov':
+    case 'mkv':
       fileAndExtension[1] = 'mp4'
       outputPath = fileAndExtension.join('.')
       // eslint-disable-next-line no-unused-vars

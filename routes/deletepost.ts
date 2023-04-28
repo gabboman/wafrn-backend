@@ -3,7 +3,7 @@ import { Post, PostMentionsUserRelation } from '../db'
 import authenticateToken from '../utils/authenticateToken'
 import { logger } from '../utils/logger'
 
-export default function deletePost (app: Application) {
+export default function deletePost(app: Application) {
   app.delete('/deletePost', authenticateToken, async (req: any, res) => {
     let success = false
     try {

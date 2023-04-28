@@ -7,11 +7,10 @@ import { sequelize } from '../db'
 import getStartScrollParam from '../utils/getStartScrollParam'
 import getPosstGroupDetails from '../utils/getPostGroupDetails'
 import optionalAuthentication from '../utils/optionalAuthentication'
-import authenticateToken from '../utils/authenticateToken';
+import authenticateToken from '../utils/authenticateToken'
 import { searchRemoteUser } from '../utils/activitypub/searchRemoteUser'
 
-
-export default function searchRoutes (app: Application) {
+export default function searchRoutes(app: Application) {
   app.get('/search/', optionalAuthentication, async (req: any, res) => {
     const posterId = req.jwtData?.userId
     // const success = false;
@@ -47,34 +46,20 @@ export default function searchRoutes (app: Application) {
 
       users = User.findAll({
         limit: 20,
-        offset: (Number(req.query.page || 0)) * 20,
+        offset: Number(req.query.page || 0) * 20,
         where: {
           activated: true,
           [Op.or]: [
-            sequelize.where(
-              sequelize.fn('LOWER', sequelize.col('url')),
-              'LIKE',
-              `%${searchTerm}%`
-            ),
-            sequelize.where(
-              sequelize.fn('LOWER', sequelize.col('description')),
-              'LIKE',
-              `%${searchTerm}%`
-            )
+            sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`),
+            sequelize.where(sequelize.fn('LOWER', sequelize.col('description')), 'LIKE', `%${searchTerm}%`)
           ]
         },
-        attributes: [
-            'id',
-            'url',
-            'description',
-            'avatar',
-            'remoteId'
-        ]
+        attributes: ['id', 'url', 'description', 'avatar', 'remoteId']
       })
       promises.push(users)
       // remote user search time
       if (posterId) {
-        remoteUsers = await searchRemoteUser(searchTerm, await User.findOne({where: {id: posterId}}))
+        remoteUsers = await searchRemoteUser(searchTerm, await User.findOne({ where: { id: posterId } }))
       }
     }
     await Promise.all(promises)
@@ -84,7 +69,7 @@ export default function searchRoutes (app: Application) {
     })
   })
 
-  app.get('/userSearch/:term', authenticateToken ,async (req: any, res) => {
+  app.get('/userSearch/:term', authenticateToken, async (req: any, res) => {
     const posterId = req.jwtData.userId
     // const success = false;
     let users: any = []
@@ -93,19 +78,13 @@ export default function searchRoutes (app: Application) {
       limit: 5,
       where: {
         activated: true,
-        [Op.or]: [
-          sequelize.where(
-            sequelize.fn('LOWER', sequelize.col('url')),
-            'LIKE',
-            `%${searchTerm}%`
-          )
-        ]
+        [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
       },
       attributes: ['url', 'avatar', 'id', 'remoteId']
     })
 
     res.send({
-      users: (await users).concat(await searchRemoteUser(searchTerm, await User.findOne({where: {id: posterId}})))
+      users: (await users).concat(await searchRemoteUser(searchTerm, await User.findOne({ where: { id: posterId } })))
     })
   })
 }

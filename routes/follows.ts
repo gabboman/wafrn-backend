@@ -7,7 +7,7 @@ import { logger } from '../utils/logger'
 import { remoteFollow } from '../utils/activitypub/remoteFollow'
 import { remoteUnfollow } from '../utils/activitypub/remoteUnfollow'
 
-export default function followsRoutes (app: Application) {
+export default function followsRoutes(app: Application) {
   app.post('/follow', authenticateToken, async (req: any, res) => {
     // TODO remote user follow
     let success = false
@@ -22,9 +22,13 @@ export default function followsRoutes (app: Application) {
 
         userFollowed.addFollower(posterId)
         success = true
-        if(userFollowed.remoteId){
-          const localUser = await User.findOne({where: {id: posterId}})
-          remoteFollow(localUser , userFollowed).then(() => {}).catch((error)=> {logger.info('error following remote user')})
+        if (userFollowed.remoteId) {
+          const localUser = await User.findOne({ where: { id: posterId } })
+          remoteFollow(localUser, userFollowed)
+            .then(() => {})
+            .catch((error) => {
+              logger.info('error following remote user')
+            })
         }
       }
     } catch (error) {
@@ -48,10 +52,13 @@ export default function followsRoutes (app: Application) {
           }
         })
 
-        if(userUnfollowed.remoteId) {
-          const localUser = await User.findOne({where: {id: posterId}})
-          remoteUnfollow(localUser , userUnfollowed).then(() => {}).catch((error)=> {logger.info('error following remote user')})
-
+        if (userUnfollowed.remoteId) {
+          const localUser = await User.findOne({ where: { id: posterId } })
+          remoteUnfollow(localUser, userUnfollowed)
+            .then(() => {})
+            .catch((error) => {
+              logger.info('error following remote user')
+            })
         }
 
         userUnfollowed.removeFollower(posterId)

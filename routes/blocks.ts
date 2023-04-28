@@ -3,7 +3,7 @@ import { User } from '../db'
 import authenticateToken from '../utils/authenticateToken'
 import { logger } from '../utils/logger'
 
-export default function blockRoutes (app: Application) {
+export default function blockRoutes(app: Application) {
   app.post('/block', authenticateToken, async (req: any, res) => {
     let success = false
     try {
