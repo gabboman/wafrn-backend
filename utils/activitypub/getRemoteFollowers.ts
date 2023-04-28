@@ -1,6 +1,6 @@
-import { User } from '../db'
+import { User } from '../../db'
 import { Op } from 'sequelize'
-import { logger } from './logger'
+import { logger } from '../logger'
 const _ = require('underscore');
 
 export default async function getRemoteFollowers (usr: any) {

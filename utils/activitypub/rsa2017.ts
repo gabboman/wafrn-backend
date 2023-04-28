@@ -1,7 +1,7 @@
 import * as crypto from "node:crypto";
 import jsonld from "jsonld";
 import axios from "axios";
-import { environment } from "../environment";
+import { environment } from "../../environment";
 
 //import { httpAgent, httpsAgent } from "@/misc/fetch.js";
 

@@ -1,7 +1,7 @@
-import { Post, PostMentionsUserRelation, User } from "../db";
-import { environment } from "../environment";
+import { Post, PostMentionsUserRelation, User } from "../../db";
+import { environment } from "../../environment";
 
-export default async function removeUser(userId: string) {
+async function removeUser(userId: string) {
     let deleted = false;
     const userToRemove = await User.findOne({where: {remoteId: userId}})
                   if(userToRemove) {
@@ -35,3 +35,5 @@ export default async function removeUser(userId: string) {
                   }
                   return deleted;
 }
+
+export {removeUser}

@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
-import { User } from '../db';
-import { signedGetPetition } from '../routes/activitypub';
-import { environment } from '../environment'
-import { logger } from './logger';
-import { getRemoteActor } from '../routes/activitypub';
+import { User } from '../../db';
+import { environment } from '../../environment'
+import { logger } from '../logger';
+import { getRemoteActor } from './getRemoteActor';
 const httpSignature = require('@peertube/http-signature');
 
 const user = User.findOne({

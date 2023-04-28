@@ -6,10 +6,9 @@ import { sequelize } from '../db'
 
 import getStartScrollParam from '../utils/getStartScrollParam'
 import getPosstGroupDetails from '../utils/getPostGroupDetails'
-import axios from 'axios'
-import { getRemoteActor, searchRemoteUser } from './activitypub'
 import optionalAuthentication from '../utils/optionalAuthentication'
 import authenticateToken from '../utils/authenticateToken';
+import { searchRemoteUser } from '../utils/activitypub/searchRemoteUser'
 
 
 export default function searchRoutes (app: Application) {

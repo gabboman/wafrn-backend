@@ -15,7 +15,7 @@ import { sequelize } from '../db'
 
 import getStartScrollParam from '../utils/getStartScrollParam'
 import getPosstGroupDetails from '../utils/getPostGroupDetails'
-import { sendRemotePost } from './activitypub'
+import { sendRemotePost } from '../utils/activitypub/sendRemotePost'
 import { logger } from '../utils/logger'
 
 export default function postsRoutes (app: Application) {

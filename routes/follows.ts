@@ -4,7 +4,8 @@ import authenticateToken from '../utils/authenticateToken'
 import getBlockedIds from '../utils/getBlockedIds'
 import getFollowedsIds from '../utils/getFollowedsIds'
 import { logger } from '../utils/logger'
-import { remoteFollow, remoteUnfollow } from './activitypub'
+import { remoteFollow } from '../utils/activitypub/remoteFollow'
+import { remoteUnfollow } from '../utils/activitypub/remoteUnfollow'
 
 export default function followsRoutes (app: Application) {
   app.post('/follow', authenticateToken, async (req: any, res) => {
