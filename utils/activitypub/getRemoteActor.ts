@@ -46,7 +46,6 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
       const currentlyWritingObject = currentlyWritingPosts.indexOf(actorUrl)
       try {
         currentlyWritingPosts.push(actorUrl)
-        const currentlyWritingObject = currentlyWritingPosts.indexOf(actorUrl)
         const userPetition = await getPetitionSigned(user, actorUrl)
         const userToCreate = {
           url: `@${userPetition.preferredUsername}@${url.host}`,
@@ -76,13 +75,29 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
 
         await federatedHost.addUser(remoteUser)
       } catch (error) {
-        logger.debug('error fetching user?', error)
+        logger.debug({message: 'error fetching user', error: error})
       }
       currentlyWritingPosts[currentlyWritingObject] = '_OBJECT_FINALLY_WRITTEN_'
     }
   }
 
   return remoteUser
+}
+
+function getUserProperties(userPetition: any) {
+
+  return {
+    //url: `@${userPetition.preferredUsername}@${url.host}`,
+    email: null,
+    description: userPetition.summary,
+    avatar: userPetition.icon?.url ? userPetition.icon.url : `${environment.mediaUrl}/uploads/default.webp`,
+    password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
+    publicKey: userPetition.publicKey?.publicKeyPem,
+    remoteInbox: userPetition.inbox,
+    remoteId: userPetition.id,
+    activated: true
+  }
+
 }
 
 export { getRemoteActor }
