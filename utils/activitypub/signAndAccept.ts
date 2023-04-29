@@ -4,7 +4,7 @@ import { postPetitionSigned } from './postPetitionSigned'
 async function signAndAccept(req: any, remoteUser: any, user: any) {
   const acceptMessage = {
     '@context': 'https://www.w3.org/ns/activitystreams',
-    id: req.body.id,
+    id: `${environment.frontendUrl}/fediverse/accept/${encodeURIComponent(req.body.id)}`,
     type: 'Accept',
     actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
     object: req.body
