@@ -194,6 +194,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
+  // HERE is where the meat and potatoes are. This endpoint is what we use to recive stuff
   app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
     const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
     const url = urlToSearch.toLowerCase()
@@ -390,41 +391,48 @@ function activityPubRoutes(app: Application) {
           case 'Delete': {
             res.sendStatus(200)
             const body = req.body.object
-            switch (body.type) {
-              case 'Tombstone': {
-                const postToDelete = await Post.findOne({
-                  where: {
-                    remotePostId: body.id
+            try {
+              switch (body.type) {
+                case 'Tombstone': {
+                  const postToDelete = await Post.findOne({
+                    where: {
+                      remotePostId: body.id
+                    }
+                  })
+                  if (postToDelete) {
+                    const children = await postToDelete.getChildren()
+                    if (children && children.length > 0) {
+                      postToDelete.content = 'Post has been deleted'
+                      await postToDelete.save()
+                    } else {
+                      await postToDelete.destroy()
+                    }
                   }
-                })
-                if (postToDelete) {
-                  const children = await postToDelete.getChildren()
-                  if (children && children.length > 0) {
-                    postToDelete.content = 'Post has been deleted'
-                    await postToDelete.save()
-                  } else {
-                    await postToDelete.destroy()
+                  await signAndAccept(req, remoteUser, user)
+                  break
+                }
+                case undefined: {
+                  // we assume its just the url of an user
+                  const userDeleted = await removeUser(req.body.object)
+                  if (!userDeleted) {
+                    //logger.debug(`User ${req.body.object} has not been found because is already deleted probably`)
                   }
+                  await signAndAccept(req, remoteUser, user)
+                  break
                 }
-                await signAndAccept(req, remoteUser, user)
-                break
+                default:
+                  {
+                    logger.info(`DELETE not implemented ${body.type}`)
+                    logger.info(body)
+                  }
+                  break
               }
-
-              case undefined: {
-                // we assume its just the url of an user
-                const userDeleted = await removeUser(req.body.object)
-                if (!userDeleted) {
-                  //logger.debug(`User ${req.body.object} has not been found because is already deleted probably`)
-                }
-                await signAndAccept(req, remoteUser, user)
-                break
-              }
-              default:
-                {
-                  logger.info(`DELETE not implemented ${body.type}`)
-                  logger.info(body)
-                }
-                break
+            } catch (error) {
+              logger.debug({
+                message: 'error with delete petition',
+                error: error,
+                petition: req.body
+              })
             }
             break
           }
