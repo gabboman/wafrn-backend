@@ -75,7 +75,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
 
         await federatedHost.addUser(remoteUser)
       } catch (error) {
-        logger.debug({message: 'error fetching user', error: error})
+        logger.debug({ message: 'error fetching user', error: error })
       }
       currentlyWritingPosts[currentlyWritingObject] = '_OBJECT_FINALLY_WRITTEN_'
     }
@@ -85,7 +85,6 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
 }
 
 function getUserProperties(userPetition: any) {
-
   return {
     //url: `@${userPetition.preferredUsername}@${url.host}`,
     email: null,
@@ -97,7 +96,6 @@ function getUserProperties(userPetition: any) {
     remoteId: userPetition.id,
     activated: true
   }
-
 }
 
 export { getRemoteActor }

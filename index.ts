@@ -17,11 +17,12 @@ import searchRoutes from './routes/search'
 import getStartScrollParam from './utils/getStartScrollParam'
 import deletePost from './routes/deletepost'
 import getPosstGroupDetails from './utils/getPostGroupDetails'
-import { activityPubRoutes } from './routes/activitypub'
+import { activityPubRoutes } from './routes/activitypub/activitypub'
 import overrideContentType from './utils/overrideContentType'
 
 import { environment } from './environment'
 import { logger } from './utils/logger'
+import { wellKnownRoutes } from './routes/activitypub/well-known'
 
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
@@ -121,6 +122,7 @@ mediaRoutes(app)
 postsRoutes(app)
 searchRoutes(app)
 deletePost(app)
+wellKnownRoutes(app)
 activityPubRoutes(app)
 
 app.listen(PORT, '0.0.0.0', () => {
