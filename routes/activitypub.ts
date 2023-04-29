@@ -181,7 +181,7 @@ function activityPubRoutes(app: Application) {
           discoverable: true,
           published: user.createdAt,
           endpoints: {
-            sharedInbox: `https://${environment.frontendUrl}/fediverse/sharedInbox`
+            sharedInbox: `${environment.frontendUrl}/fediverse/sharedInbox`
           },
           icon: {
             type: 'Image',
@@ -297,7 +297,6 @@ function activityPubRoutes(app: Application) {
       if (user) {
         res.send({
           '@context': 'https://www.w3.org/ns/activitystreams',
-          //id: "https://paquita.masto.host/users/juandjara/collections/featured",
           id: `${environment.frontendUrl}/fediverse/blog/${req.params.url}/featured`,
           type: 'OrderedCollection',
           totalItems: 0,
