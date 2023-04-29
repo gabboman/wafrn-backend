@@ -9,6 +9,11 @@ select * from federatedHosts where displayName like 'PROBLEMATIC_INSTANCE_HERE'
 update posts SET userId='DELETED_USER_ID' where userId in (select id from users where users.federatedHostId like'ID_OF_INSTANCE')
 -- we remove mentions
 delete from postMentionsUserRelations where userId in (select id from users where users.federatedHostId like'ID_OF_INSTANCE');
+-- we remove likes
+delete from userLikesPostRelations where userId in (select id from users where users.federatedHostId like'ID_OF_INSTANCE');
+-- we remove follows
+delete from follows where followerId in (select id from users where users.federatedHostId like'ID_OF_INSTANCE');
+delete from follows where followedId in (select id from users where users.federatedHostId like'ID_OF_INSTANCE');
 -- we remove users
 DELETE FROM users where users.federatedHostId like 'ID_OF_INSTANCE'
 -- we delete instance

@@ -15,6 +15,20 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
     })
   }
   const url = new URL(actorUrl)
+  const hostBanned = await FederatedHost.findOne({
+    where: {
+      displayName: url.host,
+      blocked: true
+    }
+  })
+
+  if(hostBanned) {
+    return await User.findOne({
+      where: {
+        url: environment.deletedUser
+      }
+    })
+  }
 
   let remoteUser = await User.findOne({
     where: {

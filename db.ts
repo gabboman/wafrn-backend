@@ -56,7 +56,11 @@ const User = sequelize.define('users', {
     primaryKey: true
   },
   remoteInbox: Sequelize.TEXT,
-  remoteId: Sequelize.TEXT
+  remoteId: Sequelize.TEXT,
+  banned: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false
+  }
 })
 
 const Follows = sequelize.define('follows', {

@@ -74,6 +74,7 @@ export default function userRoutes(app: Application) {
             activated: false,
             registerIp: getIp(req),
             lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
+            banned: false,
             activationCode,
             privateKey,
             publicKey

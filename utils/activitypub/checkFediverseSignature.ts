@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { User } from '../../db'
+import { FederatedHost, User } from '../../db'
 import { environment } from '../../environment'
 import { logger } from '../logger'
 import { getRemoteActor } from './getRemoteActor'
@@ -18,14 +18,24 @@ export default async function checkFediverseSignature(req: Request, res: Respons
     // TODO check signatures for the love of god
     success = true
     try {
-      /* TODO do stuff here
+      // TODO do stuff here
       const sigHead = httpSignature.parse(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       const remoteUser = await getRemoteActor(remoteUserUrl, await user)
       const remoteKey = remoteUser.publicKey
-      // TODO still not finished
-      */
-      success = true
+       success = true
+
+       const hostBanned = await FederatedHost.findOne({
+        where: {
+          displayName: new URL(remoteUserUrl).host,
+          blocked: true
+        }
+      })
+
+      if(hostBanned || remoteUser.banned) {
+        success = false;
+        logger.trace(`Ignoring message from ${remoteUserUrl} because its on our list of evildoers`)
+      }
       //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
       //success = httpSignature.verifySignature(sigHead,  remoteKey)
     } catch (error: any) {

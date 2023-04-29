@@ -50,7 +50,6 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
   // we remove the wafrnmedia from the post for the outside world, as they get this on the attachments
   processedContent = processedContent.replace(wafrnMediaRegex, '')
   const mentions = processedContent.matchAll(mentionRegex)
-  const replacementsWafrnMentions: Array<{ wafrnMentionstringToReplace: string; url: string }> = []
   const fediMentions: any = []
   for await (const mention of mentions) {
     const userId = mention[0].match(uuidRegex)[0]

@@ -12,7 +12,7 @@ const queryInterface = sequelize.getQueryInterface()
 
 async function dbUpdate() {
   // Add new table
-
+  /*
   await queryInterface.createTable('userLikesPostRelations', {
     userId: {
       type: Sequelize.UUID,
@@ -41,20 +41,19 @@ async function dbUpdate() {
     createdAt: Sequelize.DATE,
     updatedAt: Sequelize.DATE
   })
+  */
   // add column
 
-  /*
  await queryInterface.addColumn(
-  'posts',
-  'privacy', {
-    type: Sequelize.INTEGER,
+  'users',
+  'banned', {
+    type: Sequelize.BOOLEAN,
     allowNull: false,
-    defaultValue: 0,
+    defaultValue: false,
     unique: false
   }
 )
 
-*/
 }
 
 /*

@@ -3,7 +3,7 @@ import { logger } from '../logger'
 import { postPetitionSigned } from './postPetitionSigned'
 import { postToJSONLD } from './postToJSONLD'
 import { LdSignature } from './rsa2017'
-import { User } from '../../db'
+import { User, sequelize } from '../../db'
 import getRemoteFollowers from './getRemoteFollowers'
 import { environment } from '../../environment'
 const _ = require('underscore')
@@ -25,7 +25,9 @@ async function sendRemotePost(localUser: any, post: any) {
     const allUserInbox = await User.findAll({
       where: {
         remoteInbox: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: 'DELETED_USER' }] },
-        activated: true
+        activated: true,
+        banned: false,
+        literal: sequelize.literal("federatedHostId not in (SELECT id from federatedHosts where blocked = 1)")
       }
     })
     usersToSendThePost = _.groupBy(allUserInbox, 'federatedHostId')
