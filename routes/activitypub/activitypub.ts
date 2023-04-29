@@ -392,40 +392,41 @@ function activityPubRoutes(app: Application) {
             res.sendStatus(200)
             const body = req.body.object
             try {
-              switch (body.type) {
-                case 'Tombstone': {
-                  const postToDelete = await Post.findOne({
-                    where: {
-                      remotePostId: body.id
-                    }
-                  })
-                  if (postToDelete) {
-                    const children = await postToDelete.getChildren()
-                    if (children && children.length > 0) {
-                      postToDelete.content = 'Post has been deleted'
-                      await postToDelete.save()
-                    } else {
-                      await postToDelete.destroy()
-                    }
-                  }
-                  await signAndAccept(req, remoteUser, user)
-                  break
+              if (typeof body === 'string') {
+                // we assume its just the url of an user
+                const userDeleted = await removeUser(req.body.object)
+                if (!userDeleted) {
+                  //logger.debug(`User ${req.body.object} has not been found because is already deleted probably`)
                 }
-                case undefined: {
-                  // we assume its just the url of an user
-                  const userDeleted = await removeUser(req.body.object)
-                  if (!userDeleted) {
-                    //logger.debug(`User ${req.body.object} has not been found because is already deleted probably`)
+                await signAndAccept(req, remoteUser, user)
+                break
+              } else {
+                switch (body.type) {
+                  case 'Tombstone': {
+                    const postToDelete = await Post.findOne({
+                      where: {
+                        remotePostId: body.id
+                      }
+                    })
+                    if (postToDelete) {
+                      const children = await postToDelete.getChildren()
+                      if (children && children.length > 0) {
+                        postToDelete.content = 'Post has been deleted'
+                        await postToDelete.save()
+                      } else {
+                        await postToDelete.destroy()
+                      }
+                    }
+                    await signAndAccept(req, remoteUser, user)
+                    break
                   }
-                  await signAndAccept(req, remoteUser, user)
-                  break
+                  default:
+                    {
+                      logger.info(`DELETE not implemented ${body.type}`)
+                      logger.info(body)
+                    }
+                    break
                 }
-                default:
-                  {
-                    logger.info(`DELETE not implemented ${body.type}`)
-                    logger.info(body)
-                  }
-                  break
               }
             } catch (error) {
               logger.debug({
