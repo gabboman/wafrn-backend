@@ -32,7 +32,6 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const medias = []
       const fediMentions = postPetition.tag
         .filter((elem: any) => elem.type === 'Mention')
-        .filter((elem: any) => elem.href.startsWith(environment.frontendUrl))
       let privacy = 10
       if (postPetition.to.indexOf('https://www.w3.org/ns/activitystreams#Public') !== -1) {
         // post is PUBLIC
@@ -73,8 +72,10 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const mentionedUsersIds = []
       try {
         for await (const mention of fediMentions) {
-          const username = mention.href.substring(`${environment.frontendUrl}/fediverse/blog/`.length)
-          const mentionedUser = await User.findOne({
+          let mentionedUser;
+          if (mention.href.indexOf(environment.frontendUrl) !== -1 ){
+            const username = mention.href.substring(`${environment.frontendUrl}/fediverse/blog/`.length)
+            mentionedUser = await User.findOne({
             where: {
               [Op.or]: [
                 sequelize.where(
@@ -86,6 +87,10 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
               ]
             }
           })
+          } else {
+            mentionedUser = await getRemoteActor(mention.href, user)
+          }
+          
           mentionedUsersIds.push(mentionedUser.id)
         }
       } catch (error) {
