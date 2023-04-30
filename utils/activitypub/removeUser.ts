@@ -41,7 +41,7 @@ async function removeUser(userId: string) {
       deleted = true
     }
   } catch (error) {
-    logger.debug({
+    logger.trace({
       message: 'Error deleting user',
       error: error,
       userId: userId

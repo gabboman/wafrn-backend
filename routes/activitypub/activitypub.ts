@@ -439,7 +439,7 @@ function activityPubRoutes(app: Application) {
                 }
               }
             } catch (error) {
-              logger.debug({
+              logger.trace({
                 message: 'error with delete petition',
                 error: error,
                 petition: req.body
@@ -454,7 +454,7 @@ function activityPubRoutes(app: Application) {
           }
         }
       } catch (error) {
-        logger.debug({
+        logger.trace({
           error: error,
           type: req.body.type
         })
