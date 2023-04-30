@@ -17,6 +17,7 @@ export const environment = {
   uploadSize: 50,
   postsPerPage: 20,
   logLevel: 'debug',
+  blocklistUrl: 'https://codeberg.org/oliphant/blocklists/raw/branch/main/blocklists/_unified_tier0_blocklist.csv',
   pinoTransportOptions: {
     targets: [
       {
