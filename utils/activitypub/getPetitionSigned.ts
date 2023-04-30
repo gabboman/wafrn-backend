@@ -2,6 +2,8 @@ import { createHash, createSign } from 'node:crypto'
 import { environment } from '../../environment'
 import axios from 'axios'
 import { logger } from '../logger'
+import { User } from '../../db'
+import { removeUser } from './removeUser'
 
 async function getPetitionSigned(user: any, target: string): Promise<any> {
   let res = undefined
@@ -40,12 +42,23 @@ async function getPetitionSigned(user: any, target: string): Promise<any> {
     }
     const axiosResponse = await axios.get(target, { headers: headers })
     res = axiosResponse.data
-  } catch (error) {
-    logger.trace({
-      message: 'Error with signed get petition',
-      url: target,
-      error: error
-    })
+  } catch (error: any) {
+    if(error.response.status === 410) {
+      const userToRemove = await User.findOne({
+        where: {
+          remoteInbox: target
+        }
+      })
+      if(userToRemove) {
+        removeUser(userToRemove.id)
+      }
+    } else {
+      logger.trace({
+        message: 'Error with signed get petition',
+        url: target,
+        error: error
+      })
+    }
   }
   return res
 }
