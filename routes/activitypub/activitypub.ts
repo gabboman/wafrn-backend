@@ -290,11 +290,24 @@ function activityPubRoutes(app: Application) {
                     }
                   ]
                 })
-                let mediaString = ''
-                postToEdit.medias.forEach((mediaInPost: any) => {
-                  mediaString = `${mediaString}[wafrnmediaid="${mediaInPost.id}"]`
-                })
-                postToEdit.content = `${body.content}<p>Post edited at ${body.updated}</p>`
+                let mediasString = '';
+                const medias = [];
+                if (body.attachment && body.attachment.length > 0) {
+                  for await (const remoteFile of body.attachment) {
+                    const wafrnMedia = await Media.create({
+                      url: remoteFile.url,
+                      NSFW: body?.sensitive,
+                      adultContent: !!body?.sensitive,
+                      userId: remoteUser.id,
+                      description: remoteFile.name,
+                      ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
+                      external: true
+                    })
+                    medias.push(wafrnMedia)
+                    mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
+                  }
+                }
+                postToEdit.content = `${body.content}<p>${mediasString}<p>Post edited at ${body.updated}</p>`
                 postToEdit.updatedAt = body.updated
                 await postToEdit.save()
                 const acceptResponse = await signAndAccept(req, remoteUser, user)

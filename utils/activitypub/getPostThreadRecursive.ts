@@ -46,8 +46,8 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         for await (const remoteFile of postPetition.attachment) {
           const wafrnMedia = await Media.create({
             url: remoteFile.url,
-            NSFW: remotePostObject?.sensitive,
-            adultContent: !!remotePostObject?.sensitive,
+            NSFW: postPetition?.sensitive,
+            adultContent: !!postPetition?.sensitive,
             userId: remoteUser.id,
             description: remoteFile.name,
             ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
