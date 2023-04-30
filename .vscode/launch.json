@@ -38,7 +38,7 @@
         "runtimeExecutable": "node",
         "runtimeArgs": ["--nolazy", "-r", "ts-node/register/transpile-only"],
   
-        "args": ["updateDatabase/updateContent.ts"],
+        "args": ["updateDatabase/blockHosts.ts"],
         
         "cwd": "${workspaceRoot}",
         "internalConsoleOptions": "openOnSessionStart",
