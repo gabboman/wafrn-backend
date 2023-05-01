@@ -74,17 +74,28 @@ export default function searchRoutes(app: Application) {
     // const success = false;
     let users: any = []
     const searchTerm = req.params.term.toLowerCase().trim()
-    users = User.findAll({
+    users = await User.findAll({
       limit: 5,
       where: {
         activated: true,
+        url: {[Op.like]: '@%'},
         [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
       },
       attributes: ['url', 'avatar', 'id', 'remoteId']
     })
 
+    const localUsers = await User.findAll({
+      limit: 5,
+      where: {
+        activated: true,
+        url: {[Op.notLike]: '@%'},
+        [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
+      },
+      attributes: ['url', 'avatar', 'id', 'remoteId']
+    })
+    const result = localUsers.concat(users).concat(await searchRemoteUser(searchTerm, await User.findOne({ where: { id: posterId } })))
     res.send({
-      users: (await users).concat(await searchRemoteUser(searchTerm, await User.findOne({ where: { id: posterId } })))
+      users: result
     })
   })
 }
