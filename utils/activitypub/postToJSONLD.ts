@@ -56,9 +56,9 @@ async function postToJSONLD(post: any, usersToSendThePost: string[]) {
     const user = await User.findOne({ where: { id: userId } })
     processedContent = processedContent.replace(
       mention,
-      `<a href="${user.remoteId ? user.remoteId : `${environment.frontendUrl}/fediverse/blog/${user.url}`}" >@${
+      `<span class="h-card"><a class="u-url mention" rel="ugc" href="${user.remoteId ? user.remoteId : `${environment.frontendUrl}/fediverse/blog/${user.url}`}" >@<span>${
         user.url.startsWith('@') ? user.url.substring(1) : user.url
-      }</a>`
+      }</span></a></span>`
     )
     fediMentions.push({
       type: 'Mention',
