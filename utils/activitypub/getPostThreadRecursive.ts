@@ -4,6 +4,7 @@ import { environment } from '../../environment'
 import { logger } from '../logger'
 import { getRemoteActor } from './getRemoteActor'
 import { getPetitionSigned } from './getPetitionSigned'
+import { fediverseTag } from '../../interfaces/fediverse/tags'
 
 async function getPostThreadRecursive(user: any, remotePostId: string, remotePostObject?: any) {
   if (remotePostId.startsWith(`${environment.frontendUrl}/fediverse/post/`)) {
@@ -30,9 +31,9 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
       let mediasString = ''
       const medias = []
-      const fediTags: {href: string, name: string, type: string}[] = postPetition.tag
+      const fediTags: fediverseTag[] = postPetition.tag
       .filter((elem: any) => elem.type === 'Hashtag')
-      const fediMentions = postPetition.tag
+      const fediMentions: fediverseTag[] = postPetition.tag
         .filter((elem: any) => elem.type === 'Mention')
       let privacy = 10
       if (postPetition.to.indexOf('https://www.w3.org/ns/activitystreams#Public') !== -1) {

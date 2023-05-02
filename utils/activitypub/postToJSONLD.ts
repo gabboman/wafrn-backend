@@ -1,6 +1,7 @@
 import { Op } from 'sequelize'
 import { Post, User } from '../../db'
 import { environment } from '../../environment'
+import { fediverseTag } from '../../interfaces/fediverse/tags'
 
 async function postToJSONLD(post: any) {
   const localUser = await User.findOne({
@@ -23,7 +24,7 @@ async function postToJSONLD(post: any) {
       .map((elem: any) => elem.remoteInbox)
   }
   let parentPostString = null
-  let conversationString = `${environment.frontendUrl}/fediverse/conversation/${post.id}`
+  const conversationString = `${environment.frontendUrl}/fediverse/conversation/${post.id}`
   if (post.parentId) {
     let dbPost = await Post.findOne({
       where: {
@@ -50,7 +51,23 @@ async function postToJSONLD(post: any) {
   // we remove the wafrnmedia from the post for the outside world, as they get this on the attachments
   processedContent = processedContent.replace(wafrnMediaRegex, '')
   const mentions = processedContent.matchAll(mentionRegex)
-  const fediMentions: any = []
+  const fediMentions: fediverseTag[] = []
+  const fediTags: fediverseTag[] = []
+  let finalTags = "<br>"
+  for await (const tag of await post.getTags()) {
+    const externalTagName = tag.tagName.replaceAll(' ', '-').replaceAll('"', "'")
+    const link = `${environment.frontendUrl}/dashboard/search/${encodeURIComponent(tag.tagName)}`
+    finalTags = `${
+      finalTags
+    }  <a class="hashtag" data-tag="post" href="${
+      link
+    }" rel="tag ugc">#${externalTagName}</a>`
+    fediTags.push({
+      type: 'Hashtag',
+      name: `#${externalTagName}`,
+      href: link
+    })
+  }
   for await (const mention of mentions) {
     const userId = mention[0].match(uuidRegex)[0]
     const user = await User.findOne({ where: { id: userId } })
@@ -122,7 +139,7 @@ async function postToJSONLD(post: any) {
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
       conversation: conversationString,
-      content: processedContent,
+      content: processedContent + finalTags,
       attachment: postMedias.map((media: any) => {
         const extension = media.url.split('.')[media.url.split('.').length - 1].toLowerCase()
         return {
@@ -133,7 +150,7 @@ async function postToJSONLD(post: any) {
           name: media.description
         }
       }),
-      tag: fediMentions,
+      tag: fediMentions.concat(fediTags),
       replies: {
         id: `${environment.frontendUrl}/fediverse/post/${post.id}/replies`,
         type: 'Collection',
