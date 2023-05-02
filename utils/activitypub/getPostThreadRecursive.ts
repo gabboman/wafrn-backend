@@ -1,5 +1,5 @@
 import { Op } from 'sequelize'
-import { Media, Post, PostMentionsUserRelation, User, sequelize } from '../../db'
+import { Media, Post, PostMentionsUserRelation, Tag, User, sequelize } from '../../db'
 import { environment } from '../../environment'
 import { logger } from '../logger'
 import { getRemoteActor } from './getRemoteActor'
@@ -30,6 +30,8 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
       let mediasString = ''
       const medias = []
+      const fediTags: {href: string, name: string, type: string}[] = postPetition.tag
+      .filter((elem: any) => elem.type === 'Hashtag')
       const fediMentions = postPetition.tag
         .filter((elem: any) => elem.type === 'Mention')
       let privacy = 10
@@ -70,6 +72,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         privacy: privacy
       }
       const mentionedUsersIds = []
+      const tagsToAdd = []
       try {
         for await (const mention of fediMentions) {
           let mentionedUser;
@@ -96,12 +99,36 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       } catch (error) {
         logger.info('problem processing mentions')
       }
+      try {
+
+        for await (const federatedTag of fediTags) {
+          // remove #
+          const tagToAdd = federatedTag.name.substring(1)
+          const existingTag = await Tag.findOne({
+            where: {
+              tagName: tagToAdd
+            }
+          })
+          if(existingTag) {
+            tagsToAdd.push(existingTag)
+          } else {
+            const newTag = await Tag.create({
+              tagName: tagToAdd
+            })
+            tagsToAdd.push(newTag)
+          }
+        }
+      } catch(error) {
+        logger.info('problem processing tags')
+
+      }
       if (postPetition.inReplyTo) {
         const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
         const newPost = await Post.create(postToCreate)
         await newPost.setParent(parent)
         await newPost.save()
         newPost.addMedias(medias)
+        newPost.addTags(tagsToAdd)
         for await (const mention of mentionedUsersIds) {
           PostMentionsUserRelation.create({
             userId: mention,
@@ -112,6 +139,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       } else {
         const post = await Post.create(postToCreate)
         post.addMedias(medias)
+        post.addTags(tagsToAdd)
         for await (const mention of mentionedUsersIds) {
           PostMentionsUserRelation.create({
             userId: mention,
