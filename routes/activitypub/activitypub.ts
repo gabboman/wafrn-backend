@@ -25,12 +25,15 @@ function activityPubRoutes(app: Application) {
     if (req.params?.id) {
       const post = await Post.findOne({
         where: {
-          id: req.params.id
+          id: req.params.id,
+          privacy: {
+            [Op.notIn]: [2,10] 
+          }
         }
       })
       if (post) {
         // TODO corregir esto seguramente
-        res.send(await postToJSONLD(post, []))
+        res.send(await postToJSONLD(post))
       } else {
         res.sendStatus(404)
       }

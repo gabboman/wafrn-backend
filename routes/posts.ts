@@ -179,7 +179,9 @@ export default function postsRoutes(app: Application) {
           success = true
         }
         res.send(post)
-        sendRemotePost(await User.findOne({ where: { id: posterId } }), post)
+        if(post.privacy.toString() !== '2') {
+          sendRemotePost(await User.findOne({ where: { id: posterId } }), post)
+        }
       }
     } catch (error) {
       logger.error(error)

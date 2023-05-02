@@ -33,7 +33,7 @@ async function sendRemotePost(localUser: any, post: any) {
     usersToSendThePost = _.groupBy(allUserInbox, 'federatedHostId')
   }
   if (usersToSendThePost && Object.keys(usersToSendThePost).length > 0) {
-    const objectToSend = await postToJSONLD(post, usersToSendThePost)
+    const objectToSend = await postToJSONLD(post)
     const ldSignature = new LdSignature()
     const bodySignature: any = await ldSignature.signRsaSignature2017(
       objectToSend,

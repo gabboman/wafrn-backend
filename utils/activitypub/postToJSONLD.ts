@@ -2,7 +2,7 @@ import { Op } from 'sequelize'
 import { Post, User } from '../../db'
 import { environment } from '../../environment'
 
-async function postToJSONLD(post: any, usersToSendThePost: string[]) {
+async function postToJSONLD(post: any) {
   const localUser = await User.findOne({
     where: {
       id: post.userId
