@@ -30,76 +30,6 @@ export default function notificationRoutes(app: Application) {
     })
   })
 
-  app.get('/notifications', authenticateToken, async (req: any, res) => {
-    const userId = req.jwtData.userId
-    const user = await User.findOne({
-      where: {
-        id: userId
-      }
-    })
-    const blockedUsers = await getBlockedIds(userId)
-    const perPostReblogs = getReblogs(user)
-    const newFollows = user.getFollower({
-      where: {
-        createdAt: {
-          [Op.gt]: new Date(user.lastTimeNotificationsCheck)
-        }
-      },
-      attributes: ['url', 'avatar']
-    })
-    const newMentions = PostMentionsUserRelation.findAll({
-      where: {
-        createdAt: {
-          [Op.gt]: new Date(user.lastTimeNotificationsCheck)
-        },
-        userId
-      },
-      include: [
-        {
-          model: Post,
-          include: [
-            {
-              model: User,
-              attributes: ['avatar', 'url', 'description', 'id']
-            }
-          ]
-        }
-      ]
-    })
-
-    const newLikes = UserLikesPostRelations.findAll({
-      where: {
-        createdAt: {
-          [Op.gt]: new Date(user.lastTimeNotificationsCheck)
-        },
-        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
-      },
-      include: [
-        {
-          model: User,
-          attributes: ['avatar', 'url', 'description', 'id']
-        }
-      ]
-    })
-    res.send({
-      follows: (await newFollows).filter((newFollow: any) => !blockedUsers.includes(newFollow.id)),
-      reblogs: (await perPostReblogs).filter((newReblog: any) => !blockedUsers.includes(newReblog.user.id)),
-      mentions: (await newMentions)
-        .filter((newMention: any) => {
-          return !blockedUsers.includes(newMention.post.userId)
-        })
-        .map((mention: any) => {
-          return {
-            user: mention.post.user,
-            content: mention.post.content,
-            id: mention.post.id,
-            createdAt: mention.createdAt,
-            parentId: mention.post.parentId
-          }
-        }),
-      likes: await newLikes
-    })
-  })
 
   app.get('/notificationsScroll', authenticateToken, async (req: any, res) => {
     const page = Number(req?.query.page) || 0
@@ -194,6 +124,61 @@ export default function notificationRoutes(app: Application) {
         }
       }),
       likes: await newLikes
+    })
+  })
+
+  // TODO: do it better with a count instead of this thing you've done here
+  app.get('/notificationsCount', authenticateToken, async (req: any, res) => {
+    const tmp =  getStartScrollParam(req)
+    const userId = req.jwtData.userId
+    const user = await User.findOne({
+      where: {
+        id: userId
+      }
+    })
+    const blockedUsers = await getBlockedIds(userId)
+    const perPostReblogs = await Post.findAll({
+      where: {
+        createdAt: {
+          [Op.gt]: getStartScrollParam(req)
+        },
+        literal: Sequelize.literal(
+          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId like "${userId}")) AND userId NOT LIKE "${userId}"`
+        )
+      },
+      attributes: ['id']
+    })
+    const newFollows = await user.getFollower({
+      where: {
+        createdAt: {
+          [Op.gt]: getStartScrollParam(req)
+        }
+      },
+      attributes: ['id']
+    })
+    const newMentions = PostMentionsUserRelation.findAll({
+      where: {
+        createdAt: {
+          [Op.gt]: getStartScrollParam(req)
+        },
+        userId
+      },
+      attributes: ['postId']
+    })
+
+    const newLikes = UserLikesPostRelations.findAll({
+      where: {
+        createdAt: {
+          [Op.gt]: getStartScrollParam(req)
+        },
+        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
+      },
+      attributes: ['postId']
+    })
+
+    res.send({
+      notifications: (await newFollows).length + (await perPostReblogs).length + (await newMentions).length + (await newLikes).length,
+      
     })
   })
 }
