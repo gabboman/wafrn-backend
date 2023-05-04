@@ -70,7 +70,7 @@ async function postToJSONLD(post: any) {
   }
   for await (const mention of mentions) {
     const userId = mention[0].match(uuidRegex)[0]
-    const user = await User.findOne({ where: { id: userId } })
+    const user = await User.findOne({ where: { id: userId } }) || await User.findOne({where: { url: environment.deletedUser}})
     processedContent = processedContent.replace(
       mention,
       `<span class="h-card"><a class="u-url mention" rel="ugc" href="${user.remoteId ? user.remoteId : `${environment.frontendUrl}/fediverse/blog/${user.url}`}" >@<span>${

@@ -73,7 +73,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         privacy: privacy
       }
       const mentionedUsersIds = []
-      const tagsToAdd = []
+      const tagsToAdd: any = []
       try {
         for await (const mention of fediMentions) {
           let mentionedUser;
@@ -110,9 +110,9 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
               tagName: tagToAdd
             }
           })
-          if(existingTag) {
+          if(existingTag && tagsToAdd.find((elem: any) => elem.tagName === existingTag.tagName)) {
             tagsToAdd.push(existingTag)
-          } else {
+          } else if(!existingTag) {
             const newTag = await Tag.create({
               tagName: tagToAdd
             })
