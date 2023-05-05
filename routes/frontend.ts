@@ -67,9 +67,9 @@ export default function frontend(app: Application) {
     app.get('/blog/:id', async function (req, res) {
         if (req.params?.id) {
             try {
-                const blog = await Blog.findOne({
+                const blog = await User.findOne({
                     where: {
-                      id: req.params.id,
+                      url: req.params.id,
                       privacy: { [Op.ne]: 10 }
                     },
                     attributes: ['content'],
