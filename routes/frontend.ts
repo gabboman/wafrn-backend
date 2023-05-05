@@ -7,13 +7,14 @@ import fs from 'fs';
 export default function frontend(app: Application) {
 
     function getIndexSeo(title: string, description: string, image: string) {
+        const sanitizedTitle = title.replaceAll('"', "'")
         const sanitizedDescription = description.replaceAll('"', "'").substring(0, 500)
         const imgUrl = image.toLowerCase().startsWith('htt') ? environment.externalCacheurl + encodeURIComponent(image) : environment.mediaUrl + image
         let indexWithSeo = fs.readFileSync(`${environment.frontedLocation}/index.html`).toString()
         // index html must have a section with this html comment that we will edit out to put the seo there
         const commentToReplace = "<!-- REMOVE THIS IN EXPRESS FOR SEO -->"
-        indexWithSeo = indexWithSeo.replace(commentToReplace, `<meta property="og:title" content="${title}">
-        <meta name="twitter:title" content="${title}">
+        indexWithSeo = indexWithSeo.replace(commentToReplace, `<meta property="og:title" content="${sanitizedTitle}">
+        <meta name="twitter:title" content="${sanitizedTitle}">
         
         <meta name="description" content="${sanitizedDescription}">
         <meta property="og:description" content="${sanitizedDescription}">
@@ -46,7 +47,11 @@ export default function frontend(app: Application) {
                     ]
                   })
                   if(post) {
-                      res.send(getIndexSeo(`Post by ${post.user.url}`, post.content, post.user.avatar ))
+                    const title = `Post by ${post.user.url}`
+                    const description = post.content
+                    const safeMedia = post.medias?.find((elem: any) => elem.NSFW === false)
+                    const img = safeMedia ? safeMedia.url : post.user.avatar
+                    res.send(getIndexSeo(title, description, img ))
                   } else {
                       res.status(200).sendFile('/', { root: environment.frontedLocation })
                   }
