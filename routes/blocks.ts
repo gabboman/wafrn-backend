@@ -4,7 +4,7 @@ import authenticateToken from '../utils/authenticateToken'
 import { logger } from '../utils/logger'
 
 export default function blockRoutes(app: Application) {
-  app.post('/block', authenticateToken, async (req: any, res) => {
+  app.post('/api/block', authenticateToken, async (req: any, res) => {
     let success = false
     try {
       const posterId = req.jwtData.userId
@@ -27,7 +27,7 @@ export default function blockRoutes(app: Application) {
     })
   })
 
-  app.post('/unblock', authenticateToken, async (req: any, res) => {
+  app.post('/api/unblock', authenticateToken, async (req: any, res) => {
     let success = false
     const posterId = req.jwtData.userId
     if (req.body?.userId) {

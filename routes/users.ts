@@ -19,7 +19,7 @@ import { environment } from '../environment'
 import { logger } from '../utils/logger'
 
 export default function userRoutes(app: Application) {
-  app.post('/register', uploadHandler.single('avatar'), async (req, res) => {
+  app.post('/api/register', uploadHandler.single('avatar'), async (req, res) => {
     let success = false
     try {
       if (
@@ -105,7 +105,7 @@ export default function userRoutes(app: Application) {
     }
   })
 
-  app.post('/editProfile', authenticateToken, uploadHandler.single('avatar'), async (req, res) => {
+  app.post('/api/editProfile', authenticateToken, uploadHandler.single('avatar'), async (req, res) => {
     let success = false
     try {
       const posterId = (req as any).jwtData.userId
@@ -139,7 +139,7 @@ export default function userRoutes(app: Application) {
     })
   })
 
-  app.post('/forgotPassword', async (req, res) => {
+  app.post('/api/forgotPassword', async (req, res) => {
     const resetCode = generateRandomString()
     try {
       if (
@@ -177,7 +177,7 @@ export default function userRoutes(app: Application) {
     res.send({ success: true })
   })
 
-  app.post('/activateUser', async (req, res) => {
+  app.post('/api/activateUser', async (req, res) => {
     let success = false
     if (req.body?.email && validateEmail(req.body.email) && req.body.code) {
       const user = await User.findOne({
@@ -198,7 +198,7 @@ export default function userRoutes(app: Application) {
     })
   })
 
-  app.post('/resetPassword', async (req, res) => {
+  app.post('/api/resetPassword', async (req, res) => {
     let success = false
 
     try {
@@ -229,7 +229,7 @@ export default function userRoutes(app: Application) {
     })
   })
 
-  app.post('/login', async (req, res) => {
+  app.post('/api/login', async (req, res) => {
     let success = false
     try {
       if (
@@ -283,7 +283,7 @@ export default function userRoutes(app: Application) {
     }
   })
 
-  app.get('/user', async (req, res) => {
+  app.get('/api/user', async (req, res) => {
     let success = false
     if (req.query?.id) {
       const blogId: string = (req.query.id || '').toString().toLowerCase().trim()

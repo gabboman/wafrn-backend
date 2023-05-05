@@ -9,7 +9,7 @@ import { environment } from '../environment'
 import { logger } from '../utils/logger'
 
 export default function mediaRoutes(app: Application) {
-  app.post('/uploadMedia', authenticateToken, uploadHandler.array('image'), async (req, res) => {
+  app.post('/api/uploadMedia', authenticateToken, uploadHandler.array('image'), async (req, res) => {
     let result = []
     const picturesPromise = [] as Array<Promise<any>>
 
@@ -49,7 +49,7 @@ export default function mediaRoutes(app: Application) {
     res.send(result)
   })
 
-  app.get('/updateMedia', authenticateToken, async (req: any, res) => {
+  app.get('/api/updateMedia', authenticateToken, async (req: any, res) => {
     let success = false
     try {
       const posterId = req.jwtData.userId

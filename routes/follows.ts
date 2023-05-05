@@ -8,7 +8,7 @@ import { remoteFollow } from '../utils/activitypub/remoteFollow'
 import { remoteUnfollow } from '../utils/activitypub/remoteUnfollow'
 
 export default function followsRoutes(app: Application) {
-  app.post('/follow', authenticateToken, async (req: any, res) => {
+  app.post('/api/follow', authenticateToken, async (req: any, res) => {
     // TODO remote user follow
     let success = false
     try {
@@ -40,7 +40,7 @@ export default function followsRoutes(app: Application) {
     })
   })
 
-  app.post('/unfollow', authenticateToken, async (req: any, res) => {
+  app.post('/api/unfollow', authenticateToken, async (req: any, res) => {
     // TODO remote user unfollow
     let success = false
     try {
@@ -73,7 +73,7 @@ export default function followsRoutes(app: Application) {
     })
   })
 
-  app.get('/getFollowedUsers', authenticateToken, async (req: any, res) => {
+  app.get('/api/getFollowedUsers', authenticateToken, async (req: any, res) => {
     const followedUsers = getFollowedsIds(req.jwtData.userId)
     const blockedUsers = getBlockedIds(req.jwtData.userId)
     await Promise.all([followedUsers, blockedUsers])

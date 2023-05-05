@@ -44,16 +44,12 @@ async function dbUpdate() {
   */
   // add column
 
- await queryInterface.addColumn(
-  'users',
-  'banned', {
+  await queryInterface.addColumn('users', 'banned', {
     type: Sequelize.BOOLEAN,
     allowNull: false,
     defaultValue: false,
     unique: false
-  }
-)
-
+  })
 }
 
 /*

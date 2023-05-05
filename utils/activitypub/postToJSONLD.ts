@@ -53,15 +53,11 @@ async function postToJSONLD(post: any) {
   const mentions = processedContent.matchAll(mentionRegex)
   const fediMentions: fediverseTag[] = []
   const fediTags: fediverseTag[] = []
-  let finalTags = "<br>"
+  let finalTags = '<br>'
   for await (const tag of await post.getTags()) {
     const externalTagName = tag.tagName.replaceAll(' ', '-').replaceAll('"', "'")
     const link = `${environment.frontendUrl}/dashboard/search/${encodeURIComponent(tag.tagName)}`
-    finalTags = `${
-      finalTags
-    }  <a class="hashtag" data-tag="post" href="${
-      link
-    }" rel="tag ugc">#${externalTagName}</a>`
+    finalTags = `${finalTags}  <a class="hashtag" data-tag="post" href="${link}" rel="tag ugc">#${externalTagName}</a>`
     fediTags.push({
       type: 'Hashtag',
       name: `#${externalTagName}`,
@@ -70,12 +66,14 @@ async function postToJSONLD(post: any) {
   }
   for await (const mention of mentions) {
     const userId = mention[0].match(uuidRegex)[0]
-    const user = await User.findOne({ where: { id: userId } }) || await User.findOne({where: { url: environment.deletedUser}})
+    const user =
+      (await User.findOne({ where: { id: userId } })) ||
+      (await User.findOne({ where: { url: environment.deletedUser } }))
     processedContent = processedContent.replace(
       mention,
-      `<span class="h-card"><a class="u-url mention" rel="ugc" href="${user.remoteId ? user.remoteId : `${environment.frontendUrl}/fediverse/blog/${user.url}`}" >@<span>${
-        user.url.startsWith('@') ? user.url.substring(1) : user.url
-      }</span></a></span>`
+      `<span class="h-card"><a class="u-url mention" rel="ugc" href="${
+        user.remoteId ? user.remoteId : `${environment.frontendUrl}/fediverse/blog/${user.url}`
+      }" >@<span>${user.url.startsWith('@') ? user.url.substring(1) : user.url}</span></a></span>`
     )
     fediMentions.push({
       type: 'Mention',

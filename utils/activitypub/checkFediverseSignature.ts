@@ -23,17 +23,17 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       const remoteUser = await getRemoteActor(remoteUserUrl, await user)
       const remoteKey = remoteUser.publicKey
-       success = true
+      success = true
 
-       const hostBanned = await FederatedHost.findOne({
+      const hostBanned = await FederatedHost.findOne({
         where: {
           displayName: new URL(remoteUserUrl).host,
           blocked: true
         }
       })
 
-      if(hostBanned || remoteUser.banned) {
-        success = false;
+      if (hostBanned || remoteUser.banned) {
+        success = false
         logger.trace(`Ignoring message from ${remoteUserUrl} because its on our list of evildoers`)
       }
       //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)

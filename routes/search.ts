@@ -11,7 +11,7 @@ import authenticateToken from '../utils/authenticateToken'
 import { searchRemoteUser } from '../utils/activitypub/searchRemoteUser'
 
 export default function searchRoutes(app: Application) {
-  app.get('/search/', optionalAuthentication, async (req: any, res) => {
+  app.get('/api/search/', optionalAuthentication, async (req: any, res) => {
     const posterId = req.jwtData?.userId
     // const success = false;
     // eslint-disable-next-line max-len
@@ -69,7 +69,7 @@ export default function searchRoutes(app: Application) {
     })
   })
 
-  app.get('/userSearch/:term', authenticateToken, async (req: any, res) => {
+  app.get('/api/userSearch/:term', authenticateToken, async (req: any, res) => {
     const posterId = req.jwtData.userId
     // const success = false;
     let users: any = []
@@ -78,7 +78,7 @@ export default function searchRoutes(app: Application) {
       limit: 5,
       where: {
         activated: true,
-        url: {[Op.like]: '@%'},
+        url: { [Op.like]: '@%' },
         [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
       },
       attributes: ['url', 'avatar', 'id', 'remoteId']
@@ -88,12 +88,14 @@ export default function searchRoutes(app: Application) {
       limit: 5,
       where: {
         activated: true,
-        url: {[Op.notLike]: '@%'},
+        url: { [Op.notLike]: '@%' },
         [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
       },
       attributes: ['url', 'avatar', 'id', 'remoteId']
     })
-    const result = localUsers.concat(users).concat(await searchRemoteUser(searchTerm, await User.findOne({ where: { id: posterId } })))
+    const result = localUsers
+      .concat(users)
+      .concat(await searchRemoteUser(searchTerm, await User.findOne({ where: { id: posterId } })))
     res.send({
       users: result
     })

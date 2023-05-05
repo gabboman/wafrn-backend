@@ -27,7 +27,7 @@ function activityPubRoutes(app: Application) {
         where: {
           id: req.params.id,
           privacy: {
-            [Op.notIn]: [2,10] 
+            [Op.notIn]: [2, 10]
           }
         }
       })
@@ -293,8 +293,8 @@ function activityPubRoutes(app: Application) {
                     }
                   ]
                 })
-                let mediasString = '';
-                const medias = [];
+                let mediasString = ''
+                const medias = []
                 if (body.attachment && body.attachment.length > 0) {
                   for await (const remoteFile of body.attachment) {
                     const wafrnMedia = await Media.create({

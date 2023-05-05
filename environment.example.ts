@@ -16,6 +16,7 @@ export const environment = {
   adminUser: 'ADMIN_USER_URL',
   uploadSize: 50,
   postsPerPage: 20,
+  frontedLocation: '/Users/gabriel/Code/wafrn/wafrn/dist/wafrn/browser',
   logLevel: 'debug',
   blocklistUrl: 'https://codeberg.org/oliphant/blocklists/raw/branch/main/blocklists/_unified_tier0_blocklist.csv',
   pinoTransportOptions: {

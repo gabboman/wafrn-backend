@@ -22,7 +22,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
     }
   })
 
-  if(hostBanned) {
+  if (hostBanned) {
     return await User.findOne({
       where: {
         url: environment.deletedUser

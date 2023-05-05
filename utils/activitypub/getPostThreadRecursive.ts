@@ -31,10 +31,8 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
       let mediasString = ''
       const medias = []
-      const fediTags: fediverseTag[] = postPetition.tag
-      .filter((elem: any) => elem.type === 'Hashtag')
-      const fediMentions: fediverseTag[] = postPetition.tag
-        .filter((elem: any) => elem.type === 'Mention')
+      const fediTags: fediverseTag[] = postPetition.tag.filter((elem: any) => elem.type === 'Hashtag')
+      const fediMentions: fediverseTag[] = postPetition.tag.filter((elem: any) => elem.type === 'Mention')
       let privacy = 10
       if (postPetition.to.indexOf('https://www.w3.org/ns/activitystreams#Public') !== -1) {
         // post is PUBLIC
@@ -76,32 +74,31 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const tagsToAdd: any = []
       try {
         for await (const mention of fediMentions) {
-          let mentionedUser;
-          if (mention.href.indexOf(environment.frontendUrl) !== -1 ){
+          let mentionedUser
+          if (mention.href.indexOf(environment.frontendUrl) !== -1) {
             const username = mention.href.substring(`${environment.frontendUrl}/fediverse/blog/`.length)
             mentionedUser = await User.findOne({
-            where: {
-              [Op.or]: [
-                sequelize.where(
-                  sequelize.fn('LOWER', sequelize.col('url')),
-                  'LIKE',
-                  // TODO fix
-                  username.toLowerCase()
-                )
-              ]
-            }
-          })
+              where: {
+                [Op.or]: [
+                  sequelize.where(
+                    sequelize.fn('LOWER', sequelize.col('url')),
+                    'LIKE',
+                    // TODO fix
+                    username.toLowerCase()
+                  )
+                ]
+              }
+            })
           } else {
             mentionedUser = await getRemoteActor(mention.href, user)
           }
-          
+
           mentionedUsersIds.push(mentionedUser.id)
         }
       } catch (error) {
         logger.info('problem processing mentions')
       }
       try {
-
         for await (const federatedTag of fediTags) {
           // remove #
           const tagToAdd = federatedTag.name.substring(1)
@@ -110,18 +107,17 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
               tagName: tagToAdd
             }
           })
-          if(existingTag && tagsToAdd.find((elem: any) => elem.tagName === existingTag.tagName)) {
+          if (existingTag && tagsToAdd.find((elem: any) => elem.tagName === existingTag.tagName)) {
             tagsToAdd.push(existingTag)
-          } else if(!existingTag) {
+          } else if (!existingTag) {
             const newTag = await Tag.create({
               tagName: tagToAdd
             })
             tagsToAdd.push(newTag)
           }
         }
-      } catch(error) {
+      } catch (error) {
         logger.info('problem processing tags')
-
       }
       if (postPetition.inReplyTo) {
         const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)

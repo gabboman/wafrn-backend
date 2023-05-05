@@ -10,7 +10,7 @@ import getStartScrollParam from '../utils/getStartScrollParam'
 import { environment } from '../environment'
 
 export default function notificationRoutes(app: Application) {
-  app.post('/readNotifications', authenticateToken, async (req: any, res) => {
+  app.post('/api/readNotifications', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.jwtData.userId
       const user = await User.findOne({
@@ -30,8 +30,7 @@ export default function notificationRoutes(app: Application) {
     })
   })
 
-
-  app.get('/notificationsScroll', authenticateToken, async (req: any, res) => {
+  app.get('/api/notificationsScroll', authenticateToken, async (req: any, res) => {
     const page = Number(req?.query.page) || 0
     const userId = req.jwtData.userId
     const user = await User.findOne({
@@ -128,8 +127,8 @@ export default function notificationRoutes(app: Application) {
   })
 
   // TODO: do it better with a count instead of this thing you've done here
-  app.get('/notificationsCount', authenticateToken, async (req: any, res) => {
-    const tmp =  getStartScrollParam(req)
+  app.get('/api/notificationsCount', authenticateToken, async (req: any, res) => {
+    const tmp = getStartScrollParam(req)
     const userId = req.jwtData.userId
     const user = await User.findOne({
       where: {
@@ -177,8 +176,8 @@ export default function notificationRoutes(app: Application) {
     })
 
     res.send({
-      notifications: (await newFollows).length + (await perPostReblogs).length + (await newMentions).length + (await newLikes).length,
-      
+      notifications:
+        (await newFollows).length + (await perPostReblogs).length + (await newMentions).length + (await newLikes).length
     })
   })
 }

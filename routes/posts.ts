@@ -13,7 +13,7 @@ import { sendRemotePost } from '../utils/activitypub/sendRemotePost'
 import { logger } from '../utils/logger'
 
 export default function postsRoutes(app: Application) {
-  app.get('/singlePost/:id', async (req: any, res) => {
+  app.get('/api/singlePost/:id', async (req: any, res) => {
     let success = false
     if (req.params?.id) {
       const post = await Post.findOne({
@@ -34,7 +34,7 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.get('/blog', async (req: any, res) => {
+  app.get('/api/blog', async (req: any, res) => {
     let success = false
     const id = req.query.id
 
@@ -65,7 +65,7 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.post('/createPost', authenticateToken, async (req: any, res) => {
+  app.post('/api/createPost', authenticateToken, async (req: any, res) => {
     let success = false
     const posterId = req.jwtData.userId
     try {
@@ -179,7 +179,7 @@ export default function postsRoutes(app: Application) {
           success = true
         }
         res.send(post)
-        if(post.privacy.toString() !== '2') {
+        if (post.privacy.toString() !== '2') {
           sendRemotePost(await User.findOne({ where: { id: posterId } }), post)
         }
       }
@@ -192,7 +192,7 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.post('/reportPost', authenticateToken, async (req: any, res) => {
+  app.post('/api/reportPost', authenticateToken, async (req: any, res) => {
     let success = false
     let report
     try {

@@ -23,6 +23,7 @@ import overrideContentType from './utils/overrideContentType'
 import { environment } from './environment'
 import { logger } from './utils/logger'
 import { wellKnownRoutes } from './routes/activitypub/well-known'
+import frontend from './routes/frontend'
 
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
@@ -38,9 +39,9 @@ app.use(cors())
 //const pino = require('pino-http')()
 //app.use(pino)
 
-app.use('/apidocs', swagger.serve, swagger.setup(swaggerJSON))
+app.use('/api/apidocs', swagger.serve, swagger.setup(swaggerJSON))
 
-app.get('/', (req, res) =>
+app.get('/api/', (req, res) =>
   res.send({
     status: true,
     swagger: 'API docs at /apidocs',
@@ -54,7 +55,7 @@ app.use('/uploads', express.static('uploads'))
 
 app.use('/contexts', express.static('contexts'))
 
-app.get('/dashboard', authenticateToken, async (req: any, res) => {
+app.get('/api/dashboard', authenticateToken, async (req: any, res) => {
   const posterId = req.jwtData.userId
   const rawPostsByFollowed = await Post.findAll({
     ...getPostBaseQuery(req),
@@ -70,7 +71,7 @@ app.get('/dashboard', authenticateToken, async (req: any, res) => {
   res.send(responseWithNotes)
 })
 
-app.get('/exploreLocal', async (req: any, res) => {
+app.get('/api/exploreLocal', async (req: any, res) => {
   const rawPosts = await Post.findAll({
     ...getPostBaseQuery(req),
     where: {
@@ -84,7 +85,7 @@ app.get('/exploreLocal', async (req: any, res) => {
   res.send(responseWithNotes)
 })
 
-app.get('/explore', async (req: any, res) => {
+app.get('/api/explore', async (req: any, res) => {
   const rawPosts = await Post.findAll({
     where: {
       // date the user has started scrolling
@@ -97,7 +98,7 @@ app.get('/explore', async (req: any, res) => {
   res.send(responseWithNotes)
 })
 
-app.get('/private', authenticateToken, async (req: any, res) => {
+app.get('/api/private', authenticateToken, async (req: any, res) => {
   const posterId = req.jwtData.userId
   const rawPostsByFollowed = await Post.findAll({
     where: {
@@ -124,6 +125,7 @@ searchRoutes(app)
 deletePost(app)
 wellKnownRoutes(app)
 activityPubRoutes(app)
+frontend(app)
 
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`⚡️Server is running at https://localhost:${PORT}`)

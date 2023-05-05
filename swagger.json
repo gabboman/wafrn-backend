@@ -11,7 +11,7 @@
     }
   ],
   "paths": {
-    "/": {
+    "/api/": {
       "get": {
         "description": "",
         "parameters": [],
@@ -22,7 +22,7 @@
         }
       }
     },
-    "/dashboard": {
+    "/api/dashboard": {
       "get": {
         "description": "",
         "parameters": [],
@@ -33,7 +33,7 @@
         }
       }
     },
-    "/explore": {
+    "/api/exploreLocal": {
       "get": {
         "description": "",
         "parameters": [],
@@ -44,7 +44,29 @@
         }
       }
     },
-    "/block": {
+    "/api/explore": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/private": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/block": {
       "post": {
         "description": "",
         "parameters": [],
@@ -69,7 +91,7 @@
         }
       }
     },
-    "/unblock": {
+    "/api/unblock": {
       "post": {
         "description": "",
         "parameters": [],
@@ -94,7 +116,7 @@
         }
       }
     },
-    "/follow": {
+    "/api/follow": {
       "post": {
         "description": "",
         "parameters": [],
@@ -119,7 +141,7 @@
         }
       }
     },
-    "/unfollow": {
+    "/api/unfollow": {
       "post": {
         "description": "",
         "parameters": [],
@@ -144,7 +166,7 @@
         }
       }
     },
-    "/getFollowedUsers": {
+    "/api/getFollowedUsers": {
       "get": {
         "description": "",
         "parameters": [],
@@ -155,7 +177,7 @@
         }
       }
     },
-    "/uploadMedia": {
+    "/api/uploadMedia": {
       "post": {
         "description": "",
         "parameters": [],
@@ -186,41 +208,47 @@
         }
       }
     },
-    "/updateMedia": {
-      "post": {
+    "/api/updateMedia": {
+      "get": {
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "adultContent",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "NSFW",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "example": "any"
-                  },
-                  "adultContent": {
-                    "example": "any"
-                  },
-                  "nsfw": {
-                    "example": "any"
-                  },
-                  "description": {
-                    "example": "any"
-                  }
-                }
-              }
-            }
-          }
         }
       }
     },
-    "/readNotifications": {
+    "/api/readNotifications": {
       "post": {
         "description": "",
         "parameters": [],
@@ -245,7 +273,7 @@
         }
       }
     },
-    "/notifications": {
+    "/api/notificationsScroll": {
       "get": {
         "description": "",
         "parameters": [],
@@ -256,7 +284,18 @@
         }
       }
     },
-    "/postDetails/{id}": {
+    "/api/notificationsCount": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/singlePost/{id}": {
       "get": {
         "description": "",
         "parameters": [
@@ -276,27 +315,7 @@
         }
       }
     },
-    "/singlePost/{id}": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/blog": {
+    "/api/blog": {
       "get": {
         "description": "",
         "parameters": [
@@ -315,7 +334,7 @@
         }
       }
     },
-    "/createPost": {
+    "/api/createPost": {
       "post": {
         "description": "",
         "parameters": [],
@@ -333,13 +352,16 @@
                   "captchaKey": {
                     "example": "any"
                   },
+                  "parent": {
+                    "example": "any"
+                  },
                   "content": {
                     "example": "any"
                   },
-                  "nsfw": {
+                  "content_warning": {
                     "example": "any"
                   },
-                  "parent": {
+                  "privacy": {
                     "example": "any"
                   },
                   "tags": {
@@ -352,7 +374,7 @@
         }
       }
     },
-    "/reportPost": {
+    "/api/reportPost": {
       "post": {
         "description": "",
         "parameters": [],
@@ -367,13 +389,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "postId": {
-                    "example": "any"
-                  },
                   "severity": {
                     "example": "any"
                   },
                   "description": {
+                    "example": "any"
+                  },
+                  "postId": {
                     "example": "any"
                   }
                 }
@@ -383,7 +405,7 @@
         }
       }
     },
-    "/search/": {
+    "/api/search/": {
       "get": {
         "description": "",
         "parameters": [
@@ -409,7 +431,7 @@
         }
       }
     },
-    "/userSearch/{term}": {
+    "/api/userSearch/{term}": {
       "get": {
         "description": "",
         "parameters": [
@@ -429,7 +451,7 @@
         }
       }
     },
-    "/register": {
+    "/api/register": {
       "post": {
         "description": "",
         "parameters": [],
@@ -444,13 +466,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "url": {
+                    "example": "any"
+                  },
                   "email": {
                     "example": "any"
                   },
                   "captchaResponse": {
-                    "example": "any"
-                  },
-                  "url": {
                     "example": "any"
                   },
                   "description": {
@@ -472,7 +494,7 @@
         }
       }
     },
-    "/editProfile": {
+    "/api/editProfile": {
       "post": {
         "description": "",
         "parameters": [],
@@ -497,7 +519,7 @@
         }
       }
     },
-    "/forgotPassword": {
+    "/api/forgotPassword": {
       "post": {
         "description": "",
         "parameters": [],
@@ -525,7 +547,7 @@
         }
       }
     },
-    "/activateUser": {
+    "/api/activateUser": {
       "post": {
         "description": "",
         "parameters": [],
@@ -553,7 +575,7 @@
         }
       }
     },
-    "/resetPassword": {
+    "/api/resetPassword": {
       "post": {
         "description": "",
         "parameters": [],
@@ -568,14 +590,14 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "email": {
-                    "example": "any"
-                  },
                   "code": {
                     "example": "any"
                   },
                   "password": {
                     "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
                   }
                 }
               }
@@ -584,7 +606,7 @@
         }
       }
     },
-    "/login": {
+    "/api/login": {
       "post": {
         "description": "",
         "parameters": [],
@@ -599,14 +621,14 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "email": {
-                    "example": "any"
-                  },
                   "password": {
                     "example": "any"
                   },
                   "captchaResponse": {
                     "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
                   }
                 }
               }
@@ -615,14 +637,13 @@
         }
       }
     },
-    "/user/{id}": {
+    "/api/user": {
       "get": {
         "description": "",
         "parameters": [
           {
             "name": "id",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string"
             }

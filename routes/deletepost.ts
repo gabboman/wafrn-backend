@@ -4,7 +4,7 @@ import authenticateToken from '../utils/authenticateToken'
 import { logger } from '../utils/logger'
 
 export default function deletePost(app: Application) {
-  app.delete('/deletePost', authenticateToken, async (req: any, res) => {
+  app.delete('/api/deletePost', authenticateToken, async (req: any, res) => {
     let success = false
     try {
       const id = req.query.id
