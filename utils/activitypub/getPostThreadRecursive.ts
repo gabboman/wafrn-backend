@@ -31,8 +31,8 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
       let mediasString = ''
       const medias = []
-      const fediTags: fediverseTag[] = postPetition.tag.filter((elem: any) => elem.type === 'Hashtag')
-      const fediMentions: fediverseTag[] = postPetition.tag.filter((elem: any) => elem.type === 'Mention')
+      const fediTags: fediverseTag[] = [... new Set<fediverseTag>(postPetition.tag.filter((elem: fediverseTag) => elem.type === 'Hashtag'))]
+      const fediMentions: fediverseTag[] = postPetition.tag.filter((elem: fediverseTag) => elem.type === 'Mention')
       let privacy = 10
       if (postPetition.to.indexOf('https://www.w3.org/ns/activitystreams#Public') !== -1) {
         // post is PUBLIC
@@ -107,7 +107,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
               tagName: tagToAdd
             }
           })
-          if (existingTag && tagsToAdd.find((elem: any) => elem.tagName === existingTag.tagName)) {
+          if (existingTag) {
             tagsToAdd.push(existingTag)
           } else if (!existingTag) {
             const newTag = await Tag.create({
