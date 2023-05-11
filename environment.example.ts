@@ -6,7 +6,6 @@ export const environment = {
   port: 3000,
   saltRounds: 12,
   jwtSecret: 'JWTSECRET',
-  captchaPrivateKey: 'GOOGLE_CAPTCHA_PRIVATE_KEY',
   frontendUrl: 'FEDIVERSE_URL_WITH_HTTPS',
   instanceUrl: 'FEDIVERSE_URL_NO_PROTOCOL',
   mediaUrl: 'MEDIA_URL_OR_API_URL',
