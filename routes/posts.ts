@@ -2,7 +2,6 @@ import { Application } from 'express'
 import { Op } from 'sequelize'
 import { Post, PostMentionsUserRelation, PostReport, Tag, User } from '../db'
 import authenticateToken from '../utils/authenticateToken'
-import checkCaptcha from '../utils/checkCaptcha'
 import getIp from '../utils/getIP'
 import getPostBaseQuery from '../utils/getPostBaseQuery'
 import { sequelize } from '../db'
@@ -11,6 +10,7 @@ import getStartScrollParam from '../utils/getStartScrollParam'
 import getPosstGroupDetails from '../utils/getPostGroupDetails'
 import { sendRemotePost } from '../utils/activitypub/sendRemotePost'
 import { logger } from '../utils/logger'
+import { createPostLimiter } from '../utils/rateLimiters'
 
 export default function postsRoutes(app: Application) {
   app.get('/api/singlePost/:id', async (req: any, res) => {
@@ -65,11 +65,10 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.post('/api/createPost', authenticateToken, async (req: any, res) => {
+  app.post('/api/createPost', authenticateToken, createPostLimiter, async (req: any, res) => {
     let success = false
     const posterId = req.jwtData.userId
     try {
-      if (req.body?.captchaKey && (await checkCaptcha(req.body.captchaKey, getIp(req)))) {
         if (req.body.parent) {
           const parent = await Post.findOne({
             where: {
@@ -182,7 +181,7 @@ export default function postsRoutes(app: Application) {
         if (post.privacy.toString() !== '2') {
           sendRemotePost(await User.findOne({ where: { id: posterId } }), post)
         }
-      }
+      
     } catch (error) {
       logger.error(error)
     }

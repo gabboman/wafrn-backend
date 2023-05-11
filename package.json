@@ -23,6 +23,7 @@
     "body-parser": "^1.20.1",
     "cors": "^2.8.5",
     "express": "^4.17.2",
+    "express-rate-limit": "^6.7.0",
     "fluent-ffmpeg": "^2.1.2",
     "gm": "^1.25.0",
     "jsonld": "^8.1.1",

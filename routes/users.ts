@@ -2,7 +2,6 @@ import { Application } from 'express'
 import { Op } from 'sequelize'
 import { User } from '../db'
 import authenticateToken from '../utils/authenticateToken'
-import checkCaptcha from '../utils/checkCaptcha'
 import generateRandomString from '../utils/generateRandomString'
 import getIp from '../utils/getIP'
 import sendActivationEmail from '../utils/sendActivationEmail'
@@ -17,19 +16,18 @@ import * as ed from '@noble/ed25519'
 import { generateKeyPairSync } from 'crypto'
 import { environment } from '../environment'
 import { logger } from '../utils/logger'
+import { createAccountLimiter, loginRateLimiter } from '../utils/rateLimiters'
 
 export default function userRoutes(app: Application) {
-  app.post('/api/register', uploadHandler.single('avatar'), async (req, res) => {
+  app.post('/api/register', createAccountLimiter, uploadHandler.single('avatar'), async (req, res) => {
     let success = false
     try {
       if (
         req.body?.email &&
         req.body.url &&
         req.body.url.indexOf('@') === -1 &&
-        validateEmail(req.body.email) &&
-        req.body.captchaResponse &&
-        (await checkCaptcha(req.body.captchaResponse, getIp(req)))
-      ) {
+        validateEmail(req.body.email)
+        ) {
         const emailExists = await User.findOne({
           where: {
             [Op.or]: [
@@ -139,14 +137,12 @@ export default function userRoutes(app: Application) {
     })
   })
 
-  app.post('/api/forgotPassword', async (req, res) => {
+  app.post('/api/forgotPassword', createAccountLimiter, async (req, res) => {
     const resetCode = generateRandomString()
     try {
       if (
         req.body?.email &&
-        validateEmail(req.body.email) &&
-        req.body.captchaResponse &&
-        (await checkCaptcha(req.body.captchaResponse, getIp(req)))
+        validateEmail(req.body.email) 
       ) {
         const user = await User.findOne({
           where: {
@@ -229,14 +225,12 @@ export default function userRoutes(app: Application) {
     })
   })
 
-  app.post('/api/login', async (req, res) => {
+  app.post('/api/login', loginRateLimiter,  async (req, res) => {
     let success = false
     try {
       if (
         req.body?.email &&
-        req.body.password &&
-        req.body.captchaResponse &&
-        (await checkCaptcha(req.body.captchaResponse, getIp(req)))
+        req.body.password
       ) {
         const userWithEmail = await User.findOne({
           where: { email: req.body.email.toLowerCase() }

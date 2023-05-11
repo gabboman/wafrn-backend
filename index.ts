@@ -1,5 +1,5 @@
 import express from 'express'
-import { Post, User, sequelize } from './db'
+import { Post, sequelize } from './db'
 import { Op } from 'sequelize'
 
 import cors from 'cors'
@@ -35,10 +35,10 @@ const PORT = environment.port
 app.use(overrideContentType)
 app.use(bodyParser.json())
 app.use(cors())
+app.set('trust proxy', 1)
 
 //const pino = require('pino-http')()
 //app.use(pino)
-
 app.use('/api/apidocs', swagger.serve, swagger.setup(swaggerJSON))
 
 app.get('/api/', (req, res) =>
