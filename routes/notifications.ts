@@ -151,7 +151,7 @@ export default function notificationRoutes(app: Application) {
         id: userId
       }
     })
-    const blockedUsers = await getBlockedIds(userId)
+    //const blockedUsers = await getBlockedIds(userId)
     const perPostReblogs = await Post.findAll({
       where: {
         createdAt: {
@@ -163,13 +163,16 @@ export default function notificationRoutes(app: Application) {
       },
       attributes: ['id']
     })
-    const newFollows = await user.getFollower({
+    const newFollows = await Follows.findAll({
       where: {
         createdAt: {
           [Op.gt]: getStartScrollParam(req)
-        }
+        },
+        followerId: userId
       },
-      attributes: ['id']
+      attributes: [
+        'createdAt'
+      ],
     })
     const newMentions = PostMentionsUserRelation.findAll({
       where: {
