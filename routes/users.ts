@@ -22,12 +22,7 @@ export default function userRoutes(app: Application) {
   app.post('/api/register', createAccountLimiter, uploadHandler.single('avatar'), async (req, res) => {
     let success = false
     try {
-      if (
-        req.body?.email &&
-        req.body.url &&
-        req.body.url.indexOf('@') === -1 &&
-        validateEmail(req.body.email)
-        ) {
+      if (req.body?.email && req.body.url && req.body.url.indexOf('@') === -1 && validateEmail(req.body.email)) {
         const emailExists = await User.findOne({
           where: {
             [Op.or]: [
@@ -140,10 +135,7 @@ export default function userRoutes(app: Application) {
   app.post('/api/forgotPassword', createAccountLimiter, async (req, res) => {
     const resetCode = generateRandomString()
     try {
-      if (
-        req.body?.email &&
-        validateEmail(req.body.email) 
-      ) {
+      if (req.body?.email && validateEmail(req.body.email)) {
         const user = await User.findOne({
           where: {
             email: req.body.email.toLowerCase()
@@ -225,13 +217,10 @@ export default function userRoutes(app: Application) {
     })
   })
 
-  app.post('/api/login', loginRateLimiter,  async (req, res) => {
+  app.post('/api/login', loginRateLimiter, async (req, res) => {
     let success = false
     try {
-      if (
-        req.body?.email &&
-        req.body.password
-      ) {
+      if (req.body?.email && req.body.password) {
         const userWithEmail = await User.findOne({
           where: { email: req.body.email.toLowerCase() }
         })
