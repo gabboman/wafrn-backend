@@ -1,6 +1,6 @@
 import { Application } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Post, PostMentionsUserRelation, User, UserLikesPostRelations } from '../db'
+import { Follows, Post, PostMentionsUserRelation, User, UserLikesPostRelations } from '../db'
 import authenticateToken from '../utils/authenticateToken'
 import getBlockedIds from '../utils/getBlockedIds'
 import getReblogs from '../utils/getReblogs'
@@ -38,7 +38,7 @@ export default function notificationRoutes(app: Application) {
         id: userId
       }
     })
-    const blockedUsers = await getBlockedIds(userId)
+    // const blockedUsers = await getBlockedIds(userId)
     const perPostReblogs = await Post.findAll({
       where: {
         createdAt: {
@@ -58,17 +58,33 @@ export default function notificationRoutes(app: Application) {
       limit: environment.postsPerPage,
       offset: page * environment.postsPerPage
     })
-    const newFollows = await user.getFollower({
+
+    const newFollowsQuery = await Follows.findAll({
       where: {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
-        }
+        },
+        followerId: userId
       },
-      attributes: ['url', 'avatar', 'createdAt'],
+      attributes: [
+        'createdAt'
+      ],
+      include: [
+        {
+          model: User,
+          as: 'followed',
+          attributes: ['url', 'avatar']
+        }
+      ],
       order: [['createdAt', 'DESC']],
       limit: environment.postsPerPage,
       offset: page * environment.postsPerPage
     })
+    const newFollows = newFollowsQuery.map((elem: any) => { return {
+      createdAt: elem.createdAt,
+      url: elem.followed.url,
+      avatar: elem.followed.avatar
+    }});
     const newMentions = PostMentionsUserRelation.findAll({
       where: {
         createdAt: {

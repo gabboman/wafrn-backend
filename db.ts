@@ -192,15 +192,25 @@ const FederatedHost = sequelize.define('federatedHosts', {
 })
 
 User.belongsToMany(User, {
-  through: 'follows',
+  through: Follows,
   as: 'followed',
   foreignKey: 'followedId'
 })
 
 User.belongsToMany(User, {
-  through: 'follows',
+  through: Follows,
   as: 'follower',
   foreignKey: 'followerId'
+})
+
+Follows.belongsTo(User, {
+  as: 'follower',
+  foreignKey: 'followerId'
+})
+
+Follows.belongsTo(User, {
+  as: 'followed',
+  foreignKey: 'followedId'
 })
 
 User.belongsToMany(User, {
