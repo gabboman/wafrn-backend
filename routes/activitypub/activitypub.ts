@@ -342,6 +342,7 @@ function activityPubRoutes(app: Application) {
                 })
                 if (remoteFollow) {
                   await remoteFollow.destroy()
+                  logger.debug(`Remote unfollow ${remoteUser.url} unfollowed ${user.url}`)
                 }
                 await signAndAccept(req, remoteUser, user)
                 break

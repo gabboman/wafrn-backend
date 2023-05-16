@@ -57,7 +57,7 @@ export default function followsRoutes(app: Application) {
           remoteUnfollow(localUser, userUnfollowed)
             .then(() => {})
             .catch((error) => {
-              logger.info('error following remote user')
+              logger.info('error unfollowing remote user')
             })
         }
 
