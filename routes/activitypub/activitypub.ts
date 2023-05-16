@@ -265,8 +265,8 @@ function activityPubRoutes(app: Application) {
               await user.save()
               remoteFollow = await Follows.findOne({
                 where: {
-                  followerId: user.id,
-                  followedId: remoteUser.id
+                  followerId: remoteUser.id,
+                  followedId: user.id
                 }
               })
             }
@@ -275,6 +275,7 @@ function activityPubRoutes(app: Application) {
             remoteFollow.save()
             // we accept it
             const acceptResponse = await signAndAccept(req, remoteUser, user)
+            logger.debug(`Remote user ${remoteUser.url} started following ${user.url}`)
             break
           }
           case 'Update': {
