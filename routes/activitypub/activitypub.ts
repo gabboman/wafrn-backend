@@ -107,7 +107,11 @@ function activityPubRoutes(app: Application) {
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
-        const followed = await user.getFollowed()
+        const followed = await User.findAll({
+          where: {
+            literal: sequelize.literal(`id in (SELECT followerId from follows where followedId like "${user.id}")`)
+          }
+        })
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following`,
@@ -144,7 +148,12 @@ function activityPubRoutes(app: Application) {
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
-        const followers = await user.getFollower()
+        //const followers = await user.getFollower()
+        const followers = await User.findAll({
+          where: {
+            literal: sequelize.literal(`id in (SELECT followedId from follows where followerId like "${user.id}")`)
+          }
+        })
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`,
