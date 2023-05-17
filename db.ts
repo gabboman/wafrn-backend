@@ -117,7 +117,7 @@ const Post = sequelize.define('posts', {
   privacy: Sequelize.INTEGER
 },{
   indexes: [{
-    unique: true,
+    //unique: true,
     fields: ['remotePostId']
   }
   ]
