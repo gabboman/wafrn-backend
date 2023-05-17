@@ -109,7 +109,7 @@ function activityPubRoutes(app: Application) {
       if (user) {
         const followed = await User.findAll({
           where: {
-            literal: sequelize.literal(`id in (SELECT followerId from follows where followedId like "${user.id}")`)
+            literal: sequelize.literal(`id in (SELECT followedId from follows where followerId like "${user.id}")`)
           }
         })
         let response: any = {
@@ -151,7 +151,7 @@ function activityPubRoutes(app: Application) {
         //const followers = await user.getFollower()
         const followers = await User.findAll({
           where: {
-            literal: sequelize.literal(`id in (SELECT followedId from follows where followerId like "${user.id}")`)
+            literal: sequelize.literal(`id in (SELECT followerId from follows where followedId like "${user.id}")`)
           }
         })
         let response: any = {
@@ -265,8 +265,8 @@ function activityPubRoutes(app: Application) {
             res.sendStatus(200)
             let remoteFollow = await Follows.findOne({
               where: {
-                followerId: remoteUser.id,
-                followedId: user.id
+                followedId: remoteUser.id,
+                followerId: user.id
               }
             })
             if (!remoteFollow) {
@@ -274,8 +274,8 @@ function activityPubRoutes(app: Application) {
               await user.save()
               remoteFollow = await Follows.findOne({
                 where: {
-                  followerId: remoteUser.id,
-                  followedId: user.id
+                  followedId: remoteUser.id,
+                  followerId: user.id
                 }
               })
             }
@@ -345,8 +345,8 @@ function activityPubRoutes(app: Application) {
                 const remoteFollow = await Follows.findOne({
                   where: {
                     // I think i was doing something wrong here. Changed so when remote unfollow does not cause you to unfollow them instead lol
-                    followedId: remoteUser.id,
-                    followerId: user.id,
+                    followerId: remoteUser.id,
+                    followedId: user.id,
                     remoteFollowId: body.object.id
                   }
                 })

@@ -64,7 +64,7 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        followerId: userId
+        followedId: userId
       },
       attributes: [
         'createdAt'
@@ -168,7 +168,7 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.gt]: getStartScrollParam(req)
         },
-        followerId: userId
+        followedId: userId
       },
       attributes: [
         'createdAt'

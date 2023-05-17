@@ -48,8 +48,8 @@ async function blockHosts() {
     }" where userId in (${stringSelectBadUsers})`
   )
   // we remove follows from these users
-  result = await sequelize.query(`DELETE from follows where followedId in (${stringSelectBadUsers})`)
   result = await sequelize.query(`DELETE from follows where followerId in (${stringSelectBadUsers})`)
+  result = await sequelize.query(`DELETE from follows where followedId in (${stringSelectBadUsers})`)
   // we remove mentions and likes to those users in db
   result = await sequelize.query(`DELETE from postMentionsUserRelations where userId in (${stringSelectBadUsers})`)
   result = await sequelize.query(`DELETE from userLikesPostRelations where userId in (${stringSelectBadUsers})`)

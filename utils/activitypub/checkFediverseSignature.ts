@@ -5,7 +5,7 @@ import { logger } from '../logger'
 import { getRemoteActor } from './getRemoteActor'
 const httpSignature = require('@peertube/http-signature')
 
-const user = User.findOne({
+const adminUser = environment.forceSync ? null : User.findOne({
   where: {
     url: environment.adminUser
   }
@@ -21,7 +21,7 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       // TODO do stuff here
       const sigHead = httpSignature.parse(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
-      const remoteUser = await getRemoteActor(remoteUserUrl, await user)
+      const remoteUser = await getRemoteActor(remoteUserUrl, await adminUser)
       const remoteKey = remoteUser.publicKey
       success = true
 

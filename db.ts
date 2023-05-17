@@ -14,6 +14,27 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
   }
 })
 
+const FederatedHost = sequelize.define('federatedHosts', {
+  id: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    allowNull: false,
+    primaryKey: true
+  },
+  displayName: Sequelize.STRING,
+  publicInbox: Sequelize.TEXT,
+  publicKey: Sequelize.TEXT,
+  detail: Sequelize.STRING,
+  blocked: Sequelize.BOOLEAN
+}, {
+  indexes: [{
+    unique: true,
+    fields: ['displayName']
+  }
+  ]
+}
+)
+
 const User = sequelize.define('users', {
   id: {
     type: Sequelize.UUID,
@@ -53,7 +74,7 @@ const User = sequelize.define('users', {
   federatedHostId: {
     type: Sequelize.UUID,
     allowNull: true,
-    primaryKey: true
+    primaryKey: false
   },
   remoteInbox: Sequelize.TEXT,
   remoteId: Sequelize.TEXT,
@@ -61,22 +82,26 @@ const User = sequelize.define('users', {
     type: Sequelize.BOOLEAN,
     defaultValue: false
   }
+}, {
+  indexes: [{
+    unique: true,
+    fields: ['remoteId']
+  }
+  ]
 })
 
 const Follows = sequelize.define('follows', {
-  followedId: {
-    type: Sequelize.UUID,
-    defaultValue: Sequelize.UUIDV4,
-    allowNull: false,
-    primaryKey: true
-  },
-  followerId: {
-    type: Sequelize.UUID,
-    defaultValue: Sequelize.UUIDV4,
-    allowNull: false,
-    primaryKey: true
-  },
   remoteFollowId: Sequelize.TEXT
+}, {
+  indexes: [{
+    unique: false,
+    fields: ['followedId', 'followerId']
+  }
+  ]
+})
+
+const Blocks = sequelize.define('blocks', {
+  remoteBlockId: Sequelize.TEXT
 })
 
 const Post = sequelize.define('posts', {
@@ -128,26 +153,6 @@ const UserReport = sequelize.define('userReports', {
 })
 
 const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {
-  userId: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    primaryKey: true,
-    references: {
-      model: 'users',
-      key: 'id'
-    },
-    unique: false
-  },
-  postId: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    primaryKey: true,
-    references: {
-      model: 'posts',
-      key: 'id'
-    },
-    unique: false
-  }
 })
 
 const UserLikesPostRelations = sequelize.define('userLikesPostRelations', {
@@ -177,50 +182,47 @@ const UserLikesPostRelations = sequelize.define('userLikesPostRelations', {
   }
 })
 
-const FederatedHost = sequelize.define('federatedHosts', {
-  id: {
-    type: Sequelize.UUID,
-    defaultValue: Sequelize.UUIDV4,
-    allowNull: false,
-    primaryKey: true
-  },
-  displayName: Sequelize.STRING,
-  publicInbox: Sequelize.TEXT,
-  publicKey: Sequelize.TEXT,
-  detail: Sequelize.STRING,
-  blocked: Sequelize.BOOLEAN
-})
 
 User.belongsToMany(User, {
   through: Follows,
   as: 'followed',
-  foreignKey: 'followedId'
+  foreignKey: 'followerId'
 })
 
 User.belongsToMany(User, {
   through: Follows,
   as: 'follower',
-  foreignKey: 'followerId'
+  foreignKey: 'followedId'
 })
 
 Follows.belongsTo(User, {
   as: 'follower',
-  foreignKey: 'followerId'
+  foreignKey: 'followedId'
 })
 
 Follows.belongsTo(User, {
   as: 'followed',
-  foreignKey: 'followedId'
+  foreignKey: 'followerId'
 })
 
 User.belongsToMany(User, {
-  through: 'blocks',
+  through: Blocks,
   as: 'blocker',
   foreignKey: 'blockerId'
 })
 
 User.belongsToMany(User, {
-  through: 'blocks',
+  through: Blocks,
+  as: 'blocked',
+  foreignKey: 'blockerId'
+})
+
+Blocks.belongsTo(User, {
+  as: 'blocker',
+  foreignKey: 'blockedId'
+})
+
+Blocks.belongsTo(User, {
   as: 'blocked',
   foreignKey: 'blockedId'
 })
