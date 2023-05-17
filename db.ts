@@ -2,8 +2,23 @@ import { environment } from './environment'
 import { logger } from './utils/logger'
 const { Sequelize } = require('sequelize')
 import { Table, Column, Model, HasMany } from 'sequelize-typescript'
+const Redis = require('ioredis')
+
 require('sequelize-hierarchy-fork')(Sequelize)
 
+
+const redis = new Redis()
+
+const RedisAdaptor = require('sequelize-transparent-cache-ioredis')
+const redisAdaptor = new RedisAdaptor({
+  client: redis,
+  namespace: 'model',
+  lifetime: 60 * 60
+})
+ 
+const sequelizeCache = require('sequelize-transparent-cache')
+const { withCache } = sequelizeCache(redisAdaptor)
+ 
 const sequelize = new Sequelize(environment.databaseConnectionString, {
   logging: environment.logSQLQueries ? (sql: any) => logger.trace(sql) : false,
   pool: {
@@ -35,7 +50,7 @@ const FederatedHost = sequelize.define('federatedHosts', {
 }
 )
 
-const User = sequelize.define('users', {
+const User = withCache(sequelize.define('users', {
   id: {
     type: Sequelize.UUID,
     defaultValue: Sequelize.UUIDV4,
@@ -88,7 +103,7 @@ const User = sequelize.define('users', {
     fields: ['remoteId']
   }
   ]
-})
+}))
 
 const Follows = sequelize.define('follows', {
   remoteFollowId: Sequelize.TEXT
@@ -294,5 +309,5 @@ export {
   Media,
   PostMentionsUserRelation,
   UserLikesPostRelations,
-  FederatedHost
+  FederatedHost,
 }

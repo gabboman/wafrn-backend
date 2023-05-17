@@ -37,8 +37,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
       }
     })
   }
-
-  let remoteUser = await User.findOne({
+  let remoteUser = await User.cache(actorUrl).findOne({
     where: {
       remoteId: actorUrl
     }
