@@ -29,7 +29,7 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
   }
 })
 
-const FederatedHost = sequelize.define('federatedHosts', {
+const FederatedHost = withCache(sequelize.define('federatedHosts', {
   id: {
     type: Sequelize.UUID,
     defaultValue: Sequelize.UUIDV4,
@@ -48,7 +48,7 @@ const FederatedHost = sequelize.define('federatedHosts', {
   }
   ]
 }
-)
+))
 
 const User = withCache(sequelize.define('users', {
   id: {

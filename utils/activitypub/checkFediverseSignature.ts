@@ -25,12 +25,13 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       const remoteKey = remoteUser.publicKey
       success = true
 
-      const hostBanned = await FederatedHost.findOne({
+      const host = await FederatedHost.cache(new URL(remoteUserUrl).host).findOne({
         where: {
           displayName: new URL(remoteUserUrl).host,
-          blocked: true
         }
       })
+
+      const hostBanned = host?.blocked
 
       if (hostBanned || remoteUser.banned) {
         success = false
