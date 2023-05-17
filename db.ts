@@ -115,6 +115,12 @@ const Post = sequelize.define('posts', {
   content: Sequelize.TEXT,
   remotePostId: Sequelize.TEXT,
   privacy: Sequelize.INTEGER
+},{
+  indexes: [{
+    unique: true,
+    fields: ['remotePostId']
+  }
+  ]
 })
 
 const Tag = sequelize.define('tags', {

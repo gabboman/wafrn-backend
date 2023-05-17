@@ -2,8 +2,16 @@ import { FederatedHost, User } from '../../db'
 import { environment } from '../../environment'
 import { logger } from '../logger'
 import { getPetitionSigned } from './getPetitionSigned'
+import { Queue } from 'bullmq';
 
 const currentlyWritingPosts: string[] = []
+
+const updateUsersQueue = new Queue('UpdateUsers', {
+  connection: environment.bullmqConnection,
+  defaultJobOptions: {
+    removeOnComplete: true, removeOnFail: 1000
+  }
+} );
 
 async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<any> {
   if (level === 100) {
@@ -38,17 +46,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
   // we check if the user has changed avatar and stuff
   const validUntil = new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
   if (remoteUser?.updatedAt < validUntil) {
-    try {
-      const userPetition = await getPetitionSigned(user, actorUrl)
-      remoteUser.description = userPetition.summary
-      remoteUser.avatar = userPetition.icon?.url
-        ? userPetition.icon.url
-        : `${environment.mediaUrl}/uploads/default.webp`
-      remoteUser.updatedAt = new Date()
-      await remoteUser.save()
-    } catch (error) {
-      logger.info(`Failed to update user ${remoteUser.url}`)
-    }
+    updateUsersQueue.add('updateUser', { userToUpdate: actorUrl, petitionBy: user }, {jobId: actorUrl})
   }
 
   if (!remoteUser) {
