@@ -46,7 +46,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url', async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.findOne({
+      const user = await User.cache(url).findOne({
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url)
       })
       if (user) {
@@ -103,7 +103,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/following', async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.findOne({
+      const user = await User.cache(url).findOne({
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
@@ -144,7 +144,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/followers', async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.findOne({
+      const user = await User.cache(url).findOne({
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
@@ -186,7 +186,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/featured', async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.findOne({
+      const user = await User.cache(url).findOne({
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
@@ -210,7 +210,7 @@ function activityPubRoutes(app: Application) {
   app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
     const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
     const url = urlToSearch.toLowerCase()
-    const user = await User.findOne({
+    const user = await User.cache(url).findOne({
       where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
     })
     if (user) {
