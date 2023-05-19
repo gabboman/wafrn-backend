@@ -241,13 +241,13 @@ function activityPubRoutes(app: Application) {
           }
           case 'Announce': {
             res.sendStatus(200)
-            createRetootQueue.add('createRetoot', { petition: req, petitionBy: user, remoteUser: remoteUser }, { jobId: req.body.id })
+            createRetootQueue.add('createRetoot', { petition: req.body, petitionBy: user.id, remoteUser: remoteUser.id }, { jobId: req.body.id })
             break
           }
           case 'Create': {
             res.sendStatus(200)
             // Create new post
-            createTootQueue.add('createToot', {petition: req, petitionBy: user, remoteUser: remoteUser }, {jobId: req.body.id})
+            createTootQueue.add('createToot', {  petition: req.body, petitionBy: user.id, remoteUser: remoteUser.id }, {jobId: req.body.id})
             break
           }
           case 'Follow': {
