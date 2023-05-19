@@ -226,8 +226,8 @@ function activityPubRoutes(app: Application) {
     })
     if (user) {
       try {
+        await inboxQueue.add('processInbox', { petition: req.body, petitionBy: user.id }, { jobId: req.body.id })
         res.sendStatus(200)
-        inboxQueue.add('processInbox', { petition: req.body, petitionBy: user.id }, { jobId: req.body.id })
       } catch (error) {
         logger.trace({
           error: error,

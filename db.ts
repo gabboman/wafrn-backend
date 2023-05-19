@@ -28,8 +28,8 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
       }
     : false,
   pool: {
-    max: 25,
-    min: 5,
+    max: 20,
+    min: 1,
     acquire: 30000,
     idle: 100000
   },
@@ -331,9 +331,6 @@ sequelize
     force: environment.forceSync
   })
   .then(async () => {
-    logger.info('Database & tables ready!')
-    logger.debug('debug enabled')
-    logger.trace('trace enabled')
     if (environment.forceSync) {
       logger.info('CLEANING DATA')
       // seeder();

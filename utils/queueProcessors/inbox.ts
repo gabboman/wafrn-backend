@@ -8,12 +8,12 @@ import { removeUser } from '../activitypub/removeUser'
 import { getPostThreadRecursive } from '../activitypub/getPostThreadRecursive'
 
 module.exports = async (job: SandboxedJob) => {
-  const user = User.findOne({
+  const user = await User.findOne({
     where: {
       id: job.data.petitionBy
     }
   })
-  const body = job.data.req
+  const body = job.data.petition
   const req = { body: body }
   const remoteUser = await getRemoteActor(req.body.actor, user)
   const host = await FederatedHost.cache(new URL(req.body.actor).host).findOne({

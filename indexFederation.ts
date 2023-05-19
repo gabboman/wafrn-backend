@@ -7,7 +7,7 @@ import overrideContentType from './utils/overrideContentType'
 import { environment } from './environment'
 import { logger } from './utils/logger'
 import { wellKnownRoutes } from './routes/activitypub/well-known'
-import { Worker } from 'bullmq'
+import { Job, Worker } from 'bullmq'
 import path from 'path'
 
 // rest of the code remains same
@@ -32,4 +32,12 @@ const processorFile = path.join(__dirname, 'utils/queueProcessors/inbox.ts');
 const worker = new Worker('inbox', processorFile, {
   connection: environment.bullmqConnection,
 });
-worker
+worker.on('completed', job => {
+  logger.trace(`${job.id} has completed!`)
+})
+
+worker.on('failed', (job, err) => {
+  logger.debug(`${job?.id} has failed with ${err.message}`);
+})
+
+
