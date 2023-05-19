@@ -24,7 +24,6 @@ import { environment } from './environment'
 import { logger } from './utils/logger'
 import { wellKnownRoutes } from './routes/activitypub/well-known'
 import frontend from './routes/frontend'
-import { updateUserWorker } from './utils/queueProcessors/updateUser'
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
 

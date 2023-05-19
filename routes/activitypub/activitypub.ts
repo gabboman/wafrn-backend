@@ -13,9 +13,27 @@ import { signAndAccept } from '../../utils/activitypub/signAndAccept'
 import { getPostThreadRecursive } from '../../utils/activitypub/getPostThreadRecursive'
 import { return404 } from '../../utils/return404'
 import { postToJSONLD } from '../../utils/activitypub/postToJSONLD'
+import { Queue } from 'bullmq'
 
 // global activitypub variables
 const currentlyWritingPosts: Array<string> = []
+
+// queues
+const createRetootQueue = new Queue('createRetoot', {
+  connection: environment.bullmqConnection,
+  defaultJobOptions: {
+    removeOnComplete: true,
+    removeOnFail: 1000
+  }
+})
+
+const createTootQueue = new Queue('createToot', {
+  connection: environment.bullmqConnection,
+  defaultJobOptions: {
+    removeOnComplete: true,
+    removeOnFail: 1000
+  }
+})
 
 // all the stuff related to activitypub goes here
 
@@ -223,41 +241,13 @@ function activityPubRoutes(app: Application) {
           }
           case 'Announce': {
             res.sendStatus(200)
-            const retooted_content = await getPostThreadRecursive(user, req.body.object)
-            const postToCreate = {
-              content: '',
-              content_warning: '',
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              userId: remoteUser.id,
-              remotePostId: req.body.id
-            }
-            const newToot = await Post.create(postToCreate)
-            await newToot.setParent(retooted_content)
-            await newToot.save()
-            await signAndAccept(req, remoteUser, user)
-
+            createRetootQueue.add('createRetoot', { petition: req, petitionBy: user, remoteUser: remoteUser }, { jobId: req.body.id })
             break
           }
           case 'Create': {
             res.sendStatus(200)
             // Create new post
-            const postRecived = req.body.object
-            if (currentlyWritingPosts.indexOf(postRecived.id) === -1) {
-              if (postRecived.type === 'Note') {
-                currentlyWritingPosts.push(postRecived.id)
-                const tmpIndex = currentlyWritingPosts.indexOf(postRecived.id)
-                await getPostThreadRecursive(user, postRecived.id, postRecived)
-                await signAndAccept(req, remoteUser, user)
-                if (tmpIndex !== -1) {
-                  currentlyWritingPosts[tmpIndex] = '_POST_ALREADY_WRITTEN_'
-                }
-              } else {
-                logger.info(`post type not implemented: ${postRecived.type}`)
-              }
-            } else {
-              logger.info('DEADLOCK AVOIDED')
-            }
+            createTootQueue.add('createToot', {petition: req, petitionBy: user, remoteUser: remoteUser }, {jobId: req.body.id})
             break
           }
           case 'Follow': {
@@ -290,6 +280,7 @@ function activityPubRoutes(app: Application) {
           case 'Update': {
             res.sendStatus(200)
             const body = req.body.object
+            /*
             switch (body.type) {
               case 'Note': {
                 const postToEdit = await Post.findOne({
@@ -332,7 +323,7 @@ function activityPubRoutes(app: Application) {
                 logger.info(body.object)
               }
             }
-
+            */
             break
           }
           case 'Undo': {

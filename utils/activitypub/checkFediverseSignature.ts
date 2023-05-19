@@ -24,7 +24,7 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       const sigHead = httpSignature.parse(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       const remoteUser = await getRemoteActor(remoteUserUrl, await adminUser)
-      const remoteKey = remoteUser.publicKey
+      //const remoteKey = remoteUser.publicKey
       success = true
 
       const host = await FederatedHost.cache(new URL(remoteUserUrl).host).findOne({
