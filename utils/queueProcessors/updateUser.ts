@@ -9,7 +9,7 @@ const updateUserWorker = new Worker(
   async (job) => {
     try {
       const userPetition = await getPetitionSigned(job.data.petitionBy, job.data.userToUpdate)
-      const remoteUser = User.findOne({
+      const remoteUser = User.cache(job.data.userToUpdate).findOne({
         where: {
           remoteId: job.data.userToUpdate
         }
