@@ -7,6 +7,8 @@ import overrideContentType from './utils/overrideContentType'
 import { environment } from './environment'
 import { logger } from './utils/logger'
 import { wellKnownRoutes } from './routes/activitypub/well-known'
+import { Worker } from 'bullmq'
+import path from 'path'
 
 // rest of the code remains same
 const app = express()
@@ -23,3 +25,11 @@ activityPubRoutes(app)
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`FEDIVERSE SERVER is running at https://localhost:${PORT}`)
 })
+
+
+// listen to workers
+const processorFile = path.join(__dirname, 'utils/queueProcessors/inbox.ts');
+const worker = new Worker('inbox', processorFile, {
+  connection: environment.bullmqConnection,
+});
+worker
