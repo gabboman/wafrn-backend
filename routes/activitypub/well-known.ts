@@ -72,7 +72,6 @@ function wellKnownRoutes(app: Application) {
       attributes: ['id']
     })
 
-    
     const activeUsersSixMonths = await sequelize.query(` SELECT id
       FROM users
       WHERE id IN (

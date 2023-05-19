@@ -19,7 +19,7 @@ export const environment = {
   logLevel: 'debug',
   blocklistUrl: 'https://codeberg.org/oliphant/blocklists/raw/branch/main/blocklists/_unified_tier0_blocklist.csv',
   bullmqConnection: {
-    host: "localhost",
+    host: 'localhost',
     port: 6379
   },
   pinoTransportOptions: {

@@ -66,9 +66,7 @@ export default function notificationRoutes(app: Application) {
         },
         followedId: userId
       },
-      attributes: [
-        'createdAt'
-      ],
+      attributes: ['createdAt'],
       include: [
         {
           model: User,
@@ -80,11 +78,13 @@ export default function notificationRoutes(app: Application) {
       limit: environment.postsPerPage,
       offset: page * environment.postsPerPage
     })
-    const newFollows = newFollowsQuery.map((elem: any) => { return {
-      createdAt: elem.createdAt,
-      url: elem.followed.url,
-      avatar: elem.followed.avatar
-    }});
+    const newFollows = newFollowsQuery.map((elem: any) => {
+      return {
+        createdAt: elem.createdAt,
+        url: elem.followed.url,
+        avatar: elem.followed.avatar
+      }
+    })
     const newMentions = PostMentionsUserRelation.findAll({
       where: {
         createdAt: {
@@ -170,9 +170,7 @@ export default function notificationRoutes(app: Application) {
         },
         followedId: userId
       },
-      attributes: [
-        'createdAt'
-      ],
+      attributes: ['createdAt']
     })
     const newMentions = PostMentionsUserRelation.findAll({
       where: {

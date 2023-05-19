@@ -130,4 +130,3 @@ frontend(app)
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`⚡️Server is running at https://localhost:${PORT}`)
 })
-
