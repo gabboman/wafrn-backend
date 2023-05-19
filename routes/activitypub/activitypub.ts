@@ -18,15 +18,8 @@ import { Queue } from 'bullmq'
 // global activitypub variables
 
 // queues
-const createRetootQueue = new Queue('createRetoot', {
-  connection: environment.bullmqConnection,
-  defaultJobOptions: {
-    removeOnComplete: true,
-    removeOnFail: 1000
-  }
-})
 
-const createTootQueue = new Queue('createToot', {
+const inboxQueue = new Queue('inbox', {
   connection: environment.bullmqConnection,
   defaultJobOptions: {
     removeOnComplete: true,
@@ -224,6 +217,7 @@ function activityPubRoutes(app: Application) {
   })
 
   // HERE is where the meat and potatoes are. This endpoint is what we use to recive stuff
+ 
   app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
     const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
     const url = urlToSearch.toLowerCase()
@@ -232,239 +226,13 @@ function activityPubRoutes(app: Application) {
     })
     if (user) {
       try {
-        const remoteUser = await getRemoteActor(req.body.actor, user)
-        switch (req.body.type) {
-          case 'Accept': {
-            res.sendStatus(200)
-            break
-          }
-          case 'Announce': {
-            res.sendStatus(200)
-            createRetootQueue.add(
-              'createRetoot',
-              { petition: req.body, petitionBy: user.id, remoteUser: remoteUser.id },
-              { jobId: req.body.id }
-            )
-            break
-          }
-          case 'Create': {
-            res.sendStatus(200)
-            // Create new post
-            createTootQueue.add(
-              'createToot',
-              { petition: req.body, petitionBy: user.id, remoteUser: remoteUser.id },
-              { jobId: req.body.id }
-            )
-            break
-          }
-          case 'Follow': {
-            // Follow user
-            res.sendStatus(200)
-            let remoteFollow = await Follows.findOne({
-              where: {
-                followedId: remoteUser.id,
-                followerId: user.id
-              }
-            })
-            if (!remoteFollow) {
-              await user.addFollower(remoteUser)
-              await user.save()
-              remoteFollow = await Follows.findOne({
-                where: {
-                  followedId: remoteUser.id,
-                  followerId: user.id
-                }
-              })
-            }
+        res.sendStatus(200);
+        inboxQueue.add(
+          'processInbox',
+          { petition: req.body, petitionBy: user.id },
+          { jobId: req.body.id }
+        )
 
-            remoteFollow.remoteFollowId = req.body.id
-            remoteFollow.save()
-            // we accept it
-            const acceptResponse = await signAndAccept(req, remoteUser, user)
-            logger.debug(`Remote user ${remoteUser.url} started following ${user.url}`)
-            break
-          }
-          case 'Update': {
-            res.sendStatus(200)
-            const body = req.body.object
-            /*
-            switch (body.type) {
-              case 'Note': {
-                const postToEdit = await Post.findOne({
-                  where: {
-                    remotePostId: body.id
-                  },
-                  include: [
-                    {
-                      model: Media,
-                      attributes: ['id']
-                    }
-                  ]
-                })
-                let mediasString = ''
-                const medias = []
-                if (body.attachment && body.attachment.length > 0) {
-                  for await (const remoteFile of body.attachment) {
-                    const wafrnMedia = await Media.create({
-                      url: remoteFile.url,
-                      NSFW: body?.sensitive,
-                      adultContent: !!body?.sensitive,
-                      userId: remoteUser.id,
-                      description: remoteFile.name,
-                      ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
-                      external: true
-                    })
-                    medias.push(wafrnMedia)
-                    mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
-                  }
-                }
-                postToEdit.content = `${body.content}<p>${mediasString}<p>Post edited at ${body.updated}</p>`
-                postToEdit.updatedAt = body.updated
-                await postToEdit.save()
-                const acceptResponse = await signAndAccept(req, remoteUser, user)
-
-                break
-              }
-              default: {
-                logger.info(`update not implemented ${body.type}`)
-                logger.info(body.object)
-              }
-            }
-            */
-            break
-          }
-          case 'Undo': {
-            // Unfollow? Destroy post? what else can be undone
-
-            res.sendStatus(200)
-            const body = req.body
-            switch (body.object.type) {
-              case 'Follow': {
-                const remoteFollow = await Follows.findOne({
-                  where: {
-                    // I think i was doing something wrong here. Changed so when remote unfollow does not cause you to unfollow them instead lol
-                    followerId: remoteUser.id,
-                    followedId: user.id,
-                    remoteFollowId: body.object.id
-                  }
-                })
-                if (remoteFollow) {
-                  await remoteFollow.destroy()
-                  logger.debug(`Remote unfollow ${remoteUser.url} unfollowed ${user.url}`)
-                }
-                await signAndAccept(req, remoteUser, user)
-                break
-              }
-              case 'Undo': {
-                // just undo? Might be like might be something else.
-                const likeToRemove = await UserLikesPostRelations.findOne({
-                  where: {
-                    remoteId: req.body.object.id
-                  }
-                })
-                if (likeToRemove) {
-                  await likeToRemove.destroy()
-                }
-                break
-              }
-              case 'Announce': {
-                const postToDelete = await Post.findOne({
-                  where: {
-                    remotePostId: req.body.object.id
-                  }
-                })
-                if (postToDelete) {
-                  const orphans = await postToDelete.getChildren({
-                    where: {
-                      hierarchyLevel: postToDelete.hierarchyLevel + 1
-                    }
-                  })
-                  for (const orphan of orphans) {
-                    orphan.parentId = postToDelete.parentId
-                    await orphan.save()
-                  }
-                  await postToDelete.destroy()
-                }
-                await signAndAccept(req, remoteUser, user)
-                break
-              }
-              default: {
-                logger.info(`UNDO NOT IMPLEMENTED: ${req.body.type}`)
-                logger.info(req.body)
-              }
-            }
-            break
-          }
-          case 'Like': {
-            const fullUrlPostToBeLiked = req.body.object
-            const partToRemove = `${environment.frontendUrl}/fediverse/post/`
-            const localPost = await Post.findOne({
-              where: {
-                id: fullUrlPostToBeLiked.substring(partToRemove.length)
-              }
-            })
-            if (localPost && req.body.object.startsWith(environment.frontendUrl)) {
-              const like = await UserLikesPostRelations.create({
-                userId: remoteUser.id,
-                postId: localPost.id,
-                remoteId: req.body.id
-              })
-              await signAndAccept(req, remoteUser, user)
-            }
-            break
-          }
-          case 'Delete': {
-            res.sendStatus(200)
-            const body = req.body.object
-            try {
-              if (typeof body === 'string') {
-                // we assume its just the url of an user
-                await removeUser(req.body.object)
-                await signAndAccept(req, remoteUser, user)
-                break
-              } else {
-                switch (body.type) {
-                  case 'Tombstone': {
-                    const postToDelete = await Post.findOne({
-                      where: {
-                        remotePostId: body.id
-                      }
-                    })
-                    if (postToDelete) {
-                      const children = await postToDelete.getChildren()
-                      if (children && children.length > 0) {
-                        postToDelete.content = 'Post has been deleted'
-                        await postToDelete.save()
-                      } else {
-                        await postToDelete.destroy()
-                      }
-                    }
-                    await signAndAccept(req, remoteUser, user)
-                    break
-                  }
-                  default:
-                    {
-                      logger.info(`DELETE not implemented ${body.type}`)
-                      logger.info(body)
-                    }
-                    break
-                }
-              }
-            } catch (error) {
-              logger.trace({
-                message: 'error with delete petition',
-                error: error,
-                petition: req.body
-              })
-            }
-            break
-          }
-          default: {
-            logger.info(`NOT IMPLEMENTED: ${req.body.type}`)
-            logger.info(req.body.object)
-            res.sendStatus(200)
-          }
-        }
       } catch (error) {
         logger.trace({
           error: error,

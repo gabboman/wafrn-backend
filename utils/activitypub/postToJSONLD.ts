@@ -4,7 +4,7 @@ import { environment } from '../../environment'
 import { fediverseTag } from '../../interfaces/fediverse/tags'
 
 async function postToJSONLD(post: any) {
-  const localUser = await User.cache(post.userId).findOne({
+  const localUser = await User.findOne({
     where: {
       id: post.userId
     }

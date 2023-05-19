@@ -36,8 +36,6 @@ app.use(bodyParser.json())
 app.use(cors())
 app.set('trust proxy', 1)
 
-const pino = require('pino-http')()
-app.use(pino)
 app.use('/api/apidocs', swagger.serve, swagger.setup(swaggerJSON))
 
 app.get('/api/', (req, res) =>
