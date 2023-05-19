@@ -4,7 +4,7 @@ import { FederatedHost, User, sequelize } from '../db'
 //const { csv } = require("csv-parse");
 
 async function blockHosts() {
-  const deletedUser = await User.findOne({
+  const deletedUser = await User.cache(environment.deletedUser).findOne({
     where: {
       url: environment.deletedUser
     }

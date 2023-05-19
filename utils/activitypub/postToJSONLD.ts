@@ -4,7 +4,7 @@ import { environment } from '../../environment'
 import { fediverseTag } from '../../interfaces/fediverse/tags'
 
 async function postToJSONLD(post: any) {
-  const localUser = await User.findOne({
+  const localUser = await User.cache(post.userId).findOne({
     where: {
       id: post.userId
     }
@@ -67,8 +67,8 @@ async function postToJSONLD(post: any) {
   for await (const mention of mentions) {
     const userId = mention[0].match(uuidRegex)[0]
     const user =
-      (await User.findOne({ where: { id: userId } })) ||
-      (await User.findOne({ where: { url: environment.deletedUser } }))
+      (await User.cache(userId).findOne({ where: { id: userId } })) ||
+      (await User.cache(environment.deletedUser).findOne({ where: { url: environment.deletedUser } }))
     processedContent = processedContent.replace(
       mention,
       `<span class="h-card"><a class="u-url mention" rel="ugc" href="${

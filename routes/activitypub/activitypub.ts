@@ -482,9 +482,9 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/outbox', async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.findOne({
+      const user = await User.cache(url).findOne({
         where: {
-          url
+          url: url
         }
       })
       if (user) {

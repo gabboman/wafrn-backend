@@ -17,7 +17,7 @@ function wellKnownRoutes(app: Application) {
       const urlQueryResource: string = req.query.resource
       if (urlQueryResource.startsWith('acct:') && urlQueryResource.endsWith(environment.instanceUrl)) {
         const userUrl = urlQueryResource.slice(5).slice(0, -(environment.instanceUrl.length + 1))
-        const user = await User.findOne({
+        const user = await User.cache(userUrl).findOne({
           where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userUrl.toLowerCase())
         })
         if (!user) {

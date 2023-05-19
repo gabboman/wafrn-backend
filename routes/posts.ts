@@ -39,7 +39,7 @@ export default function postsRoutes(app: Application) {
     const id = req.query.id
 
     if (id) {
-      const blog = await User.findOne({
+      const blog = await User.cache(id.toLowerCase()).findOne({
         where: {
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', id.toLowerCase())
         }
@@ -179,7 +179,7 @@ export default function postsRoutes(app: Application) {
       }
       res.send(post)
       if (post.privacy.toString() !== '2') {
-        sendRemotePost(await User.findOne({ where: { id: posterId } }), post)
+        sendRemotePost(await User.cache(posterId).findOne({ where: { id: posterId } }), post)
       }
     } catch (error) {
       logger.error(error)

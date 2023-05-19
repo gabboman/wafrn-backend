@@ -44,7 +44,7 @@ async function getPetitionSigned(user: any, target: string): Promise<any> {
     res = axiosResponse.data
   } catch (error: any) {
     if (error.response.status === 410) {
-      const userToRemove = await User.findOne({
+      const userToRemove = await User.cache(target).findOne({
         where: {
           remoteInbox: target
         }

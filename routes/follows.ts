@@ -46,14 +46,14 @@ export default function followsRoutes(app: Application) {
     try {
       const posterId = req.jwtData.userId
       if (req.body?.userId) {
-        const userUnfollowed = await User.findOne({
+        const userUnfollowed = await User.cache(req.body.userId).findOne({
           where: {
             id: req.body.userId
           }
         })
 
         if (userUnfollowed.remoteId) {
-          const localUser = await User.findOne({ where: { id: posterId } })
+          const localUser = await User.cache(posterId).findOne({ where: { id: posterId } })
           remoteUnfollow(localUser, userUnfollowed)
             .then(() => {})
             .catch((error) => {

@@ -13,7 +13,7 @@ export default function notificationRoutes(app: Application) {
   app.post('/api/readNotifications', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.jwtData.userId
-      const user = await User.findOne({
+      const user = await User.cache(userId).findOne({
         where: {
           id: userId
         }
@@ -33,7 +33,7 @@ export default function notificationRoutes(app: Application) {
   app.get('/api/notificationsScroll', authenticateToken, async (req: any, res) => {
     const page = Number(req?.query.page) || 0
     const userId = req.jwtData.userId
-    const user = await User.findOne({
+    const user = await User.cache(userId).findOne({
       where: {
         id: userId
       }
@@ -146,7 +146,7 @@ export default function notificationRoutes(app: Application) {
   app.get('/api/notificationsCount', authenticateToken, async (req: any, res) => {
     const tmp = getStartScrollParam(req)
     const userId = req.jwtData.userId
-    const user = await User.findOne({
+    const user = await User.cache(userId).findOne({
       where: {
         id: userId
       }
