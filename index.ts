@@ -62,7 +62,7 @@ app.get('/api/dashboard', authenticateToken, async (req: any, res) => {
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: { [Op.in]: [0, 1] },
       literal: sequelize.literal(
-        `"userId" in (select "followedId" from follows where "followerId" like "${posterId}") OR "userId" like '${posterId}'`
+        `"userId" in (select "followedId" from follows where "followerId" like '${posterId}') OR "userId" like '${posterId}'`
       )
     }
   })
