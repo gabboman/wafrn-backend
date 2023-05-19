@@ -27,7 +27,7 @@ async function sendRemotePost(localUser: any, post: any) {
         remoteInbox: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: 'DELETED_USER' }] },
         activated: true,
         banned: false,
-        literal: sequelize.literal('"federatedHostId" not in (SELECT id from federatedHosts where blocked = 1)')
+        literal: sequelize.literal('federatedHostId not in (SELECT id from federatedHosts where blocked = 1)')
       }
     })
     usersToSendThePost = _.groupBy(allUserInbox, 'federatedHostId')
