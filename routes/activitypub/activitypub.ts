@@ -16,7 +16,6 @@ import { postToJSONLD } from '../../utils/activitypub/postToJSONLD'
 import { Queue } from 'bullmq'
 
 // global activitypub variables
-const currentlyWritingPosts: Array<string> = []
 
 // queues
 const createRetootQueue = new Queue('createRetoot', {
@@ -241,13 +240,21 @@ function activityPubRoutes(app: Application) {
           }
           case 'Announce': {
             res.sendStatus(200)
-            createRetootQueue.add('createRetoot', { petition: req.body, petitionBy: user.id, remoteUser: remoteUser.id }, { jobId: req.body.id })
+            createRetootQueue.add(
+              'createRetoot',
+              { petition: req.body, petitionBy: user.id, remoteUser: remoteUser.id },
+              { jobId: req.body.id }
+            )
             break
           }
           case 'Create': {
             res.sendStatus(200)
             // Create new post
-            createTootQueue.add('createToot', {  petition: req.body, petitionBy: user.id, remoteUser: remoteUser.id }, {jobId: req.body.id})
+            createTootQueue.add(
+              'createToot',
+              { petition: req.body, petitionBy: user.id, remoteUser: remoteUser.id },
+              { jobId: req.body.id }
+            )
             break
           }
           case 'Follow': {

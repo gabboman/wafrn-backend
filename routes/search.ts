@@ -59,7 +59,10 @@ export default function searchRoutes(app: Application) {
       promises.push(users)
       // remote user search time
       if (posterId) {
-        remoteUsers = await searchRemoteUser(searchTerm, await User.cache(posterId).findOne({ where: { id: posterId } }))
+        remoteUsers = await searchRemoteUser(
+          searchTerm,
+          await User.cache(posterId).findOne({ where: { id: posterId } })
+        )
       }
     }
     await Promise.all(promises)

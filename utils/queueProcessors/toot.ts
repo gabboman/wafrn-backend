@@ -12,14 +12,14 @@ const tootWorker = new Worker(
       where: {
         id: job.data.petitionBy
       }
-    });
-    const body = job.data.req;
-    const remoteUser = job.data.remoteUser;
+    })
+    const body = job.data.req
+    const remoteUser = job.data.remoteUser
     try {
       const postRecived = body.object
       if (postRecived.type === 'Note') {
         await getPostThreadRecursive(user, postRecived.id, postRecived)
-        await signAndAccept({body: body}, remoteUser, user)
+        await signAndAccept({ body: body }, remoteUser, user)
       } else {
         logger.info(`post type not implemented: ${postRecived.type}`)
       }
