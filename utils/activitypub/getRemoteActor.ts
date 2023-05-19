@@ -72,7 +72,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
         }
         remoteUser = await User.create(userToCreate)
 
-        let federatedHost = await FederatedHost.findOne({
+        let federatedHost = await FederatedHost.cache(url.host.toLocaleLowerCase()).findOne({
           where: {
             displayName: url.host.toLocaleLowerCase()
           }
