@@ -109,7 +109,7 @@ function activityPubRoutes(app: Application) {
       if (user) {
         const followed = await User.findAll({
           where: {
-            literal: sequelize.literal(`id in (SELECT followedId from follows where followerId like "${user.id}")`)
+            literal: sequelize.literal(`id in (SELECT "followedId" from follows where "followerId" like '${user.id}')`)
           }
         })
         let response: any = {
@@ -151,7 +151,7 @@ function activityPubRoutes(app: Application) {
         //const followers = await user.getFollower()
         const followers = await User.findAll({
           where: {
-            literal: sequelize.literal(`id in (SELECT followerId from follows where followedId like "${user.id}")`)
+            literal: sequelize.literal(`id in (SELECT "followerId" from follows where "followedId" like '${user.id}')`)
           }
         })
         let response: any = {

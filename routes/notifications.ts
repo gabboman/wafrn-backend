@@ -45,7 +45,7 @@ export default function notificationRoutes(app: Application) {
           [Op.lt]: getStartScrollParam(req)
         },
         literal: Sequelize.literal(
-          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId like "${userId}")) AND userId NOT LIKE "${userId}"`
+          `posts.id IN (select "postsId" from postsancestors where "ancestorId" in (select id from posts where "userId" like "${userId}")) AND "userId" NOT LIKE "${userId}"`
         )
       },
       include: [
@@ -113,7 +113,7 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
+        literal: sequelize.literal(`"postId" in (select id from posts where "userId" like "${userId}")`)
       },
       include: [
         {
@@ -158,7 +158,7 @@ export default function notificationRoutes(app: Application) {
           [Op.gt]: getStartScrollParam(req)
         },
         literal: Sequelize.literal(
-          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId like "${userId}")) AND userId NOT LIKE "${userId}"`
+          `posts.id IN (select "postsId" from postsancestors where "ancestorId" in (select id from posts where "userId" like "${userId}")) AND "userId" NOT LIKE "${userId}"`
         )
       },
       attributes: ['id']
@@ -189,7 +189,7 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.gt]: getStartScrollParam(req)
         },
-        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
+        literal: sequelize.literal(`"postId" in (select id from posts where "userId" like "${userId}")`)
       },
       attributes: ['postId']
     })

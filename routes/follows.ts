@@ -14,7 +14,7 @@ export default function followsRoutes(app: Application) {
     try {
       const posterId = req.jwtData.userId
       if (req.body?.userId) {
-        const userFollowed = await User.findOne({
+        const userFollowed = await User.cache('req.body.userId').findOne({
           where: {
             id: req.body.userId
           }
@@ -23,7 +23,7 @@ export default function followsRoutes(app: Application) {
         userFollowed.addFollower(posterId)
         success = true
         if (userFollowed.remoteId) {
-          const localUser = await User.findOne({ where: { id: posterId } })
+          const localUser = await User.cache(posterId).findOne({ where: { id: posterId } })
           remoteFollow(localUser, userFollowed)
             .then(() => {})
             .catch((error) => {

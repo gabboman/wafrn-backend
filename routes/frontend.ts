@@ -67,41 +67,6 @@ export default function frontend(app: Application) {
     }
   })
 
-  app.get('/blog/:id', async function (req, res) {
-    if (req.params?.id) {
-      try {
-        const blog = await User.findOne({
-          where: {
-            url: req.params.id,
-            privacy: { [Op.ne]: 10 }
-          },
-          attributes: ['content'],
-          include: [
-            {
-              model: User,
-              attributes: ['url', 'avatar']
-            },
-            {
-              model: Media,
-              attributes: ['NSFW', 'url', 'external']
-            }
-          ]
-        })
-        if (blog) {
-          const title = blog.url.startsWith('@') ? `blog of external wafrn user ${blog.url}` : `Wafrn user ${blog.url}`
-          const description = blog.description
-          const img = blog.avatar
-          res.send(getIndexSeo(title, description, img))
-        } else {
-          res.status(200).sendFile('/', { root: environment.frontedLocation })
-        }
-      } catch (error) {
-        res.status(200).sendFile('/', { root: environment.frontedLocation })
-      }
-    } else {
-      res.status(200).sendFile('/', { root: environment.frontedLocation })
-    }
-  })
   // serve static angular files
   app.get('*.*', express.static(environment.frontedLocation, { maxAge: '1s' }))
 

@@ -2,6 +2,7 @@ import { environment } from './environment'
 import { logger } from './utils/logger'
 const { Sequelize } = require('sequelize')
 import { Table, Column, Model, HasMany } from 'sequelize-typescript'
+
 const Redis = require('ioredis')
 
 require('sequelize-hierarchy-fork')(Sequelize)
@@ -20,13 +21,18 @@ const sequelizeCache = require('sequelize-transparent-cache')
 const { withCache } = sequelizeCache(redisAdaptor)
  
 const sequelize = new Sequelize(environment.databaseConnectionString, {
-  logging: environment.logSQLQueries ? (sql: any) => logger.trace(sql) : false,
+  logging: environment.logSQLQueries ? (sql: any, time: number) => {
+    if(time > 250){
+      logger.debug({duration: time, query: sql})
+    }
+  } : false,
   pool: {
-    max: 20,
-    min: 1,
-    acquire: 30000,
-    idle: 100000
-  }
+    max: 25,
+    min: 5,
+    acquire: 15000,
+    idle: 100000,
+  },
+  benchmark: true
 })
 
 const FederatedHost = withCache(sequelize.define('federatedHosts', {
@@ -174,7 +180,9 @@ const UserReport = sequelize.define('userReports', {
 })
 
 const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {
+
 })
+PostMentionsUserRelation.removeAttribute('id')
 
 const UserLikesPostRelations = sequelize.define('userLikesPostRelations', {
   userId: {

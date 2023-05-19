@@ -37,8 +37,8 @@ app.use(bodyParser.json())
 app.use(cors())
 app.set('trust proxy', 1)
 
-//const pino = require('pino-http')()
-//app.use(pino)
+const pino = require('pino-http')()
+app.use(pino)
 app.use('/api/apidocs', swagger.serve, swagger.setup(swaggerJSON))
 
 app.get('/api/', (req, res) =>
@@ -63,7 +63,7 @@ app.get('/api/dashboard', authenticateToken, async (req: any, res) => {
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: { [Op.in]: [0, 1] },
       literal: sequelize.literal(
-        `userId in (select followedId from follows where followerId like "${posterId}") OR userId like "${posterId}"`
+        `userId in (select "followedId" from follows where followerId like "${posterId}") OR userId like "${posterId}"`
       )
     }
   })
@@ -78,7 +78,7 @@ app.get('/api/exploreLocal', async (req: any, res) => {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: 0,
-      literal: sequelize.literal(`userId in (select id from users where url not like '@%')`)
+      literal: sequelize.literal(`"userId" in (select id from users where url not like '@%')`)
     }
   })
   const responseWithNotes = await getPosstGroupDetails(rawPosts)
@@ -106,7 +106,7 @@ app.get('/api/private', authenticateToken, async (req: any, res) => {
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: 10,
       literal: sequelize.literal(
-        `id in (select postId from postMentionsUserRelations where userId like "${posterId}") or userId like "${posterId}" and privacy=10`
+        `id in (select "postId" from postMentionsUserRelations where userId like "${posterId}") or userId like "${posterId}" and privacy=10`
       )
     },
     ...getPostBaseQuery(req)
