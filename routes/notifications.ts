@@ -33,11 +33,6 @@ export default function notificationRoutes(app: Application) {
   app.get('/api/notificationsScroll', authenticateToken, async (req: any, res) => {
     const page = Number(req?.query.page) || 0
     const userId = req.jwtData.userId
-    const user = await User.cache(userId).findOne({
-      where: {
-        id: userId
-      }
-    })
     // const blockedUsers = await getBlockedIds(userId)
     const perPostReblogs = await Post.findAll({
       where: {
@@ -45,7 +40,7 @@ export default function notificationRoutes(app: Application) {
           [Op.lt]: getStartScrollParam(req)
         },
         literal: Sequelize.literal(
-          `posts.id IN (select "postsId" from postsancestors where "ancestorId" in (select id from posts where "userId" like "${userId}")) AND "userId" NOT LIKE "${userId}"`
+          `posts.id IN (select "postsId" from postsancestors where "ancestorId" in (select id from posts where "userId" like '${userId}')) AND "userId" NOT LIKE '${userId}'`
         )
       },
       include: [
@@ -113,7 +108,7 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        literal: sequelize.literal(`"postId" in (select id from posts where "userId" like "${userId}")`)
+        literal: sequelize.literal(`"postId" in (select id from posts where "userId" like '${userId}')`)
       },
       include: [
         {
@@ -158,7 +153,7 @@ export default function notificationRoutes(app: Application) {
           [Op.gt]: getStartScrollParam(req)
         },
         literal: Sequelize.literal(
-          `posts.id IN (select "postsId" from postsancestors where "ancestorId" in (select id from posts where "userId" like "${userId}")) AND "userId" NOT LIKE "${userId}"`
+          `posts.id IN (select "postsId" from postsancestors where "ancestorId" in (select id from posts where "userId" like '${userId}')) AND "userId" NOT LIKE '${userId}'`
         )
       },
       attributes: ['id']
@@ -187,7 +182,7 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.gt]: getStartScrollParam(req)
         },
-        literal: sequelize.literal(`"postId" in (select id from posts where "userId" like "${userId}")`)
+        literal: sequelize.literal(`"postId" in (select id from posts where "userId" like '${userId}')`)
       },
       attributes: ['postId']
     })

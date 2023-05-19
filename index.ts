@@ -62,7 +62,7 @@ app.get('/api/dashboard', authenticateToken, async (req: any, res) => {
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: { [Op.in]: [0, 1] },
       literal: sequelize.literal(
-        `userId in (select "followedId" from follows where followerId like "${posterId}") OR userId like "${posterId}"`
+        `"userId" in (select "followedId" from follows where followerId like "${posterId}") OR "userId" like '${posterId}'`
       )
     }
   })
@@ -105,7 +105,7 @@ app.get('/api/private', authenticateToken, async (req: any, res) => {
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: 10,
       literal: sequelize.literal(
-        `id in (select "postId" from postMentionsUserRelations where userId like "${posterId}") or userId like "${posterId}" and privacy=10`
+        `id in (select "postId" from postMentionsUserRelations where userId like '${posterId}') or "userId" like '${posterId}' and privacy=10`
       )
     },
     ...getPostBaseQuery(req)
