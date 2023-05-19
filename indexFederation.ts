@@ -31,6 +31,7 @@ app.listen(PORT, '0.0.0.0', () => {
 const processorFile = path.join(__dirname, 'utils/queueProcessors/inbox.ts');
 const worker = new Worker('inbox', processorFile, {
   connection: environment.bullmqConnection,
+  concurrency: 25
 });
 worker.on('completed', job => {
   logger.trace(`${job.id} has completed!`)

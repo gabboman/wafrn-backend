@@ -72,25 +72,25 @@ function wellKnownRoutes(app: Application) {
       attributes: ['id']
     })
 
-    const activeUsersSixMonths = await sequelize.query(` SELECT id
-      FROM users
-      WHERE id IN (
-        SELECT "userId"
-        FROM posts
-        WHERE "createdAt" between CURRENT_DATE - INTERVAL '6 months'  and CURRENT_DATE
-        GROUP BY "userId"
-        HAVING COUNT(1) > 0
-      ) AND url NOT LIKE '@%';`)
-
-    const activeUsersLastMonth = await sequelize.query(` SELECT id
+    const activeUsersSixMonths = await sequelize.query(`SELECT id
     FROM users
     WHERE id IN (
-      SELECT "userId"
+      SELECT userId
       FROM posts
-      WHERE "createdAt" between CURRENT_DATE - INTERVAL '1 months'  and CURRENT_DATE
-      GROUP BY "userId"
+      WHERE createdAt between date_sub(now(),INTERVAL 6 MONTH) and now()
+      GROUP BY userId
       HAVING COUNT(1) > 0
-    ) AND url NOT LIKE '@%';`)
+    ) AND url NOT LIKE '@%'`)
+
+    const activeUsersLastMonth = await sequelize.query(`SELECT id
+    FROM users
+    WHERE id IN (
+      SELECT userId
+      FROM posts
+      WHERE createdAt between date_sub(now(),INTERVAL 1 MONTH) and now()
+      GROUP BY userId
+      HAVING COUNT(1) > 0
+    ) AND url NOT LIKE '@%'`)
 
     res.send({
       version: '2.0',
