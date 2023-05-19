@@ -23,7 +23,12 @@ const inboxQueue = new Queue('inbox', {
   connection: environment.bullmqConnection,
   defaultJobOptions: {
     removeOnComplete: true,
-    removeOnFail: 1000
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 1000
+    },
+    removeOnFail: 25000
   }
 })
 
