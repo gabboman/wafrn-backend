@@ -2,6 +2,7 @@ export const environment = {
   prod: false,
   logSQLQueries: false,
   forceSync: false,
+  enableFediverse: true,
   databaseConnectionString: 'mariadb://user:password@127.0.0.1/wafrn',
   port: 3000,
   saltRounds: 12,

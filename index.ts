@@ -122,8 +122,10 @@ mediaRoutes(app)
 postsRoutes(app)
 searchRoutes(app)
 deletePost(app)
-wellKnownRoutes(app)
-activityPubRoutes(app)
+if (environment.enableFediverse) {
+  wellKnownRoutes(app)
+  activityPubRoutes(app)
+}
 frontend(app)
 
 app.listen(PORT, '0.0.0.0', () => {
