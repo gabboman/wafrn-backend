@@ -217,7 +217,7 @@ function activityPubRoutes(app: Application) {
   })
 
   // HERE is where the meat and potatoes are. This endpoint is what we use to recive stuff
- 
+
   app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
     const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
     const url = urlToSearch.toLowerCase()
@@ -226,13 +226,8 @@ function activityPubRoutes(app: Application) {
     })
     if (user) {
       try {
-        res.sendStatus(200);
-        inboxQueue.add(
-          'processInbox',
-          { petition: req.body, petitionBy: user.id },
-          { jobId: req.body.id }
-        )
-
+        res.sendStatus(200)
+        inboxQueue.add('processInbox', { petition: req.body, petitionBy: user.id }, { jobId: req.body.id })
       } catch (error) {
         logger.trace({
           error: error,

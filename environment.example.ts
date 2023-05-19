@@ -5,6 +5,7 @@ export const environment = {
   enableFediverse: true,
   databaseConnectionString: 'mariadb://user:password@127.0.0.1/wafrn',
   port: 3000,
+  fediPort: 6000,
   saltRounds: 12,
   jwtSecret: 'JWTSECRET',
   frontendUrl: 'FEDIVERSE_URL_WITH_HTTPS',

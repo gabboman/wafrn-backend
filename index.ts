@@ -17,12 +17,10 @@ import searchRoutes from './routes/search'
 import getStartScrollParam from './utils/getStartScrollParam'
 import deletePost from './routes/deletepost'
 import getPosstGroupDetails from './utils/getPostGroupDetails'
-import { activityPubRoutes } from './routes/activitypub/activitypub'
 import overrideContentType from './utils/overrideContentType'
 
 import { environment } from './environment'
 import { logger } from './utils/logger'
-import { wellKnownRoutes } from './routes/activitypub/well-known'
 import frontend from './routes/frontend'
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
@@ -120,12 +118,8 @@ mediaRoutes(app)
 postsRoutes(app)
 searchRoutes(app)
 deletePost(app)
-if (environment.enableFediverse) {
-  wellKnownRoutes(app)
-  activityPubRoutes(app)
-}
 frontend(app)
 
 app.listen(PORT, '0.0.0.0', () => {
-  logger.info(`⚡️Server is running at https://localhost:${PORT}`)
+  logger.info(`⚡️Server is running at https://localhost:${PORT}. REMEMBER TO START THE FEDI RUNNER TOO`)
 })
