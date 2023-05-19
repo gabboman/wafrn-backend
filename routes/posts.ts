@@ -180,7 +180,7 @@ export default function postsRoutes(app: Application) {
       }
       res.send(post)
       if (post.privacy.toString() !== '2' && environment.enableFediverse) {
-        sendRemotePost(await User.cache(posterId).findOne({ where: { id: posterId } }), post)
+        sendRemotePost(await User.findOne({ where: { id: posterId } }), post)
       }
     } catch (error) {
       logger.error(error)
