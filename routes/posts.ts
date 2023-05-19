@@ -11,6 +11,7 @@ import getPosstGroupDetails from '../utils/getPostGroupDetails'
 import { sendRemotePost } from '../utils/activitypub/sendRemotePost'
 import { logger } from '../utils/logger'
 import { createPostLimiter } from '../utils/rateLimiters'
+import { environment } from '../environment'
 
 export default function postsRoutes(app: Application) {
   app.get('/api/singlePost/:id', async (req: any, res) => {
@@ -178,7 +179,7 @@ export default function postsRoutes(app: Application) {
         success = true
       }
       res.send(post)
-      if (post.privacy.toString() !== '2') {
+      if (post.privacy.toString() !== '2' && environment.enableFediverse) {
         sendRemotePost(await User.cache(posterId).findOne({ where: { id: posterId } }), post)
       }
     } catch (error) {
