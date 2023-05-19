@@ -23,22 +23,7 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       // TODO do stuff here
       const sigHead = httpSignature.parse(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
-      const remoteUser = await getRemoteActor(remoteUserUrl, await adminUser)
-      //const remoteKey = remoteUser.publicKey
       success = true
-
-      const host = await FederatedHost.cache(new URL(remoteUserUrl).host).findOne({
-        where: {
-          displayName: new URL(remoteUserUrl).host
-        }
-      })
-
-      const hostBanned = host?.blocked
-
-      if (hostBanned || remoteUser.banned) {
-        success = false
-        logger.trace(`Ignoring message from ${remoteUserUrl} because its on our list of evildoers`)
-      }
       //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
       //success = httpSignature.verifySignature(sigHead,  remoteKey)
     } catch (error: any) {
