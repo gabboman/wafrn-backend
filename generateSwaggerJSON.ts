@@ -7,7 +7,7 @@ const config = {
     title: 'WAFRN Backend',
     description: 'API routes for wafrn social network'
   },
-  host: `0.0.0.0:${environment.port}`,
+  host: `${environment.frontendUrl}`,
   schemes: ['http'],
   securityDefinitions: {
     bearerAuth: {

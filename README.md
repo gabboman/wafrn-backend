@@ -2,12 +2,12 @@
 
 Technologies used:
 - express
-- bcrypt
 - mariadb
-- nodemailer
 - sequelize
+- bullmq
+- redis
 
 Starting the project:
-```
+``` A working guide will be done at some point
 npm start
 ```

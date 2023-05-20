@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import { Application } from 'express'
 import { Media } from '../db'
-import uploadHandler from '../uploads'
+import uploadHandler from '../utils/uploads'
 import authenticateToken from '../utils/authenticateToken'
 import getIp from '../utils/getIP'
 import optimizeMedia from '../utils/optimizeMedia'

@@ -38,7 +38,7 @@ function activityPubRoutes(app: Application) {
   // get post
   app.get(['/fediverse/post/:id', '/fediverse/activity/post/:id'], async (req: any, res) => {
     if (req.params?.id) {
-      const post = await Post.findOne({
+      const post = await Post.cache(`post_${req.params.id}`).findOne({
         where: {
           id: req.params.id,
           privacy: {
@@ -122,7 +122,7 @@ function activityPubRoutes(app: Application) {
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
-        const followed = await User.findAll({
+        const followedNumber = await User.count({
           where: {
             literal: sequelize.literal(`id in (SELECT followedId from follows where followerId like "${user.id}")`)
           }
@@ -131,19 +131,36 @@ function activityPubRoutes(app: Application) {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following`,
           type: 'OrderedCollection',
-          totalItems: followed.length,
+          totalItems: followedNumber,
           first: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=1`
         }
         if (req.query?.page) {
+          const pageNumber = parseInt(req.query.page)
+          const maxPage = Math.floor(followedNumber / 10)
+          const followed = await User.findAll({
+            where: {
+              literal: sequelize.literal(`id in (SELECT followedId from follows where followerId like "${user.id}")`)
+            },
+            order: [['createdAt', 'DESC']],
+            limit: 10,
+            offset: (pageNumber - 1 ) * 10
+          })
           response = {
             '@context': 'https://www.w3.org/ns/activitystreams',
             id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following`,
             type: 'OrderedCollection',
-            totalItems: followed.length,
+            totalItems: followedNumber,
             partOf: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following`,
             orderedItems: followed.map((elem: any) =>
               elem.remoteId ? elem.remoteId : `${environment.frontendUrl}/fediverse/blog/${elem.url}`
             )
+          }
+
+          if(pageNumber > 1) {
+            response['prev'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=${pageNumber - 1}`
+          }
+          if (pageNumber < maxPage) {
+            response['next'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=${pageNumber + 1}`
           }
         }
         res.send(response)
@@ -163,8 +180,7 @@ function activityPubRoutes(app: Application) {
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
-        //const followers = await user.getFollower()
-        const followers = await User.findAll({
+        const followersNumber = await User.count({
           where: {
             literal: sequelize.literal(`id in (SELECT followerId from follows where followedId like "${user.id}")`)
           }
@@ -173,19 +189,36 @@ function activityPubRoutes(app: Application) {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`,
           type: 'OrderedCollection',
-          totalItems: followers.length,
+          totalItems: followersNumber,
           first: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=1`
         }
         if (req.query?.page) {
+          const pageNumber = parseInt(req.query.page)
+          const maxPage = Math.floor(followersNumber / 10)
+          const followers = await User.findAll({
+            where: {
+              literal: sequelize.literal(`id in (SELECT followerId from follows where followedId like "${user.id}")`)
+            },
+            order: [['createdAt', 'DESC']],
+            limit: 10,
+            offset: (pageNumber - 1 ) * 10
+          })
           response = {
             '@context': 'https://www.w3.org/ns/activitystreams',
             id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`,
             type: 'OrderedCollection',
-            totalItems: followers.length,
+            totalItems: followersNumber,
             partOf: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`,
             orderedItems: followers.map((elem: any) =>
               elem.remoteId ? elem.remoteId : `${environment.frontendUrl}/fediverse/blog/${elem.url}`
             )
+          }
+
+          if(pageNumber > 1) {
+            response['prev'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=${pageNumber - 1}`
+          }
+          if (pageNumber < maxPage) {
+            response['next'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=${pageNumber + 1}`
           }
         }
         res.send(response)
@@ -222,7 +255,6 @@ function activityPubRoutes(app: Application) {
   })
 
   // HERE is where the meat and potatoes are. This endpoint is what we use to recive stuff
-
   app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
     const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
     const url = urlToSearch.toLowerCase()
@@ -230,15 +262,8 @@ function activityPubRoutes(app: Application) {
       where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
     })
     if (user) {
-      try {
-        await inboxQueue.add('processInbox', { petition: req.body, petitionBy: user.id }, { jobId: req.body.id })
-        res.sendStatus(200)
-      } catch (error) {
-        logger.trace({
-          error: error,
-          type: req.body.type
-        })
-      }
+      res.sendStatus(200)
+      await inboxQueue.add('processInbox', { petition: req.body, petitionBy: user.id }, { jobId: req.body.id })
     } else {
       return404(res)
     }
