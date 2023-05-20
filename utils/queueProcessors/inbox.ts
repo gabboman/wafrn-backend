@@ -22,7 +22,7 @@ async function inboxWorker (job: Job) {
         displayName: new URL(req.body.actor).host
       }
     })
-    if (!remoteUser.banned && !host.blocked) {
+    if (!remoteUser?.banned && !host?.blocked) {
       switch (req.body.type) {
         case 'Accept': {
           break
