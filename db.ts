@@ -22,7 +22,7 @@ const { withCache } = sequelizeCache(redisAdaptor)
 const sequelize = new Sequelize(environment.databaseConnectionString, {
   logging: environment.logSQLQueries
     ? (sql: any, time: number) => {
-        if (time > 250) {
+        if (time > 500) {
           logger.debug({ duration: time, query: sql })
         }
       }
@@ -32,6 +32,11 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
     min: 1,
     acquire: 30000,
     idle: 100000
+  },
+  retry: {
+    max: 5,
+    backoffBase: 3000, // Initial backoff duration in ms. Default: 100,
+    backoffExponent: 1.5, // Exponent to increase backoff each try. Default: 1.1
   },
   benchmark: true
 })
