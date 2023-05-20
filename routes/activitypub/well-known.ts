@@ -65,14 +65,13 @@ function wellKnownRoutes(app: Application) {
   })
 
   app.get('/.well-known/nodeinfo/2.0', async (req, res) => {
-    const localUsersIds = await User.findAll({
+    const localUsers = await User.count({
       where: {
         remoteInbox: { [Op.eq]: null }
       },
-      attributes: ['id']
     })
 
-    const activeUsersSixMonths = await sequelize.query(`SELECT id
+    const activeUsersSixMonths = await sequelize.query(`SELECT COUNT(*) AS count
     FROM users
     WHERE id IN (
       SELECT userId
@@ -82,7 +81,7 @@ function wellKnownRoutes(app: Application) {
       HAVING COUNT(1) > 0
     ) AND url NOT LIKE '@%'`)
 
-    const activeUsersLastMonth = await sequelize.query(`SELECT id
+    const activeUsersLastMonth = await sequelize.query(`SELECT COUNT(*) AS count
     FROM users
     WHERE id IN (
       SELECT userId
@@ -105,19 +104,18 @@ function wellKnownRoutes(app: Application) {
       },
       usage: {
         users: {
-          total: localUsersIds.length,
-          activeMonth: activeUsersLastMonth[0].length,
-          activeHalfyear: activeUsersSixMonths[0].length
+          total: localUsers,
+          activeMonth: activeUsersLastMonth[0][0].count,
+          activeHalfyear: activeUsersSixMonths[0][0].count
         },
         localPosts: (
-          await Post.findAll({
-            attributes: ['id'],
+          await Post.count({
             where: {
-              userId: { [Op.in]: localUsersIds.map((user: any) => user.id) },
+              literal: sequelize.literal(`userId in (SELECT id FROM users where url NOT LIKE '@%')`),
               privacy: 0
             }
           })
-        ).length
+        )
       },
       openRegistrations: true,
       metadata: {}
