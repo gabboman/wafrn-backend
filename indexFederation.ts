@@ -27,6 +27,7 @@ app.listen(PORT, '0.0.0.0', () => {
 })
 
 // listen to workers
+/*
 const processorFile = path.join(__dirname, 'utils/queueProcessors/inbox.ts')
 const worker = new Worker('inbox', processorFile, {
   connection: environment.bullmqConnection,
@@ -39,3 +40,4 @@ worker.on('completed', (job) => {
 worker.on('failed', (job, err) => {
   logger.debug(`${job?.id} has failed with ${err.message}`)
 })
+*/
