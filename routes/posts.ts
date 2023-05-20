@@ -18,11 +18,11 @@ export default function postsRoutes(app: Application) {
     let success = false
     if (req.params?.id) {
       const post = await Post.findOne({
+        ...getPostBaseQuery(req),
         where: {
           id: req.params.id,
           privacy: { [Op.ne]: 10 }
-        },
-        ...getPostBaseQuery(req)
+        }
       })
       if (post) {
         res.send((await getPosstGroupDetails([post]))[0])

@@ -143,7 +143,7 @@ function activityPubRoutes(app: Application) {
             },
             order: [['createdAt', 'DESC']],
             limit: 10,
-            offset: (pageNumber - 1 ) * 10
+            offset: (pageNumber - 1) * 10
           })
           response = {
             '@context': 'https://www.w3.org/ns/activitystreams',
@@ -156,11 +156,15 @@ function activityPubRoutes(app: Application) {
             )
           }
 
-          if(pageNumber > 1) {
-            response['prev'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=${pageNumber - 1}`
+          if (pageNumber > 1) {
+            response['prev'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=${
+              pageNumber - 1
+            }`
           }
           if (pageNumber < maxPage) {
-            response['next'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=${pageNumber + 1}`
+            response['next'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=${
+              pageNumber + 1
+            }`
           }
         }
         res.send(response)
@@ -201,7 +205,7 @@ function activityPubRoutes(app: Application) {
             },
             order: [['createdAt', 'DESC']],
             limit: 10,
-            offset: (pageNumber - 1 ) * 10
+            offset: (pageNumber - 1) * 10
           })
           response = {
             '@context': 'https://www.w3.org/ns/activitystreams',
@@ -214,11 +218,15 @@ function activityPubRoutes(app: Application) {
             )
           }
 
-          if(pageNumber > 1) {
-            response['prev'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=${pageNumber - 1}`
+          if (pageNumber > 1) {
+            response['prev'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=${
+              pageNumber - 1
+            }`
           }
           if (pageNumber < maxPage) {
-            response['next'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=${pageNumber + 1}`
+            response['next'] = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=${
+              pageNumber + 1
+            }`
           }
         }
         res.send(response)

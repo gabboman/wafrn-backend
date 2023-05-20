@@ -7,7 +7,7 @@ import { environment } from '../../environment'
 import { removeUser } from '../activitypub/removeUser'
 import { getPostThreadRecursive } from '../activitypub/getPostThreadRecursive'
 
-async function inboxWorker (job: Job) {
+async function inboxWorker(job: Job) {
   try {
     const user = await User.findOne({
       where: {
@@ -29,13 +29,22 @@ async function inboxWorker (job: Job) {
         }
         case 'Announce': {
           const retooted_content = await getPostThreadRecursive(user, body.object)
+          let privacy = 10
+          if (req.body.to.indexOf('https://www.w3.org/ns/activitystreams#Public') !== -1) {
+            // post is PUBLIC
+            privacy = 0
+          }
+          if (req.body.to[0].toString().indexOf('followers') !== -1) {
+            privacy = 1
+          }
           const postToCreate = {
             content: '',
             content_warning: '',
             createdAt: new Date(),
             updatedAt: new Date(),
             userId: remoteUser.id,
-            remotePostId: body.id
+            remotePostId: body.id,
+            privacy: privacy
           }
           const newToot = await Post.create(postToCreate)
           await newToot.setParent(retooted_content)

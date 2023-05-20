@@ -3,9 +3,7 @@ import { logger } from './utils/logger'
 import { environment } from './environment'
 import { inboxWorker } from './utils/queueProcessors/inbox'
 
-
-
-const worker = new Worker('inbox', (job: Job) => inboxWorker(job) , {
+const worker = new Worker('inbox', (job: Job) => inboxWorker(job), {
   connection: environment.bullmqConnection,
   concurrency: environment.fediverseConcurrency
 })

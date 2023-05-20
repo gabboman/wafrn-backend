@@ -20,13 +20,11 @@ const sequelizeCache = require('sequelize-transparent-cache')
 const { withCache } = sequelizeCache(redisAdaptor)
 
 const sequelize = new Sequelize(environment.databaseConnectionString, {
-  logging: environment.logSQLQueries
-    ? (sql: any, time: number) => {
-        if (time > 500) {
-          logger.debug({ duration: time, query: sql })
-        }
-      }
-    : false,
+  logging: (sql: any, time: number) => {
+    if (time > 2500 || environment.logSQLQueries) {
+      logger.warn({ duration: time, query: sql })
+    }
+  },
   pool: {
     max: 10,
     min: 1,
@@ -36,7 +34,7 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
   retry: {
     max: 5,
     backoffBase: 3000, // Initial backoff duration in ms. Default: 100,
-    backoffExponent: 1.5, // Exponent to increase backoff each try. Default: 1.1
+    backoffExponent: 1.5 // Exponent to increase backoff each try. Default: 1.1
   },
   benchmark: true
 })

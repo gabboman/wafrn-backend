@@ -68,7 +68,7 @@ function wellKnownRoutes(app: Application) {
     const localUsers = await User.count({
       where: {
         remoteInbox: { [Op.eq]: null }
-      },
+      }
     })
 
     const activeUsersSixMonths = await sequelize.query(`SELECT COUNT(*) AS count
@@ -108,14 +108,12 @@ function wellKnownRoutes(app: Application) {
           activeMonth: activeUsersLastMonth[0][0].count,
           activeHalfyear: activeUsersSixMonths[0][0].count
         },
-        localPosts: (
-          await Post.count({
-            where: {
-              literal: sequelize.literal(`userId in (SELECT id FROM users where url NOT LIKE '@%')`),
-              privacy: 0
-            }
-          })
-        )
+        localPosts: await Post.count({
+          where: {
+            literal: sequelize.literal(`userId in (SELECT id FROM users where url NOT LIKE '@%')`),
+            privacy: 0
+          }
+        })
       },
       openRegistrations: true,
       metadata: {}
