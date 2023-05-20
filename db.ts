@@ -28,7 +28,7 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
       }
     : false,
   pool: {
-    max: 20,
+    max: 10,
     min: 1,
     acquire: 30000,
     idle: 100000

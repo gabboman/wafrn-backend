@@ -8,7 +8,11 @@ import { removeUser } from '../activitypub/removeUser'
 import { getPostThreadRecursive } from '../activitypub/getPostThreadRecursive'
 
 module.exports = async (job: SandboxedJob, done: any) => {
+  let interval;
   try {
+    interval = setTimeout(()=> {
+      throw new Error('timeout')
+    }, 30000)
     const user = await User.findOne({
       where: {
         id: job.data.petitionBy
@@ -260,9 +264,10 @@ module.exports = async (job: SandboxedJob, done: any) => {
     }
   } catch (error) {
     logger.trace(error)
+    clearInterval(interval)
     done(new Error('error'))
   }
-
+  clearInterval(interval)
   done()
 
 }
