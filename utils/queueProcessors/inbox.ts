@@ -1,4 +1,4 @@
-import { SandboxedJob } from 'bullmq'
+import { Job } from 'bullmq'
 import { logger } from '../logger'
 import { FederatedHost, Follows, Media, Post, User, UserLikesPostRelations } from '../../db'
 import { getRemoteActor } from '../activitypub/getRemoteActor'
@@ -7,7 +7,7 @@ import { environment } from '../../environment'
 import { removeUser } from '../activitypub/removeUser'
 import { getPostThreadRecursive } from '../activitypub/getPostThreadRecursive'
 
-module.exports = async (job: SandboxedJob, done: any) => {
+async function inboxWorker (job: Job) {
   let interval;
   try {
     interval = setTimeout(()=> {
@@ -265,9 +265,10 @@ module.exports = async (job: SandboxedJob, done: any) => {
   } catch (error) {
     logger.trace(error)
     clearInterval(interval)
-    done(new Error('error'))
+    throw new Error('error')
   }
   clearInterval(interval)
-  done()
 
 }
+
+export { inboxWorker }
