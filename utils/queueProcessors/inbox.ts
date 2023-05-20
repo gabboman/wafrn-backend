@@ -8,11 +8,7 @@ import { removeUser } from '../activitypub/removeUser'
 import { getPostThreadRecursive } from '../activitypub/getPostThreadRecursive'
 
 async function inboxWorker (job: Job) {
-  let interval;
   try {
-    interval = setTimeout(()=> {
-      throw new Error('timeout')
-    }, 30000)
     const user = await User.findOne({
       where: {
         id: job.data.petitionBy
@@ -262,13 +258,10 @@ async function inboxWorker (job: Job) {
     } else {
       logger.trace(`Ignoring petition from ${host.displayName}: ${remoteUser.url}`)
     }
-  } catch (error) {
-    logger.trace(error)
-    clearInterval(interval)
-    throw new Error('error')
+  } catch (err) {
+    logger.trace(err)
+    const error = new Error('error')
   }
-  clearInterval(interval)
-
 }
 
 export { inboxWorker }

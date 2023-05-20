@@ -7,12 +7,12 @@ import { inboxWorker } from './utils/queueProcessors/inbox'
 
 const worker = new Worker('inbox', (job: Job) => inboxWorker(job) , {
   connection: environment.bullmqConnection,
-  concurrency: 5
+  concurrency: 3
 })
 worker.on('completed', (job) => {
-  logger.trace(`${job.id} has completed!`)
+  console.log(`${job.id} has completed!`)
 })
 
 worker.on('failed', (job, err) => {
-  logger.debug(`${job?.id} has failed with ${err.message}`)
+  console.log(`${job?.id} has failed with ${err.message}`)
 })
