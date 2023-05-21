@@ -23,5 +23,5 @@ workerInbox.on('failed', (job, err) => {
 })
 
 workerUpdateRemoteUsers.on('failed', (job, err) => {
-  console.warn(`${job?.id} has failed with ${err.message}`)
+  console.warn(`update user ${job?.id} has failed with ${err.message}`)
 })

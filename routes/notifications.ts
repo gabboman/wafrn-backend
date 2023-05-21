@@ -125,7 +125,7 @@ export default function notificationRoutes(app: Application) {
       reblogs: await perPostReblogs,
       mentions: (await newMentions).map((mention: any) => {
         return {
-          user: mention.post.user,
+          user: mention?.post?.user,
           content: mention.post.content,
           id: mention.post.id,
           createdAt: mention.createdAt,
@@ -139,15 +139,9 @@ export default function notificationRoutes(app: Application) {
 
   // TODO: do it better with a count instead of this thing you've done here
   app.get('/api/notificationsCount', authenticateToken, async (req: any, res) => {
-    const tmp = getStartScrollParam(req)
     const userId = req.jwtData.userId
-    const user = await User.cache(userId).findOne({
-      where: {
-        id: userId
-      }
-    })
     //const blockedUsers = await getBlockedIds(userId)
-    const perPostReblogs = await Post.findAll({
+    const perPostReblogs = await Post.count({
       where: {
         createdAt: {
           [Op.gt]: getStartScrollParam(req)
@@ -156,18 +150,16 @@ export default function notificationRoutes(app: Application) {
           `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId like "${userId}")) AND userId NOT LIKE "${userId}"`
         )
       },
-      attributes: ['id']
     })
-    const newFollows = await Follows.findAll({
+    const newFollows = await Follows.count({
       where: {
         createdAt: {
           [Op.gt]: getStartScrollParam(req)
         },
         followedId: userId
       },
-      attributes: ['createdAt']
     })
-    const newMentions = PostMentionsUserRelation.findAll({
+    const newMentions = PostMentionsUserRelation.count({
       where: {
         createdAt: {
           [Op.gt]: getStartScrollParam(req)
@@ -177,7 +169,7 @@ export default function notificationRoutes(app: Application) {
       attributes: ['postId']
     })
 
-    const newLikes = UserLikesPostRelations.findAll({
+    const newLikes = UserLikesPostRelations.count({
       where: {
         createdAt: {
           [Op.gt]: getStartScrollParam(req)
@@ -189,7 +181,7 @@ export default function notificationRoutes(app: Application) {
 
     res.send({
       notifications:
-        (await newFollows).length + (await perPostReblogs).length + (await newMentions).length + (await newLikes).length
+        (await newFollows) + (await perPostReblogs) + (await newMentions) + (await newLikes)
     })
   })
 }
