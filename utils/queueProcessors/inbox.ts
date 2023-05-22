@@ -119,13 +119,14 @@ async function inboxWorker(job: Job) {
                   })
                   medias.push(wafrnMedia)
                   mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
+                  await postToEdit.removeMedias()
+                  await postToEdit.addMedias(medias)
                 }
               }
               postToEdit.content = `${body.content}<p>${mediasString}<p>Post edited at ${body.updated}</p>`
               postToEdit.updatedAt = body.updated
               await postToEdit.save()
               const acceptResponse = await signAndAccept(req, remoteUser, user)
-
               break
             }
             default: {
