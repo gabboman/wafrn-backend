@@ -16,9 +16,6 @@ const redisAdaptor = new RedisAdaptor({
   lifetime: 60 * 60
 })
 
-const sequelizeCache = require('sequelize-transparent-cache')
-const { withCache } = sequelizeCache(redisAdaptor)
-
 const sequelize = new Sequelize(environment.databaseConnectionString, {
   logging: (sql: any, time: number) => {
     if (time > 2500 || environment.logSQLQueries) {
@@ -39,8 +36,7 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
   benchmark: true
 })
 
-const FederatedHost = withCache(
-  sequelize.define(
+const FederatedHost = sequelize.define(
     'federatedHosts',
     {
       id: {
@@ -64,10 +60,8 @@ const FederatedHost = withCache(
       ]
     }
   )
-)
 
-const User = withCache(
-  sequelize.define(
+const User = sequelize.define(
     'users',
     {
       id: {
@@ -126,10 +120,8 @@ const User = withCache(
       ]
     }
   )
-)
 
-const Follows = withCache(
-  sequelize.define(
+const Follows = sequelize.define(
     'follows',
     {
       remoteFollowId: Sequelize.TEXT
@@ -143,16 +135,12 @@ const Follows = withCache(
       ]
     }
   )
-)
 
-const Blocks = withCache(
-  sequelize.define('blocks', {
+const Blocks = sequelize.define('blocks', {
     remoteBlockId: Sequelize.TEXT
   })
-)
 
-const Post = withCache(
-  sequelize.define(
+const Post = sequelize.define(
     'posts',
     {
       id: {
@@ -175,16 +163,12 @@ const Post = withCache(
       ]
     }
   )
-)
 
-const Tag = withCache(
-  sequelize.define('tags', {
+const Tag = sequelize.define('tags', {
     tagName: Sequelize.TEXT
   })
-)
 
-const Media = withCache(
-  sequelize.define('medias', {
+const Media = sequelize.define('medias', {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
@@ -202,26 +186,24 @@ const Media = withCache(
       allowNull: false
     }
   })
-)
-const PostReport = withCache(
-  sequelize.define('postReports', {
+
+const PostReport = sequelize.define('postReports', {
     resolved: Sequelize.BOOLEAN,
     severity: Sequelize.INTEGER,
     description: Sequelize.TEXT
   })
-)
-const UserReport = withCache(
-  sequelize.define('userReports', {
+
+const UserReport = sequelize.define('userReports', {
     resolved: Sequelize.BOOLEAN,
     severity: Sequelize.INTEGER,
     description: Sequelize.TEXT
   })
-)
-const PostMentionsUserRelation = withCache(sequelize.define('postMentionsUserRelations', {}))
+
+const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {})
+
 PostMentionsUserRelation.removeAttribute('id')
 
-const UserLikesPostRelations = withCache(
-  sequelize.define('userLikesPostRelations', {
+const UserLikesPostRelations = sequelize.define('userLikesPostRelations', {
     userId: {
       type: Sequelize.UUID,
       allowNull: false,
@@ -247,7 +229,7 @@ const UserLikesPostRelations = withCache(
       allowNull: true
     }
   })
-)
+
 
 User.belongsToMany(User, {
   through: Follows,
