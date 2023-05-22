@@ -35,7 +35,7 @@ async function postPetitionSigned(message: object, user: any, target: string): P
   } catch (error: any) {
     if (error?.response?.status === 410) {
       logger.trace(`should remove user ${target}`)
-      const userToRemove = await User.cache(target).findOne({
+      const userToRemove = await User.findOne({
         where: {
           remoteInbox: target
         }

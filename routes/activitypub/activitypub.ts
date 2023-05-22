@@ -38,7 +38,7 @@ function activityPubRoutes(app: Application) {
   // get post
   app.get(['/fediverse/post/:id', '/fediverse/activity/post/:id'], async (req: any, res) => {
     if (req.params?.id) {
-      const post = await Post.cache(`post_${req.params.id}`).findOne({
+      const post = await Post.findOne({
         where: {
           id: req.params.id,
           privacy: {
@@ -61,7 +61,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url', async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.cache(url).findOne({
+      const user = await User.findOne({
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url)
       })
       if (user) {
@@ -118,7 +118,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/following', async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.cache(url).findOne({
+      const user = await User.findOne({
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
@@ -180,7 +180,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/followers', async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.cache(url).findOne({
+      const user = await User.findOne({
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
@@ -242,7 +242,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/featured', async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.cache(url).findOne({
+      const user = await User.findOne({
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
@@ -266,7 +266,7 @@ function activityPubRoutes(app: Application) {
   app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
     const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
     const url = urlToSearch.toLowerCase()
-    const user = await User.cache(url).findOne({
+    const user = await User.findOne({
       where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
     })
     if (user) {
@@ -281,7 +281,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/outbox', async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.cache(url).findOne({
+      const user = await User.findOne({
         where: {
           url: url
         }

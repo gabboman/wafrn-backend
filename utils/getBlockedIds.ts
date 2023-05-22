@@ -2,7 +2,7 @@ import { User } from '../db'
 
 export default async function getBlockedIds(userId: string): Promise<string[]> {
   try {
-    const usr = await User.cache(userId).findOne({
+    const usr = await User.findOne({
       where: {
         id: userId
       },

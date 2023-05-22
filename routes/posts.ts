@@ -40,7 +40,7 @@ export default function postsRoutes(app: Application) {
     const id = req.query.id
 
     if (id) {
-      const blog = await User.cache(id.toLowerCase()).findOne({
+      const blog = await User.findOne({
         where: {
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', id.toLowerCase())
         }
@@ -157,7 +157,6 @@ export default function postsRoutes(app: Application) {
           },
           group: ['tagName']
         })
-        // eslint-disable-next-line max-len
         const existingTagsString = existingTags.map((tag: any) => tag.tagName)
         for (const tag of tagList) {
           const existingTagIndex = existingTagsString.indexOf(tag)

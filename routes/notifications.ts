@@ -13,7 +13,7 @@ export default function notificationRoutes(app: Application) {
   app.post('/api/readNotifications', authenticateToken, async (req: any, res) => {
     try {
       const userId = req.jwtData.userId
-      const user = await User.cache(userId).findOne({
+      const user = await User.findOne({
         where: {
           id: userId
         }
