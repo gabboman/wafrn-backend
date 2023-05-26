@@ -129,7 +129,7 @@ export default function notificationRoutes(app: Application) {
           content: mention.post?.content,
           id: mention.post?.id,
           createdAt: mention.createdAt,
-          parentId: mention.post.parentId,
+          parentId: mention.post?.parentId,
           privacy: mention.post.privacy
         }
       }),
