@@ -126,7 +126,7 @@ export default function notificationRoutes(app: Application) {
       mentions: (await newMentions).map((mention: any) => {
         return {
           user: mention?.post?.user,
-          content: mention.post.content,
+          content: mention.post?.content,
           id: mention.post.id,
           createdAt: mention.createdAt,
           parentId: mention.post.parentId,
