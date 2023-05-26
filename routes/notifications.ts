@@ -130,7 +130,7 @@ export default function notificationRoutes(app: Application) {
           id: mention.post?.id,
           createdAt: mention.createdAt,
           parentId: mention.post?.parentId,
-          privacy: mention.post.privacy
+          privacy: mention.post?.privacy
         }
       }),
       likes: await newLikes
