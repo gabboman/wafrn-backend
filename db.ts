@@ -18,7 +18,9 @@ const redisAdaptor = new RedisAdaptor({
 
 const sequelize = new Sequelize(environment.databaseConnectionString, {
   logging: (sql: any, time: number) => {
-    if (time > 2500 || environment.logSQLQueries) {
+    if(environment.logSQLQueries) {
+      logger.trace({ duration: time, query: sql })
+    } else if (time > 2500 ) {
       logger.warn({ duration: time, query: sql })
     }
   },
@@ -49,7 +51,10 @@ const FederatedHost = sequelize.define(
       publicInbox: Sequelize.TEXT,
       publicKey: Sequelize.TEXT,
       detail: Sequelize.STRING,
-      blocked: Sequelize.BOOLEAN
+      blocked: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      }
     },
     {
       indexes: [

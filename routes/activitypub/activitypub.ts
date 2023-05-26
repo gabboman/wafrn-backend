@@ -134,7 +134,7 @@ function activityPubRoutes(app: Application) {
           totalItems: followedNumber,
           first: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=1`
         }
-        if (req.query?.page) {
+        if (req.query?.page && req.query.page > 0) {
           const pageNumber = parseInt(req.query.page)
           const maxPage = Math.floor(followedNumber / 10)
           const followed = await User.findAll({
@@ -196,7 +196,7 @@ function activityPubRoutes(app: Application) {
           totalItems: followersNumber,
           first: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=1`
         }
-        if (req.query?.page) {
+        if (req.query?.page && req.query.page > 0) {
           const pageNumber = parseInt(req.query.page)
           const maxPage = Math.floor(followersNumber / 10)
           const followers = await User.findAll({

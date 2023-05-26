@@ -115,9 +115,9 @@ async function postToJSONLD(post: any) {
       post.privacy / 1 === 10
         ? mentionedUsers
         : post.privacy / 1 === 0
-        ? ['https://www.w3.org/ns/activitystreams#Public']
+        ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
         : [stringMyFollowers],
-    cc: post.privacy / 1 === 0 ? [stringMyFollowers, ...mentionedUsers] : [],
+    cc: post.privacy / 1 === 0 ? [ ...mentionedUsers] : [],
     object: {
       id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       type: 'Note',
