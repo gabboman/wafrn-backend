@@ -6,6 +6,7 @@ import getFollowedsIds from '../utils/getFollowedsIds'
 import { logger } from '../utils/logger'
 import { remoteFollow } from '../utils/activitypub/remoteFollow'
 import { remoteUnfollow } from '../utils/activitypub/remoteUnfollow'
+import { Sequelize } from 'sequelize'
 
 export default function followsRoutes(app: Application) {
   app.post('/api/follow', authenticateToken, async (req: any, res) => {
@@ -74,12 +75,18 @@ export default function followsRoutes(app: Application) {
   })
 
   app.get('/api/getFollowedUsers', authenticateToken, async (req: any, res) => {
-    const followedUsers = getFollowedsIds(req.jwtData.userId)
-    const blockedUsers = getBlockedIds(req.jwtData.userId)
-    await Promise.all([followedUsers, blockedUsers])
+    //const followedUsers = getFollowedsIds(req.jwtData.userId)
+    const followedUsers = User.findAll({
+      attributes: ['id'],
+      where: {
+        literal: Sequelize.literal(`id in (SELECT followedId from follows where followerId LIKE "${req.jwtData.userId}")`)
+      }
+    })
+    //const blockedUsers = getBlockedIds(req.jwtData.userId)
     res.send({
       followedUsers: await followedUsers,
-      blockedUsers: await blockedUsers
+      //blockedUsers: await blockedUsers
+      blockedUsers: []
     })
   })
 }
