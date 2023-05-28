@@ -78,7 +78,7 @@ export default function searchRoutes(app: Application) {
     let users: any = []
     const searchTerm = req.params.term.toLowerCase().trim()
     users = await User.findAll({
-      limit: 5,
+      limit: 20,
       where: {
         activated: true,
         url: { [Op.like]: '@%' },
@@ -88,7 +88,7 @@ export default function searchRoutes(app: Application) {
     })
 
     const localUsers = await User.findAll({
-      limit: 5,
+      limit: 20,
       where: {
         activated: true,
         url: { [Op.notLike]: '@%' },
