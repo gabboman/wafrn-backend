@@ -75,8 +75,8 @@ export default function followsRoutes(app: Application) {
   })
 
   app.get('/api/getFollowedUsers', authenticateToken, async (req: any, res) => {
-    //const followedUsers = getFollowedsIds(req.jwtData.userId)
-    const followedUsers = User.findAll({
+    // const followedUsers = getFollowedsIds(req.jwtData.userId)
+    const followedUsers = await User.findAll({
       attributes: ['id'],
       where: {
         literal: Sequelize.literal(`id in (SELECT followedId from follows where followerId LIKE "${req.jwtData.userId}")`)
@@ -84,7 +84,7 @@ export default function followsRoutes(app: Application) {
     })
     //const blockedUsers = getBlockedIds(req.jwtData.userId)
     res.send({
-      followedUsers: await followedUsers,
+      followedUsers: followedUsers.map((elem: any)=> elem.id).concat(req.jwtData.userId),
       //blockedUsers: await blockedUsers
       blockedUsers: []
     })
