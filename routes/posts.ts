@@ -190,6 +190,7 @@ export default function postsRoutes(app: Application) {
       }
       res.send(post)
       if (post.privacy.toString() !== '2' && environment.enableFediverse) {
+        await post.save()
         await sendPostQueue.add('processSendPost', { postId: post.id, petitionBy: posterId }, { jobId: post.id, delay: 2500 })
       }
     } catch (error) {
