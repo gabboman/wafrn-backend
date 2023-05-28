@@ -80,12 +80,12 @@ export default function notificationRoutes(app: Application) {
         avatar: elem.followed.avatar
       }
     })
-    const newMentions = PostMentionsUserRelation.findAll({
+    const newMentions = await PostMentionsUserRelation.findAll({
       where: {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        userId
+        userId: userId
       },
       include: [
         {
