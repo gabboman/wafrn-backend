@@ -2,17 +2,28 @@ import { Application } from 'express'
 import { Op } from 'sequelize'
 import { Post, PostMentionsUserRelation, PostReport, Tag, User } from '../db'
 import authenticateToken from '../utils/authenticateToken'
-import getIp from '../utils/getIP'
 import getPostBaseQuery from '../utils/getPostBaseQuery'
 import { sequelize } from '../db'
 
 import getStartScrollParam from '../utils/getStartScrollParam'
 import getPosstGroupDetails from '../utils/getPostGroupDetails'
-import { sendRemotePost } from '../utils/activitypub/sendRemotePost'
 import { logger } from '../utils/logger'
 import { createPostLimiter } from '../utils/rateLimiters'
 import { environment } from '../environment'
+import { Queue } from 'bullmq'
 
+const sendPostQueue = new Queue('sendPost', {
+  connection: environment.bullmqConnection,
+  defaultJobOptions: {
+    removeOnComplete: true,
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 1000
+    },
+    removeOnFail: 25000
+  }
+})
 export default function postsRoutes(app: Application) {
   app.get('/api/singlePost/:id', async (req: any, res) => {
     let success = false
@@ -179,7 +190,7 @@ export default function postsRoutes(app: Application) {
       }
       res.send(post)
       if (post.privacy.toString() !== '2' && environment.enableFediverse) {
-        sendRemotePost(await User.findOne({ where: { id: posterId } }), post)
+        await sendPostQueue.add('processSendPost', { postId: post.id, petitionBy: posterId }, { jobId: post.id })
       }
     } catch (error) {
       logger.error(error)

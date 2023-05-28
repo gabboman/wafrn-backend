@@ -1,13 +1,26 @@
 import { Op, Sequelize } from 'sequelize'
 import { logger } from '../logger'
-import { postPetitionSigned } from './postPetitionSigned'
-import { postToJSONLD } from './postToJSONLD'
-import { LdSignature } from './rsa2017'
-import { FederatedHost, User, sequelize } from '../../db'
-import getRemoteFollowers from './getRemoteFollowers'
+import { postPetitionSigned } from '../activitypub/postPetitionSigned'
+import { postToJSONLD } from '../activitypub/postToJSONLD'
+import { LdSignature } from '../activitypub/rsa2017'
+import { FederatedHost, Post, User, sequelize } from '../../db'
+import getRemoteFollowers from '../activitypub/getRemoteFollowers'
 import { environment } from '../../environment'
+import { Job } from 'bullmq'
 
-async function sendRemotePost(localUser: any, post: any) {
+
+async function sendRemotePostWorker(job: Job) {
+//async function sendRemotePost(localUser: any, post: any) {
+  const localUser = await User.findOne({
+    where: {
+      id: job.data.petitionBy
+    }
+  })
+  const post = await Post.findOne({
+    where: {
+      id: job.data.postId
+    }
+  })
   // servers with shared inbox
   let serversToSendThePost;
   // for servers with no shared inbox
@@ -114,4 +127,4 @@ async function sendRemotePost(localUser: any, post: any) {
   }
 }
 
-export { sendRemotePost }
+export { sendRemotePostWorker }
