@@ -76,8 +76,8 @@ async function inboxWorker(job: Job) {
             await user.save()
             remoteFollow = await Follows.findOne({
               where: {
-                followedId: remoteUser.id,
-                followerId: user.id
+                followerId: remoteUser.id,
+                followedId: user.id
               }
             })
           }
