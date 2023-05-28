@@ -27,7 +27,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
       displayName: url.host
     }
   })
-  const hostBanned = hostQuery.blocked
+  const hostBanned = hostQuery?.blocked
 
   if (hostBanned) {
     return await User.findOne({
