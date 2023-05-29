@@ -79,12 +79,14 @@ export default function followsRoutes(app: Application) {
     const followedUsers = await User.findAll({
       attributes: ['id'],
       where: {
-        literal: Sequelize.literal(`id in (SELECT followedId from follows where followerId LIKE "${req.jwtData.userId}")`)
+        literal: Sequelize.literal(
+          `id in (SELECT followedId from follows where followerId LIKE "${req.jwtData.userId}")`
+        )
       }
     })
     //const blockedUsers = getBlockedIds(req.jwtData.userId)
     res.send({
-      followedUsers: followedUsers.map((elem: any)=> elem.id).concat(req.jwtData.userId),
+      followedUsers: followedUsers.map((elem: any) => elem.id).concat(req.jwtData.userId),
       //blockedUsers: await blockedUsers
       blockedUsers: []
     })

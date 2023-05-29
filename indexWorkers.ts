@@ -15,7 +15,6 @@ const workerUpdateRemoteUsers = new Worker('updateUser', (job: Job) => updateUse
   concurrency: environment.fediverseConcurrency
 })
 
-
 const workerSendPosts = new Worker('sendPost', (job: Job) => sendRemotePostWorker(job), {
   connection: environment.bullmqConnection,
   concurrency: environment.fediverseConcurrency
@@ -28,7 +27,6 @@ workerInbox.on('completed', (job) => {
 workerInbox.on('failed', (job, err) => {
   console.warn(`${job?.id} has failed with ${err.message}`)
 })
-
 
 workerSendPosts.on('completed', (job) => {
   // console.log(`${job.id} has completed!`)

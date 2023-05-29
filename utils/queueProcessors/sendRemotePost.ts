@@ -8,44 +8,45 @@ import getRemoteFollowers from '../activitypub/getRemoteFollowers'
 import { environment } from '../../environment'
 import { Job } from 'bullmq'
 
-
 async function sendRemotePostWorker(job: Job) {
-//async function sendRemotePost(localUser: any, post: any) {
+  //async function sendRemotePost(localUser: any, post: any) {
   const post = await Post.findOne({
     where: {
       id: job.id
     }
-  })  
-const localUser = await User.findOne({
+  })
+  const localUser = await User.findOne({
     where: {
       id: post.userId
     }
   })
-  
+
   // servers with shared inbox
-  let serversToSendThePost;
+  let serversToSendThePost
   // for servers with no shared inbox
-  let usersToSendThePost;
+  let usersToSendThePost
   // mentioned users
   const mentionedUsers = await User.findAll({
     attributes: ['remoteInbox'],
     where: {
-      federatedHostId: {[Op.ne]: null},
+      federatedHostId: { [Op.ne]: null },
       literal: Sequelize.literal(`id IN (SELECT userId FROM postMentionsUserRelations WHERE postId = "${post.id}")`)
     }
-  });
-  switch(post.privacy) {
+  })
+  switch (post.privacy) {
     case 1: {
       serversToSendThePost = await FederatedHost.findAll({
         where: {
-          publicInbox: {[Op.ne]: null},
-          blocked: {[Op.ne]: true},
-          literal: sequelize.literal(`id in (SELECT federatedHostId from users where users.id IN (SELECT followerId from follows where followedId = '${post.userId}') and federatedHostId is not NULL)`)
+          publicInbox: { [Op.ne]: null },
+          blocked: { [Op.ne]: true },
+          literal: sequelize.literal(
+            `id in (SELECT federatedHostId from users where users.id IN (SELECT followerId from follows where followedId = '${post.userId}') and federatedHostId is not NULL)`
+          )
         }
       })
       usersToSendThePost = usersToSendThePost = await FederatedHost.findAll({
         where: {
-          publicInbox: {[Op.eq]: null},
+          publicInbox: { [Op.eq]: null },
           blocked: false
         },
         include: [
@@ -54,29 +55,31 @@ const localUser = await User.findOne({
             attributes: ['remoteInbox'],
             where: {
               banned: false,
-              literal: Sequelize.literal(`users.id IN (SELECT followerId from follows where followedId = "${post.userId}")`)
+              literal: Sequelize.literal(
+                `users.id IN (SELECT followerId from follows where followedId = "${post.userId}")`
+              )
             }
           }
         ]
-      });
+      })
 
-      break;
+      break
     }
     case 10: {
       serversToSendThePost = []
       usersToSendThePost = []
-      break;
+      break
     }
     default: {
       serversToSendThePost = await FederatedHost.findAll({
         where: {
-          publicInbox: {[Op.ne]: null},
+          publicInbox: { [Op.ne]: null },
           blocked: false
         }
-      });
+      })
       usersToSendThePost = await FederatedHost.findAll({
         where: {
-          publicInbox: {[Op.eq]: null},
+          publicInbox: { [Op.eq]: null },
           blocked: false
         },
         include: [
@@ -88,7 +91,7 @@ const localUser = await User.findOne({
             }
           }
         ]
-      });
+      })
     }
   }
 
@@ -103,25 +106,22 @@ const localUser = await User.findOne({
       new Date(post.createdAt)
     )
 
-    let inboxes: string[] = [];
+    let inboxes: string[] = []
     inboxes = inboxes.concat(mentionedUsers.map((elem: any) => elem.remoteInbox))
     inboxes = inboxes.concat(serversToSendThePost.map((elem: any) => elem.publicInbox))
     usersToSendThePost?.forEach((server: any) => {
-      inboxes =  inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
-    });
-    let index = 0;
-    for await(const remoteInbox of inboxes) {
+      inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
+    })
+    let index = 0
+    for await (const remoteInbox of inboxes) {
       try {
-        await postPetitionSigned(
-          { ...objectToSend, signature: bodySignature.signature },
-          localUser,
-          remoteInbox
-          
-        ).catch(error => {
-          logger.debug(error)
-        })
-        job.update(index/inboxes.length);
-        index = index + 1;
+        await postPetitionSigned({ ...objectToSend, signature: bodySignature.signature }, localUser, remoteInbox).catch(
+          (error) => {
+            logger.debug(error)
+          }
+        )
+        job.update(index / inboxes.length)
+        index = index + 1
       } catch (bigError) {
         logger.debug(bigError)
       }

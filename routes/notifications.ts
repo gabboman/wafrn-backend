@@ -149,7 +149,7 @@ export default function notificationRoutes(app: Application) {
         literal: Sequelize.literal(
           `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId like "${userId}")) AND userId NOT LIKE "${userId}"`
         )
-      },
+      }
     })
     const newFollows = await Follows.count({
       where: {
@@ -157,7 +157,7 @@ export default function notificationRoutes(app: Application) {
           [Op.gt]: getStartScrollParam(req)
         },
         followedId: userId
-      },
+      }
     })
     const newMentions = PostMentionsUserRelation.count({
       where: {
@@ -180,8 +180,7 @@ export default function notificationRoutes(app: Application) {
     })
 
     res.send({
-      notifications:
-        (await newFollows) + (await perPostReblogs) + (await newMentions) + (await newLikes)
+      notifications: (await newFollows) + (await perPostReblogs) + (await newMentions) + (await newLikes)
     })
   })
 }

@@ -18,9 +18,9 @@ const redisAdaptor = new RedisAdaptor({
 
 const sequelize = new Sequelize(environment.databaseConnectionString, {
   logging: (sql: any, time: number) => {
-    if(environment.logSQLQueries) {
+    if (environment.logSQLQueries) {
       logger.trace({ duration: time, query: sql })
-    } else if (time > 2500 ) {
+    } else if (time > 2500) {
       logger.warn({ duration: time, query: sql })
     }
   },
@@ -39,202 +39,201 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
 })
 
 const FederatedHost = sequelize.define(
-    'federatedHosts',
-    {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
-        primaryKey: true
-      },
-      displayName: Sequelize.STRING,
-      publicInbox: Sequelize.TEXT,
-      publicKey: Sequelize.TEXT,
-      detail: Sequelize.STRING,
-      blocked: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false
-      }
-    },
-    {
-      indexes: [
-        {
-          unique: true,
-          fields: ['displayName']
-        }
-      ]
-    }
-  )
-
-const User = sequelize.define(
-    'users',
-    {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
-        primaryKey: true
-      },
-      email: {
-        type: Sequelize.STRING,
-        allowNull: true
-        //unique: true
-      },
-      description: Sequelize.TEXT,
-      url: {
-        type: Sequelize.STRING,
-        unique: true
-      },
-      NSFW: Sequelize.BOOLEAN,
-      avatar: Sequelize.STRING,
-      password: Sequelize.STRING,
-      birthDate: Sequelize.DATE,
-      activated: Sequelize.BOOLEAN,
-      // we see the date that the user asked for a password reset. Valid for 2 hours
-      requestedPasswordReset: Sequelize.DATE,
-      // we use activationCode for activating the account & for reset the password
-      // could generate some mistakes but consider worth it
-      activationCode: Sequelize.STRING,
-      registerIp: Sequelize.STRING,
-      lastLoginIp: Sequelize.STRING,
-      lastTimeNotificationsCheck: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: new Date().setTime(0)
-      },
-      privateKey: Sequelize.TEXT,
-      publicKey: Sequelize.TEXT,
-      federatedHostId: {
-        type: Sequelize.UUID,
-        allowNull: true,
-        primaryKey: false
-      },
-      remoteInbox: Sequelize.TEXT,
-      remoteId: Sequelize.TEXT,
-      banned: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false
-      }
-    },
-    {
-      indexes: [
-        {
-          unique: true,
-          fields: ['remoteId']
-        }
-      ]
-    }
-  )
-
-const Follows = sequelize.define(
-    'follows',
-    {
-      remoteFollowId: Sequelize.TEXT
-    },
-    {
-      indexes: [
-        {
-          unique: false,
-          fields: ['followedId', 'followerId']
-        }
-      ]
-    }
-  )
-
-const Blocks = sequelize.define('blocks', {
-    remoteBlockId: Sequelize.TEXT
-  })
-
-const Post = sequelize.define(
-    'posts',
-    {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
-        primaryKey: true
-      },
-      content_warning: Sequelize.STRING,
-      content: Sequelize.TEXT,
-      remotePostId: Sequelize.TEXT,
-      privacy: Sequelize.INTEGER
-    },
-    {
-      indexes: [
-        {
-          //unique: true,
-          fields: ['remotePostId']
-        }
-      ]
-    }
-  )
-
-const Tag = sequelize.define('tags', {
-    tagName: Sequelize.TEXT
-  })
-
-const Media = sequelize.define('medias', {
+  'federatedHosts',
+  {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
       allowNull: false,
       primaryKey: true
     },
-    NSFW: Sequelize.BOOLEAN,
-    description: Sequelize.TEXT,
-    url: Sequelize.TEXT,
-    ipUpload: Sequelize.STRING,
-    adultContent: Sequelize.BOOLEAN,
-    external: {
-      defaultValue: false,
+    displayName: Sequelize.STRING,
+    publicInbox: Sequelize.TEXT,
+    publicKey: Sequelize.TEXT,
+    detail: Sequelize.STRING,
+    blocked: {
       type: Sequelize.BOOLEAN,
-      allowNull: false
+      defaultValue: false
     }
-  })
+  },
+  {
+    indexes: [
+      {
+        unique: true,
+        fields: ['displayName']
+      }
+    ]
+  }
+)
+
+const User = sequelize.define(
+  'users',
+  {
+    id: {
+      type: Sequelize.UUID,
+      defaultValue: Sequelize.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    email: {
+      type: Sequelize.STRING,
+      allowNull: true
+      //unique: true
+    },
+    description: Sequelize.TEXT,
+    url: {
+      type: Sequelize.STRING,
+      unique: true
+    },
+    NSFW: Sequelize.BOOLEAN,
+    avatar: Sequelize.STRING,
+    password: Sequelize.STRING,
+    birthDate: Sequelize.DATE,
+    activated: Sequelize.BOOLEAN,
+    // we see the date that the user asked for a password reset. Valid for 2 hours
+    requestedPasswordReset: Sequelize.DATE,
+    // we use activationCode for activating the account & for reset the password
+    // could generate some mistakes but consider worth it
+    activationCode: Sequelize.STRING,
+    registerIp: Sequelize.STRING,
+    lastLoginIp: Sequelize.STRING,
+    lastTimeNotificationsCheck: {
+      type: Sequelize.DATE,
+      allowNull: false,
+      defaultValue: new Date().setTime(0)
+    },
+    privateKey: Sequelize.TEXT,
+    publicKey: Sequelize.TEXT,
+    federatedHostId: {
+      type: Sequelize.UUID,
+      allowNull: true,
+      primaryKey: false
+    },
+    remoteInbox: Sequelize.TEXT,
+    remoteId: Sequelize.TEXT,
+    banned: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false
+    }
+  },
+  {
+    indexes: [
+      {
+        unique: true,
+        fields: ['remoteId']
+      }
+    ]
+  }
+)
+
+const Follows = sequelize.define(
+  'follows',
+  {
+    remoteFollowId: Sequelize.TEXT
+  },
+  {
+    indexes: [
+      {
+        unique: false,
+        fields: ['followedId', 'followerId']
+      }
+    ]
+  }
+)
+
+const Blocks = sequelize.define('blocks', {
+  remoteBlockId: Sequelize.TEXT
+})
+
+const Post = sequelize.define(
+  'posts',
+  {
+    id: {
+      type: Sequelize.UUID,
+      defaultValue: Sequelize.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    content_warning: Sequelize.STRING,
+    content: Sequelize.TEXT,
+    remotePostId: Sequelize.TEXT,
+    privacy: Sequelize.INTEGER
+  },
+  {
+    indexes: [
+      {
+        //unique: true,
+        fields: ['remotePostId']
+      }
+    ]
+  }
+)
+
+const Tag = sequelize.define('tags', {
+  tagName: Sequelize.TEXT
+})
+
+const Media = sequelize.define('medias', {
+  id: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    allowNull: false,
+    primaryKey: true
+  },
+  NSFW: Sequelize.BOOLEAN,
+  description: Sequelize.TEXT,
+  url: Sequelize.TEXT,
+  ipUpload: Sequelize.STRING,
+  adultContent: Sequelize.BOOLEAN,
+  external: {
+    defaultValue: false,
+    type: Sequelize.BOOLEAN,
+    allowNull: false
+  }
+})
 
 const PostReport = sequelize.define('postReports', {
-    resolved: Sequelize.BOOLEAN,
-    severity: Sequelize.INTEGER,
-    description: Sequelize.TEXT
-  })
+  resolved: Sequelize.BOOLEAN,
+  severity: Sequelize.INTEGER,
+  description: Sequelize.TEXT
+})
 
 const UserReport = sequelize.define('userReports', {
-    resolved: Sequelize.BOOLEAN,
-    severity: Sequelize.INTEGER,
-    description: Sequelize.TEXT
-  })
+  resolved: Sequelize.BOOLEAN,
+  severity: Sequelize.INTEGER,
+  description: Sequelize.TEXT
+})
 
 const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {})
 
 PostMentionsUserRelation.removeAttribute('id')
 
 const UserLikesPostRelations = sequelize.define('userLikesPostRelations', {
-    userId: {
-      type: Sequelize.UUID,
-      allowNull: false,
-      primaryKey: true,
-      references: {
-        model: 'users',
-        key: 'id'
-      },
-      unique: false
+  userId: {
+    type: Sequelize.UUID,
+    allowNull: false,
+    primaryKey: true,
+    references: {
+      model: 'users',
+      key: 'id'
     },
-    postId: {
-      type: Sequelize.UUID,
-      allowNull: false,
-      primaryKey: true,
-      references: {
-        model: 'posts',
-        key: 'id'
-      },
-      unique: false
+    unique: false
+  },
+  postId: {
+    type: Sequelize.UUID,
+    allowNull: false,
+    primaryKey: true,
+    references: {
+      model: 'posts',
+      key: 'id'
     },
-    remoteId: {
-      type: Sequelize.STRING,
-      allowNull: true
-    }
-  })
-
+    unique: false
+  },
+  remoteId: {
+    type: Sequelize.STRING,
+    allowNull: true
+  }
+})
 
 User.belongsToMany(User, {
   through: Follows,
