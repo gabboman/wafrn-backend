@@ -11,16 +11,17 @@ import { Job } from 'bullmq'
 
 async function sendRemotePostWorker(job: Job) {
 //async function sendRemotePost(localUser: any, post: any) {
-  const localUser = await User.findOne({
-    where: {
-      id: job.data.petitionBy
-    }
-  })
   const post = await Post.findOne({
     where: {
-      id: job.data.postId
+      id: job.id
+    }
+  })  
+const localUser = await User.findOne({
+    where: {
+      id: post.userId
     }
   })
+  
   // servers with shared inbox
   let serversToSendThePost;
   // for servers with no shared inbox
