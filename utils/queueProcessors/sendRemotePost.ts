@@ -115,7 +115,7 @@ async function sendRemotePostWorker(job: Job) {
     let index = 0
     for await (const remoteInbox of inboxes) {
       try {
-        await postPetitionSigned({ ...objectToSend, signature: bodySignature.signature }, localUser, remoteInbox).catch(
+        postPetitionSigned({ ...objectToSend, signature: bodySignature.signature }, localUser, remoteInbox).catch(
           (error) => {
             logger.debug(error)
           }
