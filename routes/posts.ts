@@ -194,7 +194,7 @@ export default function postsRoutes(app: Application) {
         await sendPostQueue.add(
           'processSendPost',
           { postId: post.id, petitionBy: posterId },
-          { jobId: post.id, delay: 2500 }
+          { jobId: post.id }
         )
       }
     } catch (error) {

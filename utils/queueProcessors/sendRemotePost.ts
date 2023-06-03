@@ -112,16 +112,17 @@ async function sendRemotePostWorker(job: Job) {
     usersToSendThePost?.forEach((server: any) => {
       inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
     })
-    let index = 0
+    let completed = 0
     for await (const remoteInbox of inboxes) {
       try {
-        postPetitionSigned({ ...objectToSend, signature: bodySignature.signature }, localUser, remoteInbox).catch(
+        postPetitionSigned({ ...objectToSend, signature: bodySignature.signature }, localUser, remoteInbox).then(()=> {
+          job.update(completed / inboxes.length)
+          completed = completed + 1
+        }).catch(
           (error) => {
             logger.debug(error)
           }
         )
-        job.update(index / inboxes.length)
-        index = index + 1
       } catch (bigError) {
         logger.debug(bigError)
       }
