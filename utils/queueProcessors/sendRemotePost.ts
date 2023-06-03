@@ -116,7 +116,7 @@ async function sendRemotePostWorker(job: Job) {
     for await (const remoteInbox of inboxes) {
       try {
         postPetitionSigned({ ...objectToSend, signature: bodySignature.signature }, localUser, remoteInbox).then(()=> {
-          job.update(completed / inboxes.length)
+          job.update(completed / inboxes.length * 2)
           completed = completed + 1
         }).catch(
           (error) => {
@@ -125,7 +125,9 @@ async function sendRemotePostWorker(job: Job) {
         )
       } catch (bigError) {
         logger.debug(bigError)
+        completed = completed +1;
       }
+      completed = completed +1;
     }
   }
 }
