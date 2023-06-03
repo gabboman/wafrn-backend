@@ -18,7 +18,7 @@ const workerUpdateRemoteUsers = new Worker('updateUser', (job: Job) => updateUse
 const workerSendPosts = new Worker('sendPost', (job: Job) => sendRemotePostWorker(job), {
   connection: environment.bullmqConnection,
   concurrency: environment.fediverseConcurrency,
-  lockDuration: 300000
+  lockDuration: 3000000
 })
 
 workerInbox.on('completed', (job) => {
