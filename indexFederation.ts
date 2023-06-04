@@ -20,6 +20,6 @@ app.set('trust proxy', 1)
 wellKnownRoutes(app)
 activityPubRoutes(app)
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, environment.listenIp, () => {
   logger.info(`FEDIVERSE SERVER is running at https://localhost:${PORT}`)
 })
