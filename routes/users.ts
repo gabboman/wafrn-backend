@@ -18,11 +18,19 @@ import { environment } from '../environment'
 import { logger } from '../utils/logger'
 import { createAccountLimiter, loginRateLimiter } from '../utils/rateLimiters'
 
+
+const forbiddenCharacters = [':', '@', '/', '<', '>']
+
 export default function userRoutes(app: Application) {
   app.post('/api/register', createAccountLimiter, uploadHandler.single('avatar'), async (req, res) => {
     let success = false
     try {
-      if (req.body?.email && req.body.url && req.body.url.indexOf('@') === -1 && validateEmail(req.body.email)) {
+      if (
+        req.body?.email
+        && req.body.url
+        && ! forbiddenCharacters.some(char => req.body.url.includes(char))
+        && validateEmail(req.body.email)
+        ) {
         const emailExists = await User.findOne({
           where: {
             [Op.or]: [
