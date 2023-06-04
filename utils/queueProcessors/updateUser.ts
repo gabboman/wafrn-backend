@@ -17,7 +17,7 @@ async function updateUserWorker(job: Job) {
     remoteUser.updatedAt = new Date()
     await remoteUser.save()
   } catch (error) {
-    logger.info(`Failed to update user ${job.data.userToUpdate}`)
+    logger.trace(`Failed to update user ${job.data.userToUpdate}`)
   }
 }
 

@@ -22,6 +22,8 @@ import overrideContentType from './utils/overrideContentType'
 import { environment } from './environment'
 import { logger } from './utils/logger'
 import frontend from './routes/frontend'
+import { activityPubRoutes } from './routes/activitypub/activitypub'
+import { wellKnownRoutes } from './routes/activitypub/well-known'
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
 
@@ -118,6 +120,10 @@ mediaRoutes(app)
 postsRoutes(app)
 searchRoutes(app)
 deletePost(app)
+if(!environment.prod) { // TODO once we are sure we can handle this in the main thread we should change this to something else
+  activityPubRoutes(app)
+  wellKnownRoutes(app)
+}
 frontend(app)
 
 app.listen(PORT, '0.0.0.0', () => {

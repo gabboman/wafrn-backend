@@ -12,7 +12,7 @@ import { createPostLimiter } from '../utils/rateLimiters'
 import { environment } from '../environment'
 import { Queue } from 'bullmq'
 
-const sendPostQueue = new Queue('sendPost', {
+const prepareSendPostQueue = new Queue('prepareSendPost', {
   connection: environment.bullmqConnection,
   defaultJobOptions: {
     removeOnComplete: true,
@@ -191,8 +191,8 @@ export default function postsRoutes(app: Application) {
       res.send(post)
       await post.save()
       if (post.privacy.toString() !== '2' && environment.enableFediverse) {
-        await sendPostQueue.add(
-          'processSendPost',
+        await prepareSendPostQueue.add(
+          'prepareSendPost',
           { postId: post.id, petitionBy: posterId },
           { jobId: post.id }
         )

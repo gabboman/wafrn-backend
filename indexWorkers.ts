@@ -3,7 +3,8 @@ import { logger } from './utils/logger'
 import { environment } from './environment'
 import { inboxWorker } from './utils/queueProcessors/inbox'
 import { updateUserWorker } from './utils/queueProcessors/updateUser'
-import { sendRemotePostWorker } from './utils/queueProcessors/sendRemotePost'
+import { prepareSendRemotePostWorker } from './utils/queueProcessors/prepareSendRemotePost'
+import { sendPostToInboxes } from './utils/queueProcessors/sendPostToInboxes'
 
 const workerInbox = new Worker('inbox', (job: Job) => inboxWorker(job), {
   connection: environment.bullmqConnection,
@@ -15,10 +16,16 @@ const workerUpdateRemoteUsers = new Worker('UpdateUsers', (job: Job) => updateUs
   concurrency: environment.fediverseConcurrency
 })
 
-const workerSendPosts = new Worker('sendPost', (job: Job) => sendRemotePostWorker(job), {
+const worerPrepareSendPost = new Worker('prepareSendPost', (job: Job) => prepareSendRemotePostWorker(job), {
   connection: environment.bullmqConnection,
   concurrency: environment.fediverseConcurrency,
-  lockDuration: 3000000
+  lockDuration: 60000
+})
+
+const workerSendPostChunk = new Worker('sendPostToInboxes', (job: Job) => sendPostToInboxes(job), {
+  connection: environment.bullmqConnection,
+  concurrency: environment.fediverseConcurrency,
+  lockDuration: 120000
 })
 
 workerInbox.on('completed', (job) => {
@@ -29,11 +36,11 @@ workerInbox.on('failed', (job, err) => {
   console.warn(`${job?.id} has failed with ${err.message}`)
 })
 
-workerSendPosts.on('completed', (job) => {
+worerPrepareSendPost.on('completed', (job) => {
   // console.log(`${job.id} has completed!`)
 })
 
-workerSendPosts.on('failed', (job, err) => {
+worerPrepareSendPost.on('failed', (job, err) => {
   console.warn(`sending post ${job?.id} has failed with ${err.message}`)
 })
 
@@ -42,5 +49,13 @@ workerUpdateRemoteUsers.on('failed', (job, err) => {
 })
 
 workerUpdateRemoteUsers.on('completed', (job) => {
-  console.warn(`user ${job?.id} has been updated`)
+  //console.warn(`user ${job?.id} has been updated`)
+})
+
+workerSendPostChunk.on('completed', (job) => {
+  //console.log(`${job.id} has completed!`)
+})
+
+workerSendPostChunk.on('failed', (job, err) => {
+  console.warn(`sending post to some inboxes ${job?.id} has failed with ${err.message}`)
 })

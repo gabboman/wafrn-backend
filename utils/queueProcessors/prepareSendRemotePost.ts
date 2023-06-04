@@ -4,11 +4,24 @@ import { postPetitionSigned } from '../activitypub/postPetitionSigned'
 import { postToJSONLD } from '../activitypub/postToJSONLD'
 import { LdSignature } from '../activitypub/rsa2017'
 import { FederatedHost, Post, User, sequelize } from '../../db'
-import getRemoteFollowers from '../activitypub/getRemoteFollowers'
 import { environment } from '../../environment'
-import { Job } from 'bullmq'
+import { Job, Queue } from 'bullmq'
+const _ = require('underscore')
 
-async function sendRemotePostWorker(job: Job) {
+
+const sendPostQueue = new Queue('sendPostToInboxes', {
+  connection: environment.bullmqConnection,
+  defaultJobOptions: {
+    removeOnComplete: true,
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 1000
+    },
+    removeOnFail: 25000
+  }
+})
+async function prepareSendRemotePostWorker(job: Job) {
   //async function sendRemotePost(localUser: any, post: any) {
   const post = await Post.findOne({
     where: {
@@ -94,42 +107,43 @@ async function sendRemotePostWorker(job: Job) {
       })
     }
   }
+  const objectToSend = await postToJSONLD(post)
+  const ldSignature = new LdSignature()
+  const bodySignature: any = await ldSignature.signRsaSignature2017(
+    objectToSend,
+    localUser.privateKey,
+    `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLocaleLowerCase()}`,
+    environment.instanceUrl,
+    new Date(post.createdAt)
+  )
 
-  if (serversToSendThePost?.length > 0 || usersToSendThePost?.length > 0 || mentionedUsers?.length > 0) {
-    const objectToSend = await postToJSONLD(post)
-    const ldSignature = new LdSignature()
-    const bodySignature: any = await ldSignature.signRsaSignature2017(
-      objectToSend,
-      localUser.privateKey,
-      `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLocaleLowerCase()}`,
-      environment.instanceUrl,
-      new Date(post.createdAt)
-    )
+  const objectToSendComplete = { ...objectToSend, signature: bodySignature.signature }
+  if(mentionedUsers?.length > 0 ) {
+    const mentionedInboxes = mentionedUsers.map((elem: any) => elem.remoteInbox)
+    for await (const remoteInbox of mentionedInboxes) {
+      try {
+        const response = await postPetitionSigned(objectToSendComplete, localUser, remoteInbox)
+      } catch (error) {
+        logger.debug(error)
+      }
+    }
+  }
+
+  if (serversToSendThePost?.length > 0 || usersToSendThePost?.length > 0) {
+    
 
     let inboxes: string[] = []
-    inboxes = inboxes.concat(mentionedUsers.map((elem: any) => elem.remoteInbox))
     inboxes = inboxes.concat(serversToSendThePost.map((elem: any) => elem.publicInbox))
     usersToSendThePost?.forEach((server: any) => {
       inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
     })
-    let completed = 0
-    for await (const remoteInbox of inboxes) {
-      try {
-        postPetitionSigned({ ...objectToSend, signature: bodySignature.signature }, localUser, remoteInbox).then(()=> {
-          job.update(completed / inboxes.length * 2)
-          completed = completed + 1
-        }).catch(
-          (error) => {
-            logger.debug(error)
-          }
-        )
-      } catch (bigError) {
-        logger.debug(bigError)
-        completed = completed +1;
-      }
-      completed = completed +1;
+    for await (const inboxChunk of _.chunk(inboxes, 10)) {
+      await sendPostQueue.add(
+        'sencChunk',
+        { objectToSend: objectToSendComplete, petitionBy: localUser.dataValues, inboxList: inboxChunk },
+      )
     }
   }
 }
 
-export { sendRemotePostWorker }
+export { prepareSendRemotePostWorker }

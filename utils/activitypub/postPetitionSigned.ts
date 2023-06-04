@@ -40,8 +40,10 @@ async function postPetitionSigned(message: object, user: any, target: string): P
           remoteInbox: target
         }
       })
-      logger.trace(`removing user ${userToRemove.url} because got a 410`)
-      removeUser(userToRemove.id)
+      if(userToRemove){
+        logger.trace(`removing user ${userToRemove.url} because got a 410`)
+        removeUser(userToRemove.id)
+      }
     } else {
       logger.trace({ message: 'error with signed post petition', error: error, inputMessage: message, target: target })
     }
