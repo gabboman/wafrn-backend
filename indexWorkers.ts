@@ -10,7 +10,7 @@ const workerInbox = new Worker('inbox', (job: Job) => inboxWorker(job), {
   concurrency: environment.fediverseConcurrency
 })
 
-const workerUpdateRemoteUsers = new Worker('updateUser', (job: Job) => updateUserWorker(job), {
+const workerUpdateRemoteUsers = new Worker('UpdateUsers', (job: Job) => updateUserWorker(job), {
   connection: environment.bullmqConnection,
   concurrency: environment.fediverseConcurrency
 })
@@ -39,4 +39,8 @@ workerSendPosts.on('failed', (job, err) => {
 
 workerUpdateRemoteUsers.on('failed', (job, err) => {
   console.warn(`update user ${job?.id} has failed with ${err.message}`)
+})
+
+workerUpdateRemoteUsers.on('completed', (job) => {
+  console.warn(`user ${job?.id} has been updated`)
 })
