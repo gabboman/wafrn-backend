@@ -7,6 +7,12 @@ import axios from 'axios'
 
 async function postPetitionSigned(message: object, user: any, target: string): Promise<any> {
   let res
+  if(user.url === environment.deletedUser) {
+    console.debug({
+      warning: `POST petition to ${target} made by deleted user`,
+      object: message
+    })
+  }
   try {
     const url = new URL(target)
     const digest = createHash('sha256').update(JSON.stringify(message)).digest('base64')

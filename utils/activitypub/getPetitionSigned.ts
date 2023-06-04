@@ -7,6 +7,10 @@ import { removeUser } from './removeUser'
 
 async function getPetitionSigned(user: any, target: string): Promise<any> {
   let res = undefined
+  if(user.url === environment.deletedUser) {
+    console.debug({
+      warning: `GET petition to ${target} made by deleted user`,
+    })
   try {
     const url = new URL(target)
     const privKey = user.privateKey
