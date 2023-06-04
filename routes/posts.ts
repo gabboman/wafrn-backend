@@ -99,11 +99,9 @@ export default function postsRoutes(app: Application) {
         content,
         content_warning,
         userId: posterId,
-        privacy: req.body.privacy ? req.body.privacy : 0
+        privacy: req.body.privacy ? req.body.privacy : 0,
+        parentId: req.body.parent
       })
-      if (req.body.parent) {
-        post.setParent(req.body.parent)
-      }
 
       // detect media in posts using regexes
 
