@@ -62,7 +62,10 @@ function activityPubRoutes(app: Application) {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url)
+        where: {
+          literal: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
+          url: {[Op.notLike]: '@%' }
+        }
       })
       if (user) {
         const userForFediverse = {
@@ -119,7 +122,10 @@ function activityPubRoutes(app: Application) {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
+        where: {
+          literal: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
+          url: {[Op.notLike]: '@%' }
+        }
       })
       if (user) {
         const followedNumber = await User.count({
@@ -181,7 +187,10 @@ function activityPubRoutes(app: Application) {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
+        where: {
+          literal: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
+          url: {[Op.notLike]: '@%' }
+        }
       })
       if (user) {
         const followersNumber = await User.count({
@@ -243,7 +252,10 @@ function activityPubRoutes(app: Application) {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
+        where: {
+          literal: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
+          url: {[Op.notLike]: '@%' }
+        }
       })
       if (user) {
         res.send({
@@ -267,7 +279,10 @@ function activityPubRoutes(app: Application) {
     const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
     const url = urlToSearch.toLowerCase()
     const user = await User.findOne({
-      where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
+      where: {
+        literal: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
+        url: {[Op.notLike]: '@%' }
+      },
     })
     if (user) {
       res.sendStatus(200)
