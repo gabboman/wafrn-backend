@@ -127,5 +127,5 @@ if(!environment.prod) { // TODO once we are sure we can handle this in the main 
 frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {
-  logger.info(`⚡️Server is running at https://localhost:${PORT}. REMEMBER TO START THE FEDI RUNNER TOO`)
+  logger.info(`⚡️Server is running at https://${environment.listenIp}:${PORT}. REMEMBER TO START THE FEDI RUNNER TOO`)
 })

@@ -21,5 +21,5 @@ wellKnownRoutes(app)
 activityPubRoutes(app)
 
 app.listen(PORT, environment.listenIp, () => {
-  logger.info(`FEDIVERSE SERVER is running at https://localhost:${PORT}`)
+  logger.info(`FEDIVERSE SERVER is running at https://${environment.listenIp}:${PORT}`)
 })
