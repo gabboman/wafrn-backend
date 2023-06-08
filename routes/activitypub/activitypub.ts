@@ -48,6 +48,9 @@ function activityPubRoutes(app: Application) {
       })
       if (post) {
         // TODO corregir esto seguramente
+        res.set({
+          'content-type': 'application/activity+json'
+        })
         res.send(await postToJSONLD(post))
       } else {
         res.sendStatus(404)
@@ -167,6 +170,9 @@ function activityPubRoutes(app: Application) {
             }`
           }
         }
+        res.set({
+          'content-type': 'application/activity+json'
+        })
         res.send(response)
       } else {
         return404(res)
@@ -229,6 +235,9 @@ function activityPubRoutes(app: Application) {
             }`
           }
         }
+        res.set({
+          'content-type': 'application/activity+json'
+        })
         res.send(response)
       } else {
         return404(res)
@@ -246,6 +255,9 @@ function activityPubRoutes(app: Application) {
         where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
       })
       if (user) {
+        res.set({
+          'content-type': 'application/activity+json'
+        })
         res.send({
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: `${environment.frontendUrl}/fediverse/blog/${req.params.url}/featured`,
