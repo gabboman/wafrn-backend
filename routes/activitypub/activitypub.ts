@@ -133,7 +133,7 @@ function activityPubRoutes(app: Application) {
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following`,
-          type: 'OrderedCollection',
+          type: 'OrderedCollectionPage',
           totalItems: followedNumber,
           first: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=1`
         }
@@ -198,7 +198,7 @@ function activityPubRoutes(app: Application) {
         let response: any = {
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`,
-          type: 'OrderedCollection',
+          type: 'OrderedCollectionPage',
           totalItems: followersNumber,
           first: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=1`
         }
@@ -261,7 +261,7 @@ function activityPubRoutes(app: Application) {
         res.send({
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: `${environment.frontendUrl}/fediverse/blog/${req.params.url}/featured`,
-          type: 'OrderedCollection',
+          type: 'OrderedCollectionPage',
           totalItems: 0,
           orderedItems: []
         })
