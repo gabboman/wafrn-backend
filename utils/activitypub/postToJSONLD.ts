@@ -127,16 +127,16 @@ async function postToJSONLD(post: any) {
       url: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       attributedTo: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
       to:
-        post.privacy / 1 === 10
-          ? mentionedUsers
-          : post.privacy / 1 === 0
-          ? ['https://www.w3.org/ns/activitystreams#Public']
-          : [stringMyFollowers],
+      post.privacy / 1 === 10
+      ? mentionedUsers
+      : post.privacy / 1 === 0
+      ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
+      : [stringMyFollowers],
       cc: post.privacy / 1 === 0 ? [stringMyFollowers, ...mentionedUsers] : [],
       sensitive: !!post.content_warning || contentWarning,
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
-      conversation: conversationString,
+      //conversation: conversationString,
       content: processedContent + finalTags,
       attachment: postMedias.map((media: any) => {
         const extension = media.url.split('.')[media.url.split('.').length - 1].toLowerCase()
@@ -149,7 +149,7 @@ async function postToJSONLD(post: any) {
         }
       }),
       tag: fediMentions.concat(fediTags),
-      replies: {
+      /*replies: {
         id: `${environment.frontendUrl}/fediverse/post/${post.id}/replies`,
         type: 'Collection',
         first: {
@@ -158,7 +158,7 @@ async function postToJSONLD(post: any) {
           partOf: `${environment.frontendUrl}/fediverse/post/${post.id}/replies`,
           items: []
         }
-      }
+      }*/
     }
   }
   if (post.content === '') {
