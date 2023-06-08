@@ -19,7 +19,7 @@ import { logger } from '../utils/logger'
 import { createAccountLimiter, loginRateLimiter } from '../utils/rateLimiters'
 
 
-const forbiddenCharacters = [':', '@', '/', '<', '>']
+const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 
 export default function userRoutes(app: Application) {
   app.post('/api/register', createAccountLimiter, uploadHandler.single('avatar'), async (req, res) => {
