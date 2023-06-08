@@ -66,5 +66,6 @@ async function getPetitionSigned(user: any, target: string): Promise<any> {
   }
   return res
 }
+}
 
-export { getPetitionSigned }
+export {getPetitionSigned}
