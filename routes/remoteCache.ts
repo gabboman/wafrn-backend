@@ -10,7 +10,10 @@ app.get('/cache', async (req: Request, res: Response) =>{
     if(req.query?.media) {
         const mediaLink: string = req.query.media as string
         const mediaLinkArray = mediaLink.split('.')
-        const linkExtension = mediaLinkArray[mediaLinkArray.length -1].toLowerCase()
+        let linkExtension = mediaLinkArray[mediaLinkArray.length -1].toLowerCase()
+        if(linkExtension.includes('/')) {
+            linkExtension = '';
+        }
         // calckey images have no extension
             const mediaLinkHash = crypto.createHash('sha256').update(mediaLink).digest('hex')
             const localFileName = linkExtension ? `cache/${mediaLinkHash}.${linkExtension}`: `cache/${mediaLinkHash}`
