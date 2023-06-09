@@ -7,10 +7,10 @@ import axios from 'axios'
 
 async function postPetitionSigned(message: object, user: any, target: string): Promise<any> {
   let res
-  if(user.url === environment.deletedUser) {
+  if (user.url === environment.deletedUser) {
     return {}
   }
-  if(user.url === environment.deletedUser) {
+  if (user.url === environment.deletedUser) {
     console.debug({
       warning: `POST petition to ${target} made by deleted user`,
       object: message
@@ -49,7 +49,7 @@ async function postPetitionSigned(message: object, user: any, target: string): P
           remoteInbox: target
         }
       })
-      if(userToRemove){
+      if (userToRemove) {
         logger.trace(`removing user ${userToRemove.url} because got a 410`)
         removeUser(userToRemove.id)
       }

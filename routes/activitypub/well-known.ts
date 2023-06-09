@@ -4,10 +4,9 @@ import { environment } from '../../environment'
 import { return404 } from '../../utils/return404'
 import { Op } from 'sequelize'
 
-
-let lastTimeCached: Date = new Date(0);
-let activeUsersMonthCached: number;
-let activeUsersHalfYearCached: number;
+let lastTimeCached: Date = new Date(0)
+let activeUsersMonthCached: number
+let activeUsersHalfYearCached: number
 
 function wellKnownRoutes(app: Application) {
   // webfinger protocol
@@ -75,7 +74,7 @@ function wellKnownRoutes(app: Application) {
         remoteInbox: { [Op.eq]: null }
       }
     })
-    if((new Date().getTime() - lastTimeCached.getTime()) > 1000 * 3600 * 3 ){
+    if (new Date().getTime() - lastTimeCached.getTime() > 1000 * 3600 * 3) {
       lastTimeCached = new Date()
       const activeUsersSixMonths = await sequelize.query(`SELECT COUNT(*) AS count
     FROM users
@@ -87,7 +86,7 @@ function wellKnownRoutes(app: Application) {
       HAVING COUNT(1) > 0
     ) AND url NOT LIKE '@%'`)
 
-    const activeUsersLastMonth = await sequelize.query(`SELECT COUNT(*) AS count
+      const activeUsersLastMonth = await sequelize.query(`SELECT COUNT(*) AS count
     FROM users
     WHERE id IN (
       SELECT userId
@@ -96,10 +95,9 @@ function wellKnownRoutes(app: Application) {
       GROUP BY userId
       HAVING COUNT(1) > 0
     ) AND url NOT LIKE '@%'`)
-    activeUsersMonthCached = activeUsersLastMonth[0][0].count
-    activeUsersHalfYearCached = activeUsersSixMonths[0][0].count
+      activeUsersMonthCached = activeUsersLastMonth[0][0].count
+      activeUsersHalfYearCached = activeUsersSixMonths[0][0].count
     }
-    
 
     res.send({
       version: '2.0',

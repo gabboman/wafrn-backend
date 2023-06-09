@@ -8,7 +8,6 @@ import { environment } from '../../environment'
 import { Job, Queue } from 'bullmq'
 const _ = require('underscore')
 
-
 const sendPostQueue = new Queue('sendPostToInboxes', {
   connection: environment.bullmqConnection,
   defaultJobOptions: {
@@ -118,7 +117,7 @@ async function prepareSendRemotePostWorker(job: Job) {
   )
 
   const objectToSendComplete = { ...objectToSend, signature: bodySignature.signature }
-  if(mentionedUsers?.length > 0 ) {
+  if (mentionedUsers?.length > 0) {
     const mentionedInboxes = mentionedUsers.map((elem: any) => elem.remoteInbox)
     for await (const remoteInbox of mentionedInboxes) {
       try {
@@ -130,18 +129,17 @@ async function prepareSendRemotePostWorker(job: Job) {
   }
 
   if (serversToSendThePost?.length > 0 || usersToSendThePost?.length > 0) {
-    
-
     let inboxes: string[] = []
     inboxes = inboxes.concat(serversToSendThePost.map((elem: any) => elem.publicInbox))
     usersToSendThePost?.forEach((server: any) => {
       inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
     })
     for await (const inboxChunk of _.chunk(inboxes, 10)) {
-      await sendPostQueue.add(
-        'sencChunk',
-        { objectToSend: objectToSendComplete, petitionBy: localUser.dataValues, inboxList: inboxChunk },
-      )
+      await sendPostQueue.add('sencChunk', {
+        objectToSend: objectToSendComplete,
+        petitionBy: localUser.dataValues,
+        inboxList: inboxChunk
+      })
     }
   }
 }

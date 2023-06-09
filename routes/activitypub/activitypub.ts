@@ -65,7 +65,7 @@ function activityPubRoutes(app: Application) {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
+        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
         const userForFediverse = {
@@ -122,7 +122,7 @@ function activityPubRoutes(app: Application) {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
+        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
         const followedNumber = await User.count({
@@ -187,7 +187,7 @@ function activityPubRoutes(app: Application) {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
+        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
         const followersNumber = await User.count({
@@ -252,7 +252,7 @@ function activityPubRoutes(app: Application) {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
+        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
       })
       if (user) {
         res.set({
@@ -278,12 +278,12 @@ function activityPubRoutes(app: Application) {
   app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
     const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
     if (urlToSearch === environment.deletedUser && req.body.type == 'Follow') {
-      res.sendStatus(200);
-      return '';
+      res.sendStatus(200)
+      return ''
     }
     const url = urlToSearch.toLowerCase()
     const user = await User.findOne({
-      where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase()),
+      where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
     })
     if (user) {
       res.sendStatus(200)

@@ -19,9 +19,7 @@ async function postToJSONLD(post: any) {
         id: { [Op.in]: dbMentions.map((mention: any) => mention.userId) }
       }
     })
-    mentionedUsers = mentionedUsersFullModel
-      .filter((elem: any) => elem.remoteInbox)
-      .map((elem: any) => elem.remoteId)
+    mentionedUsers = mentionedUsersFullModel.filter((elem: any) => elem.remoteInbox).map((elem: any) => elem.remoteId)
   }
   let parentPostString = null
   const conversationString = `${environment.frontendUrl}/fediverse/conversation/${post.id}`
@@ -127,11 +125,11 @@ async function postToJSONLD(post: any) {
       url: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       attributedTo: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
       to:
-      post.privacy / 1 === 10
-      ? mentionedUsers
-      : post.privacy / 1 === 0
-      ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
-      : [stringMyFollowers],
+        post.privacy / 1 === 10
+          ? mentionedUsers
+          : post.privacy / 1 === 0
+          ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
+          : [stringMyFollowers],
       cc: post.privacy / 1 === 0 ? [...mentionedUsers] : [],
       sensitive: !!post.content_warning || contentWarning,
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
@@ -148,7 +146,7 @@ async function postToJSONLD(post: any) {
           name: media.description
         }
       }),
-      tag: fediMentions.concat(fediTags),
+      tag: fediMentions.concat(fediTags)
       /*
       replies: {
         id: `${environment.frontendUrl}/fediverse/post/${post.id}/replies`,
