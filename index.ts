@@ -24,6 +24,7 @@ import { logger } from './utils/logger'
 import frontend from './routes/frontend'
 import { activityPubRoutes } from './routes/activitypub/activitypub'
 import { wellKnownRoutes } from './routes/activitypub/well-known'
+import cacheRoutes from './routes/remoteCache'
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
 
@@ -122,6 +123,7 @@ searchRoutes(app)
 deletePost(app)
 activityPubRoutes(app)
 wellKnownRoutes(app)
+cacheRoutes(app)
 frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {
