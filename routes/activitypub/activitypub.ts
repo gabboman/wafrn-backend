@@ -3,14 +3,7 @@ import { User, Follows, Post, Media, UserLikesPostRelations } from '../../db'
 import checkFediverseSignature from '../../utils/activitypub/checkFediverseSignature'
 import { sequelize } from '../../db'
 import { Op } from 'sequelize'
-
 import { environment } from '../../environment'
-import { logger } from '../../utils/logger'
-
-import { getRemoteActor } from '../../utils/activitypub/getRemoteActor'
-import { removeUser } from '../../utils/activitypub/removeUser'
-import { signAndAccept } from '../../utils/activitypub/signAndAccept'
-import { getPostThreadRecursive } from '../../utils/activitypub/getPostThreadRecursive'
 import { return404 } from '../../utils/return404'
 import { postToJSONLD } from '../../utils/activitypub/postToJSONLD'
 import { Queue } from 'bullmq'
@@ -276,8 +269,8 @@ function activityPubRoutes(app: Application) {
 
   // HERE is where the meat and potatoes are. This endpoint is what we use to recive stuff
   app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
-    const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
-    if (urlToSearch === environment.deletedUser && req.body.type == 'Follow') {
+    const urlToSearch = req.params?.url ? req.params.url : environment.adminUser
+    if (urlToSearch === environment.adminUser && req.body.type == 'Follow') {
       res.sendStatus(200)
       return ''
     }
