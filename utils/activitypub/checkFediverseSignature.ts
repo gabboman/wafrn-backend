@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { FederatedHost, User } from '../../db'
+import {  User } from '../../db'
 import { environment } from '../../environment'
-import { logger } from '../logger'
-import { getRemoteActor } from './getRemoteActor'
 const httpSignature = require('@peertube/http-signature')
 
 const adminUser = environment.forceSync
