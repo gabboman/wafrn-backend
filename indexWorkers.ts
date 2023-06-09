@@ -6,6 +6,7 @@ import { updateUserWorker } from './utils/queueProcessors/updateUser'
 import { prepareSendRemotePostWorker } from './utils/queueProcessors/prepareSendRemotePost'
 import { sendPostToInboxes } from './utils/queueProcessors/sendPostToInboxes'
 
+console.log('starting workers')
 const workerInbox = new Worker('inbox', (job: Job) => inboxWorker(job), {
   connection: environment.bullmqConnection,
   concurrency: environment.fediverseConcurrency

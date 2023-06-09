@@ -261,7 +261,7 @@ function activityPubRoutes(app: Application) {
         res.send({
           '@context': 'https://www.w3.org/ns/activitystreams',
           id: `${environment.frontendUrl}/fediverse/blog/${req.params.url}/featured`,
-          type: 'OrderedCollectionPage',
+          type: 'OrderedCollection',
           totalItems: 0,
           orderedItems: []
         })
@@ -277,8 +277,9 @@ function activityPubRoutes(app: Application) {
   // HERE is where the meat and potatoes are. This endpoint is what we use to recive stuff
   app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
     const urlToSearch = req.params?.url ? req.params.url : environment.deletedUser
-    if (urlToSearch && req.body.type == 'Follow') {
-      logger.debug(req.body)
+    if (urlToSearch === environment.deletedUser && req.body.type == 'Follow') {
+      res.sendStatus(200);
+      return '';
     }
     const url = urlToSearch.toLowerCase()
     const user = await User.findOne({

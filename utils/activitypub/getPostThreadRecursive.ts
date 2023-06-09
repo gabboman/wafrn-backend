@@ -27,7 +27,6 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
   } else {
     try {
       const postPetition = remotePostObject ? remotePostObject : await getPetitionSigned(user, remotePostId)
-
       const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
       let mediasString = ''
       const medias = []
