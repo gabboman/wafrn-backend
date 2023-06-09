@@ -120,10 +120,8 @@ mediaRoutes(app)
 postsRoutes(app)
 searchRoutes(app)
 deletePost(app)
-if(!environment.prod) { // TODO once we are sure we can handle this in the main thread we should change this to something else
-  activityPubRoutes(app)
-  wellKnownRoutes(app)
-}
+activityPubRoutes(app)
+wellKnownRoutes(app)
 frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {
