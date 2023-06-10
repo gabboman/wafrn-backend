@@ -6,7 +6,7 @@ import { LdSignature } from '../activitypub/rsa2017'
 import { FederatedHost, Post, User, sequelize } from '../../db'
 import { environment } from '../../environment'
 import { Job, Queue } from 'bullmq'
-const _ = require('underscore')
+import _ from 'underscore'
 
 const sendPostQueue = new Queue('sendPostToInboxes', {
   connection: environment.bullmqConnection,

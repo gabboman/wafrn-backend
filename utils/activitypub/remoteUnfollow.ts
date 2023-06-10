@@ -1,8 +1,9 @@
 import { environment } from '../../environment'
+import { activityPubObject } from '../../interfaces/fediverse/activityPubObject'
 import { postPetitionSigned } from './postPetitionSigned'
 
 async function remoteUnfollow(localUser: any, remoteUser: any) {
-  const petitionBody = {
+  const petitionBody: activityPubObject = {
     '@context': 'https://www.w3.org/ns/activitystreams',
     id: `${environment.frontendUrl}/fediverse/follows/${localUser.id}/${remoteUser.id}/undo`,
     type: 'Undo',

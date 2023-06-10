@@ -2,6 +2,7 @@ import { Op } from 'sequelize'
 import { Post, User } from '../../db'
 import { environment } from '../../environment'
 import { fediverseTag } from '../../interfaces/fediverse/tags'
+import { activityPubObject } from '../../interfaces/fediverse/activityPubObject'
 
 async function postToJSONLD(post: any) {
   const localUser = await User.findOne({
@@ -87,7 +88,7 @@ async function postToJSONLD(post: any) {
     }
   })
 
-  let postAsJSONLD: any = {
+  let postAsJSONLD: activityPubObject = {
     '@context': [
       'https://www.w3.org/ns/activitystreams',
       {

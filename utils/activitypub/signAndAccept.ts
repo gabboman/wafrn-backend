@@ -1,8 +1,9 @@
 import { environment } from '../../environment'
+import { activityPubObject } from '../../interfaces/fediverse/activityPubObject'
 import { postPetitionSigned } from './postPetitionSigned'
 
 async function signAndAccept(req: any, remoteUser: any, user: any) {
-  const acceptMessage = {
+  const acceptMessage: activityPubObject = {
     '@context': 'https://www.w3.org/ns/activitystreams',
     id: `${environment.frontendUrl}/fediverse/accept/${encodeURIComponent(req.body.id)}`,
     type: 'Accept',
