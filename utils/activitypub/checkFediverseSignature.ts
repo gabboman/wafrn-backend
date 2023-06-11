@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import {  User } from '../../db'
+import { User } from '../../db'
 import { environment } from '../../environment'
 const httpSignature = require('@peertube/http-signature')
 

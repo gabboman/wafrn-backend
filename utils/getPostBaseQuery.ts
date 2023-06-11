@@ -64,8 +64,7 @@ export default function getPostBaseQuery(req?: Request) {
       },
       {
         model: UserLikesPostRelations,
-        attributes: ['userId'],
-        
+        attributes: ['userId']
       }
     ],
     order: [['createdAt', 'DESC']],
