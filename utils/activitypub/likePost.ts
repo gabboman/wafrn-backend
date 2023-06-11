@@ -20,7 +20,7 @@ const sendPostQueue = new Queue('sendPostToInboxes', {
     }
   })
 
-async function likePostRemote(like: any) {
+async function likePostRemote(like: any, dislike = false) {
     const user = await User.findOne({
         where: {
             id: like.userId
@@ -38,7 +38,7 @@ async function likePostRemote(like: any) {
     });
     const stringMyFollowers = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`
     const ownerOfLikedPost = likedPost.user.remoteId
-    const likeObject: activityPubObject = {
+    const likeObject: activityPubObject = !dislike ? {
         "@context": [
           "https://www.w3.org/ns/activitystreams",
         ],
@@ -52,9 +52,23 @@ async function likePostRemote(like: any) {
         id: `${environment.frontendUrl}/fediverse/likes/${like.userId}/${like.postId}`,
         object: likedPost.remotePostId,
         type: 'Like'
+      } : {
+        "@context": [
+          "https://www.w3.org/ns/activitystreams",
+        ],
+        actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
+        to: likedPost.privacy / 1 === 10
+        ? [ownerOfLikedPost]
+        : likedPost.privacy / 1 === 0
+        ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
+        : [stringMyFollowers],
+        cc: likedPost.privacy / 1 === 0 ? [ownerOfLikedPost] : [],
+        id: `${environment.frontendUrl}/fediverse/undo/likes/${like.userId}/${like.postId}`,
+        object: `${environment.frontendUrl}/fediverse/likes/${like.userId}/${like.postId}`,
+        type: 'Undo'
       }
       // petition to owner of the post:
-      const ownerOfPostLikePromise = postPetitionSigned(likeObject, user, ownerOfLikedPost)
+      const ownerOfPostLikePromise = likedPost.user.remoteInbox ? postPetitionSigned(likeObject, user, likedPost.user.remoteInbox) : true
       // servers with shared inbox
       let serversToSendThePost
       // for servers with no shared inbox
