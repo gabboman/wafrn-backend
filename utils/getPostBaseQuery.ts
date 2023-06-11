@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { Media, Post, PostMentionsUserRelation, Tag, User } from '../db'
+import { Media, Post, PostMentionsUserRelation, Tag, User, UserLikesPostRelations } from '../db'
 import { environment } from '../environment'
 
 const POSTS_PER_PAGE = environment.postsPerPage
@@ -33,6 +33,10 @@ export default function getPostBaseQuery(req?: Request) {
                 attributes: ['avatar', 'url', 'description', 'id']
               }
             ]
+          },
+          {
+            model: UserLikesPostRelations,
+            attributes: ['userId']
           }
         ]
       },
@@ -57,6 +61,11 @@ export default function getPostBaseQuery(req?: Request) {
             attributes: ['avatar', 'url', 'description', 'id']
           }
         ]
+      },
+      {
+        model: UserLikesPostRelations,
+        attributes: ['userId'],
+        
       }
     ],
     order: [['createdAt', 'DESC']],
