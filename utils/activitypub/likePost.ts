@@ -32,7 +32,8 @@ async function likePostRemote(like: any, dislike = false) {
     },
     include: [
       {
-        model: User
+        model: User,
+        as: 'user'
       }
     ]
   })
