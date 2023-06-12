@@ -288,7 +288,9 @@ UserReport.belongsTo(User, { foreignKey: 'ReportedId' })
 User.belongsTo(FederatedHost, { foreignKey: 'federatedHostId' })
 FederatedHost.hasMany(User)
 User.hasMany(Post)
-Post.belongsTo(User)
+Post.belongsTo(User, {
+  as: 'user'
+})
 Post.isHierarchy()
 Media.belongsTo(User)
 Tag.belongsToMany(Post, {
@@ -305,10 +307,17 @@ Post.belongsToMany(Media, {
 })
 
 // mentions
-PostMentionsUserRelation.belongsTo(User)
-PostMentionsUserRelation.belongsTo(Post)
-User.hasMany(PostMentionsUserRelation)
-Post.hasMany(PostMentionsUserRelation)
+User.belongsToMany(Post, {
+  through: PostMentionsUserRelation,
+  as: 'mentioner',
+  foreignKey: 'userId'
+})
+
+Post.belongsToMany(User, {
+  through: PostMentionsUserRelation,
+  as: 'mentionPost',
+  foreignKey: 'postId'
+})
 
 UserLikesPostRelations.belongsTo(User)
 UserLikesPostRelations.belongsTo(Post)

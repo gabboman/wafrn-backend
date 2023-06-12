@@ -2,33 +2,11 @@ import { Application } from 'express'
 import { Op, Sequelize } from 'sequelize'
 import { Follows, Post, PostMentionsUserRelation, User, UserLikesPostRelations } from '../db'
 import authenticateToken from '../utils/authenticateToken'
-import getBlockedIds from '../utils/getBlockedIds'
-import getReblogs from '../utils/getReblogs'
-import { logger } from '../utils/logger'
 import { sequelize } from '../db'
 import getStartScrollParam from '../utils/getStartScrollParam'
 import { environment } from '../environment'
 
 export default function notificationRoutes(app: Application) {
-  app.post('/api/readNotifications', authenticateToken, async (req: any, res) => {
-    try {
-      const userId = req.jwtData.userId
-      const user = await User.findOne({
-        where: {
-          id: userId
-        }
-      })
-      if (req.body.time) {
-        user.lastTimeNotificationsCheck = new Date().setTime(req.body.time)
-        user.save()
-      }
-    } catch (error) {
-      logger.error(error)
-    }
-    res.send({
-      success: true
-    })
-  })
 
   app.get('/api/notificationsScroll', authenticateToken, async (req: any, res) => {
     const page = Number(req?.query.page) || 0
@@ -46,6 +24,7 @@ export default function notificationRoutes(app: Application) {
       include: [
         {
           model: User,
+          as: 'user',
           attributes: ['avatar', 'url', 'description', 'id']
         }
       ],
@@ -80,22 +59,19 @@ export default function notificationRoutes(app: Application) {
         avatar: elem.followed.avatar
       }
     })
-    const newMentions = await PostMentionsUserRelation.findAll({
+    // TODO FIX
+    const newMentions = await Post.findAll({
       where: {
+        literal: sequelize.literal(`posts.id in (select postId from postMentionsUserRelations where userId like "${userId}")`),
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        userId: userId
       },
       include: [
         {
-          model: Post,
-          include: [
-            {
-              model: User,
-              attributes: ['avatar', 'url', 'description', 'id']
-            }
-          ]
+            model: User,
+            as: 'user',
+            attributes: ['avatar', 'url', 'description', 'id'] 
         }
       ],
       order: [['createdAt', 'DESC']],
@@ -125,19 +101,18 @@ export default function notificationRoutes(app: Application) {
       reblogs: await perPostReblogs,
       mentions: (await newMentions).map((mention: any) => {
         return {
-          user: mention?.post?.user,
-          content: mention.post?.content,
-          id: mention.post?.id,
+          user: mention?.user,
+          content: mention.content,
+          id: mention.id,
           createdAt: mention.createdAt,
-          parentId: mention.post?.parentId,
-          privacy: mention.post?.privacy
+          parentId: mention.parentId,
+          privacy: mention.privacy
         }
       }),
       likes: await newLikes
     })
   })
 
-  // TODO: do it better with a count instead of this thing you've done here
   app.get('/api/notificationsCount', authenticateToken, async (req: any, res) => {
     const userId = req.jwtData.userId
     //const blockedUsers = await getBlockedIds(userId)

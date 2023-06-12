@@ -11,16 +11,11 @@ async function postToJSONLD(post: any) {
     }
   })
   const stringMyFollowers = `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}/followers`
-  const dbMentions = await post.getPostMentionsUserRelations()
+  const dbMentions = await post.getMentionPost()
   let mentionedUsers: string[] = []
 
   if (dbMentions) {
-    const mentionedUsersFullModel = await User.findAll({
-      where: {
-        id: { [Op.in]: dbMentions.map((mention: any) => mention.userId) }
-      }
-    })
-    mentionedUsers = mentionedUsersFullModel.filter((elem: any) => elem.remoteInbox).map((elem: any) => elem.remoteId)
+    mentionedUsers = dbMentions.filter((elem: any) => elem.remoteInbox).map((elem: any) => elem.remoteId)
   }
   let parentPostString = null
   const conversationString = `${environment.frontendUrl}/fediverse/conversation/${post.id}`

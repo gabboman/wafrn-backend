@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { Media, Post, PostMentionsUserRelation, Tag, User, UserLikesPostRelations } from '../db'
+import { Media, Post, Tag, User, UserLikesPostRelations } from '../db'
 import { environment } from '../environment'
 
 const POSTS_PER_PAGE = environment.postsPerPage
@@ -14,6 +14,7 @@ export default function getPostBaseQuery(req?: Request) {
         include: [
           {
             model: User,
+            as: 'user',
             attributes: ['avatar', 'url', 'description', 'id']
           },
           {
@@ -25,23 +26,19 @@ export default function getPostBaseQuery(req?: Request) {
             attributes: ['tagName']
           },
           {
-            model: PostMentionsUserRelation,
-            attributes: ['userId'],
-            include: [
-              {
-                model: User,
-                attributes: ['avatar', 'url', 'description', 'id']
-              }
-            ]
-          },
-          {
             model: UserLikesPostRelations,
             attributes: ['userId']
+          },
+          {
+            model: User,
+            as: 'mentionPost',
+            attributes: ['url', 'id', 'avatar']
           }
         ]
       },
       {
         model: User,
+        as: 'user',
         attributes: ['avatar', 'url', 'description', 'id']
       },
       {
@@ -53,14 +50,9 @@ export default function getPostBaseQuery(req?: Request) {
         attributes: ['tagName']
       },
       {
-        model: PostMentionsUserRelation,
-        attributes: ['userId'],
-        include: [
-          {
-            model: User,
-            attributes: ['avatar', 'url', 'description', 'id']
-          }
-        ]
+        model: User,
+        as: 'mentionPost',
+        attributes: ['url', 'id', 'avatar']
       },
       {
         model: UserLikesPostRelations,
