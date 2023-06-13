@@ -17,6 +17,7 @@ import { generateKeyPairSync } from 'crypto'
 import { environment } from '../environment'
 import { logger } from '../utils/logger'
 import { createAccountLimiter, loginRateLimiter } from '../utils/rateLimiters'
+import fs from 'fs/promises'
 
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 
@@ -124,6 +125,14 @@ export default function userRoutes(app: Application) {
           if (environment.removeFolderNameFromFileUploads) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1)
             user.avatar = avatarURL
+          }
+        }
+
+        if (req.body.css) {
+          try {
+            await fs.writeFile(`uploads/themes/${posterId}.css`, req.body.css)
+          } catch (error) {
+            logger.warn(error)
           }
         }
 
