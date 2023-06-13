@@ -116,7 +116,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
             })
             // we check that we dont add the same tag twice
             const tmpTags: string[] = tagsToAdd.map((elem: any) => elem.tagName)
-            if(!tmpTags.includes(tagToAdd)) {
+            if (!tmpTags.includes(tagToAdd)) {
               tagsToAdd.push(newTag)
             }
           }

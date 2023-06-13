@@ -7,7 +7,6 @@ import getStartScrollParam from '../utils/getStartScrollParam'
 import { environment } from '../environment'
 
 export default function notificationRoutes(app: Application) {
-
   app.get('/api/notificationsScroll', authenticateToken, async (req: any, res) => {
     const page = Number(req?.query.page) || 0
     const userId = req.jwtData.userId
@@ -62,16 +61,18 @@ export default function notificationRoutes(app: Application) {
     // TODO FIX
     const newMentions = await Post.findAll({
       where: {
-        literal: sequelize.literal(`posts.id in (select postId from postMentionsUserRelations where userId like "${userId}")`),
+        literal: sequelize.literal(
+          `posts.id in (select postId from postMentionsUserRelations where userId like "${userId}")`
+        ),
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
-        },
+        }
       },
       include: [
         {
-            model: User,
-            as: 'user',
-            attributes: ['avatar', 'url', 'description', 'id'] 
+          model: User,
+          as: 'user',
+          attributes: ['avatar', 'url', 'description', 'id']
         }
       ],
       order: [['createdAt', 'DESC']],
