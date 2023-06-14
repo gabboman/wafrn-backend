@@ -6,13 +6,12 @@ async function sendPostToInboxes(job: Job) {
   const inboxes: string[] = job.data.inboxList
   const localUser = job.data.petitionBy
   const objectToSend = job.data.objectToSend
-
-  for await (const remoteInbox of inboxes) {
-    try {
-      const response = await postPetitionSigned(objectToSend, localUser, remoteInbox)
-    } catch (error) {
-      logger.trace(error)
-    }
+  const promisesArray = inboxes.map(remoteInbox => postPetitionSigned(objectToSend, localUser, remoteInbox))
+  
+  try {
+    const tmp = await Promise.allSettled(promisesArray)
+  } catch (error) {
+    logger.debug(error)
   }
 }
 
