@@ -4,6 +4,7 @@ import { FederatedHost, User, sequelize } from '../db'
 //const { csv } = require("csv-parse");
 
 async function blockHosts() {
+  const ignoreHostsList= environment.ignoreBlockHosts
   const deletedUser = await User.findOne({
     where: {
       url: environment.deletedUser
@@ -18,27 +19,32 @@ async function blockHosts() {
   for await (const line of hostLines) {
     if (index !== 0) {
       const urlToBlock = line.split(',')[0]
-      const hostToBlock = await FederatedHost.findOne({
-        where: {
-          displayName: urlToBlock
-        }
-      })
-      if (hostToBlock) {
-        hostToBlock.blocked = true
-        hostToBlock.updatedAt = new Date()
-        await hostToBlock.save()
-      } else {
-        const tmp = await FederatedHost.create({
-          displayName: urlToBlock,
-          blocked: true
+      if(!ignoreHostsList.includes(urlToBlock)) {
+        const hostToBlock = await FederatedHost.findOne({
+          where: {
+            displayName: urlToBlock
+          }
         })
-        console.log(tmp.displayName)
+        if (hostToBlock) {
+          hostToBlock.blocked = true
+          hostToBlock.updatedAt = new Date()
+          await hostToBlock.save()
+        } else {
+          const tmp = await FederatedHost.create({
+            displayName: urlToBlock,
+            blocked: true
+          })
+          console.log(tmp.displayName)
+        } 
+      } else {
+        console.log(`sparint ${urlToBlock}`)
       }
     }
     index = index + 1
   }
   console.log('initiating removal of users from problematic hosts')
   // we remove the problematic users posts in a big sweep
+  /*
   const stringSelectBadUsers =
     'SELECT id from users where federatedHostId IN (SELECT id from federatedHosts where blocked = TRUE)'
   // we remove posts from problematic instances
@@ -47,16 +53,17 @@ async function blockHosts() {
       deletedUser.id ? deletedUser.id : ''
     }" where userId in (${stringSelectBadUsers})`
   )
+  */
   // we remove follows from these users
-  result = await sequelize.query(`DELETE from follows where followerId in (${stringSelectBadUsers})`)
-  result = await sequelize.query(`DELETE from follows where followedId in (${stringSelectBadUsers})`)
+  //result = await sequelize.query(`DELETE from follows where followerId in (${stringSelectBadUsers})`)
+  //result = await sequelize.query(`DELETE from follows where followedId in (${stringSelectBadUsers})`)
   // we remove mentions and likes to those users in db
-  result = await sequelize.query(`DELETE from postMentionsUserRelations where userId in (${stringSelectBadUsers})`)
-  result = await sequelize.query(`DELETE from userLikesPostRelations where userId in (${stringSelectBadUsers})`)
+  //result = await sequelize.query(`DELETE from postMentionsUserRelations where userId in (${stringSelectBadUsers})`)
+  //result = await sequelize.query(`DELETE from userLikesPostRelations where userId in (${stringSelectBadUsers})`)
   // we delete the evil users medias
-  result = await sequelize.query(`DELETE from medias where userId in (${stringSelectBadUsers})`)
+  //result = await sequelize.query(`DELETE from medias where userId in (${stringSelectBadUsers})`)
   // we delete the users
-  result = await sequelize.query(`DELETE from users where id in (${stringSelectBadUsers})`)
+  //result = await sequelize.query(`DELETE from users where id in (${stringSelectBadUsers})`)
   console.log('cleanup done')
 }
 
