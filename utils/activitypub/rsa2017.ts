@@ -52,7 +52,7 @@ export class LdSignature {
   }
 
   public async verifyRsaSignature2017(data: any, publicKey: string): Promise<boolean> {
-    let toBeSigned = await this.createVerifyData(data, data.signature)
+    const toBeSigned = await this.createVerifyData(data, data.signature)
     const verifier = crypto.createVerify('sha256')
     verifier.update(toBeSigned)
     return verifier.verify(publicKey, data.signature.signatureValue, 'base64')
@@ -64,7 +64,6 @@ export class LdSignature {
       const transformedOptions = {
         ...options,
         '@context': `${environment.frontendUrl}/contexts/identity-v1.jsonld`
-        //"@context": 'http://cache.wafrn.net/?media=https://dev.wafrn.net/contexts/identity-v1.jsonld'
         //"@context": "https://w3id.org/identity/v1",
       }
       transformedOptions['type'] = undefined

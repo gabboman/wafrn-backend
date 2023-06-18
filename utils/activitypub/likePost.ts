@@ -41,7 +41,7 @@ async function likePostRemote(like: any, dislike = false) {
   const ownerOfLikedPost = likedPost.user.remoteId
   const likeObject: activityPubObject = !dislike
     ? {
-        '@context': ['https://www.w3.org/ns/activitystreams'],
+        '@context': [`${environment.frontendUrl}/contexts/litepub-0.1.jsonld`],
         actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
         to:
           likedPost.privacy / 1 === 10
@@ -55,7 +55,7 @@ async function likePostRemote(like: any, dislike = false) {
         type: 'Like'
       }
     : {
-        '@context': ['https://www.w3.org/ns/activitystreams'],
+        '@context': [`${environment.frontendUrl}/contexts/litepub-0.1.jsonld`],
         actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
         to:
           likedPost.privacy / 1 === 10
