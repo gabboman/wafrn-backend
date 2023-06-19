@@ -76,7 +76,7 @@ app.get('/api/exploreLocal', async (req: any, res) => {
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      privacy: 0,
+      privacy: {[Op.in]: [1, 2]},
       literal: sequelize.literal(`userId in (select id from users where url not like "@%")`)
     }
   })
