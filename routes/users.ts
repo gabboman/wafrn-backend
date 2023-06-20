@@ -18,6 +18,8 @@ import { environment } from '../environment'
 import { logger } from '../utils/logger'
 import { createAccountLimiter, loginRateLimiter } from '../utils/rateLimiters'
 import fs from 'fs/promises'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const routeCache = require('route-cache');
 
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 
@@ -282,7 +284,7 @@ export default function userRoutes(app: Application) {
     }
   })
 
-  app.get('/api/user', async (req, res) => {
+  app.get('/api/user', routeCache.cacheSeconds(300), async (req, res) => {
     let success = false
     if (req.query?.id) {
       const blogId: string = (req.query.id || '').toString().toLowerCase().trim()

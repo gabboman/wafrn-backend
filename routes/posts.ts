@@ -11,6 +11,8 @@ import { logger } from '../utils/logger'
 import { createPostLimiter } from '../utils/rateLimiters'
 import { environment } from '../environment'
 import { Queue } from 'bullmq'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const routeCache = require('route-cache');
 
 const prepareSendPostQueue = new Queue('prepareSendPost', {
   connection: environment.bullmqConnection,
@@ -25,7 +27,7 @@ const prepareSendPostQueue = new Queue('prepareSendPost', {
   }
 })
 export default function postsRoutes(app: Application) {
-  app.get('/api/singlePost/:id', async (req: any, res) => {
+  app.get('/api/singlePost/:id',  routeCache.cacheSeconds(300), async (req: any, res) => {
     let success = false
     if (req.params?.id) {
       const post = await Post.findOne({
