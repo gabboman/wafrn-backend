@@ -25,14 +25,14 @@ async function postToJSONLD(post: any) {
         id: post.parentId
       }
     })
-    while (dbPost.content === '' && dbPost.hierarchyLevel !== 0) {
+    while (dbPost && dbPost.content === '' && dbPost.hierarchyLevel !== 0) {
       // TODO optimize this
       const tmpPost = await dbPost.getParent()
       dbPost = tmpPost
     }
-    parentPostString = dbPost.remotePostId
+    parentPostString = dbPost?.remotePostId
       ? dbPost.remotePostId
-      : `${environment.frontendUrl}/fediverse/post/${dbPost.id}`
+      : `${environment.frontendUrl}/fediverse/post/${dbPost ? dbPost.id : post.parentId}`
   }
   const postMedias = await post.getMedias()
   let processedContent = post.content
