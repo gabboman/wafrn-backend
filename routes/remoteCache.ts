@@ -16,6 +16,8 @@ export default function cacheRoutes(app: Application) {
       const mediaLinkHash = crypto.createHash('sha256').update(mediaLink).digest('hex')
       const localFileName = linkExtension ? `cache/${mediaLinkHash}.${linkExtension}` : `cache/${mediaLinkHash}`
       if (fs.existsSync(localFileName)) {
+        // we set some cache
+        res.set('Cache-control', 'public, max-age=3600')
         // We have the image! we just serve it
         res.sendFile(localFileName, { root: '.' })
       } else {
@@ -25,6 +27,8 @@ export default function cacheRoutes(app: Application) {
           const path = `${localFileName}`
           const filePath = fs.createWriteStream(path)
           filePath.on('finish', () => {
+            // we set some cache
+            res.set('Cache-control', 'public, max-age=3600')
             filePath.close()
             res.sendFile(localFileName, { root: '.' })
           })

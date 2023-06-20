@@ -7,7 +7,8 @@ import { environment } from '../../environment'
 import { return404 } from '../../utils/return404'
 import { postToJSONLD } from '../../utils/activitypub/postToJSONLD'
 import { Queue } from 'bullmq'
-
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const routeCache = require('route-cache');
 // global activitypub variables
 
 // queues
@@ -29,7 +30,7 @@ const inboxQueue = new Queue('inbox', {
 
 function activityPubRoutes(app: Application) {
   // get post
-  app.get(['/fediverse/post/:id', '/fediverse/activity/post/:id'], async (req: any, res) => {
+  app.get(['/fediverse/post/:id', '/fediverse/activity/post/:id'], routeCache.cacheSeconds(300), async (req: any, res) => {
     if (req.params?.id) {
       const post = await Post.findOne({
         where: {
@@ -54,7 +55,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
   // Get blog for fediverse
-  app.get('/fediverse/blog/:url', async (req: any, res) => {
+  app.get('/fediverse/blog/:url', routeCache.cacheSeconds(300), async (req: any, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
