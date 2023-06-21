@@ -12,7 +12,7 @@ const updateUsersQueue = new Queue('UpdateUsers', {
   }
 })
 
-async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<any> {
+async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdate = false): Promise<any> {
   if (level === 100) {
     //Actor is not valid.
     return await User.findOne({
@@ -43,7 +43,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0): Promise<a
   })
   // we check if the user has changed avatar and stuff
   const validUntil = new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
-  if (remoteUser?.updatedAt < validUntil) {
+  if (remoteUser?.updatedAt < validUntil || forceUpdate) {
     updateUsersQueue.add('updateUser', { userToUpdate: actorUrl, petitionBy: user }, { jobId: actorUrl })
   }
 
