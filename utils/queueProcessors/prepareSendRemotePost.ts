@@ -7,6 +7,7 @@ import { FederatedHost, Post, User, sequelize } from '../../db'
 import { environment } from '../../environment'
 import { Job, Queue } from 'bullmq'
 import _ from 'underscore'
+import { wait } from '../wait'
 
 const sendPostQueue = new Queue('sendPostToInboxes', {
   connection: environment.bullmqConnection,
@@ -21,6 +22,8 @@ const sendPostQueue = new Queue('sendPostToInboxes', {
   }
 })
 async function prepareSendRemotePostWorker(job: Job) {
+  // TODO fix this! this is dirtier than my unwashed gim clothes
+  await wait(1500)
   //async function sendRemotePost(localUser: any, post: any) {
   const post = await Post.findOne({
     where: {
