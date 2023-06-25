@@ -85,18 +85,4 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
   return remoteUser
 }
 
-function getUserProperties(userPetition: any) {
-  return {
-    //url: `@${userPetition.preferredUsername}@${url.host}`,
-    email: null,
-    description: userPetition.summary,
-    avatar: userPetition.icon?.url ? userPetition.icon.url : `${environment.mediaUrl}/uploads/default.webp`,
-    password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
-    publicKey: userPetition.publicKey?.publicKeyPem,
-    remoteInbox: userPetition.inbox,
-    remoteId: userPetition.id,
-    activated: true
-  }
-}
-
 export { getRemoteActor }
