@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
 import { User } from '../../db'
 import { environment } from '../../environment'
+import { Op } from 'sequelize'
+import { getRemoteActor } from './getRemoteActor'
+import { LdSignature } from './rsa2017'
+import { logger } from '../logger'
 const httpSignature = require('@peertube/http-signature')
 
 const adminUser = environment.forceSync
@@ -10,6 +14,20 @@ const adminUser = environment.forceSync
         url: environment.adminUser
       }
     })
+
+
+const actorsCache: Map<string, string> = new Map();
+
+User.findAll({
+  where: {
+      remoteId: { [Op.ne]: null }
+  }
+}).then((allUsers: any) => {
+  allUsers.forEach((user: any) => {
+    actorsCache.set(user.remoteId, user.publicKey)
+  });
+})
+
 export default async function checkFediverseSignature(req: Request, res: Response, next: NextFunction) {
   let success = false
   const digest = req.headers.digest
@@ -22,15 +40,16 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       const sigHead = httpSignature.parse(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       success = true
-      //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
+      const cachedKey = actorsCache.get(remoteUserUrl)
+      const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, adminUser)).publicKey
+      const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
+      if(!tmp) {
+        logger.debug(`Failed to verify signature from ${remoteUserUrl}`)
+      }      
       //success = httpSignature.verifySignature(sigHead,  remoteKey)
     } catch (error: any) {
-      if (error?.code_get === 410) {
-        success = false
-      } else {
-        //logger.trace({message: 'error while parsing signature', error: error,  })
-        // success = true
-      }
+      success = false;
+
     }
   }
   if (!success) {
