@@ -19,7 +19,7 @@ import { logger } from '../utils/logger'
 import { createAccountLimiter, loginRateLimiter } from '../utils/rateLimiters'
 import fs from 'fs/promises'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const routeCache = require('route-cache');
+const routeCache = require('route-cache')
 
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 

@@ -28,9 +28,4 @@ const workerSendPostChunk = new Worker('sendPostToInboxes', (job: Job) => sendPo
   lockDuration: 120000
 })
 
-export {
-  workerInbox,
-  workerUpdateRemoteUsers,
-  workerSendPostChunk,
-  workerPrepareSendPost
-}
+export { workerInbox, workerUpdateRemoteUsers, workerSendPostChunk, workerPrepareSendPost }

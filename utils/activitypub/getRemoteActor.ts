@@ -43,7 +43,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
   })
   // we check if the user has changed avatar and stuff
   const validUntil = new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
-  if (remoteUser && new Date(remoteUser.updatedAt).getTime() < validUntil.getTime() || forceUpdate) {
+  if ((remoteUser && new Date(remoteUser.updatedAt).getTime() < validUntil.getTime()) || forceUpdate) {
     updateUsersQueue.add('updateUser', { userToUpdate: actorUrl, petitionBy: user }, { jobId: actorUrl })
   }
 

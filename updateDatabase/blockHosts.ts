@@ -4,7 +4,7 @@ import { FederatedHost, User, sequelize } from '../db'
 //const { csv } = require("csv-parse");
 
 async function blockHosts() {
-  const ignoreHostsList= environment.ignoreBlockHosts
+  const ignoreHostsList = environment.ignoreBlockHosts
   const deletedUser = await User.findOne({
     where: {
       url: environment.deletedUser
@@ -19,7 +19,7 @@ async function blockHosts() {
   for await (const line of hostLines) {
     if (index !== 0) {
       const urlToBlock = line.split(',')[0]
-      if(!ignoreHostsList.includes(urlToBlock)) {
+      if (!ignoreHostsList.includes(urlToBlock)) {
         const hostToBlock = await FederatedHost.findOne({
           where: {
             displayName: urlToBlock
@@ -35,7 +35,7 @@ async function blockHosts() {
             blocked: true
           })
           console.log(tmp.displayName)
-        } 
+        }
       } else {
         console.log(`sparint ${urlToBlock}`)
       }

@@ -8,7 +8,7 @@ import { return404 } from '../../utils/return404'
 import { postToJSONLD } from '../../utils/activitypub/postToJSONLD'
 import { Queue } from 'bullmq'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const routeCache = require('route-cache');
+const routeCache = require('route-cache')
 // global activitypub variables
 
 // queues
@@ -30,30 +30,34 @@ const inboxQueue = new Queue('inbox', {
 
 function activityPubRoutes(app: Application) {
   // get post
-  app.get(['/fediverse/post/:id', '/fediverse/activity/post/:id'], routeCache.cacheSeconds(300), async (req: any, res) => {
-    if (req.params?.id) {
-      const post = await Post.findOne({
-        where: {
-          id: req.params.id,
-          privacy: {
-            [Op.notIn]: [2, 10]
+  app.get(
+    ['/fediverse/post/:id', '/fediverse/activity/post/:id'],
+    routeCache.cacheSeconds(300),
+    async (req: any, res) => {
+      if (req.params?.id) {
+        const post = await Post.findOne({
+          where: {
+            id: req.params.id,
+            privacy: {
+              [Op.notIn]: [2, 10]
+            }
           }
-        }
-      })
-      if (post) {
-        // TODO corregir esto seguramente
-        res.set({
-          'content-type': 'application/activity+json'
         })
-        res.send(await postToJSONLD(post))
+        if (post) {
+          // TODO corregir esto seguramente
+          res.set({
+            'content-type': 'application/activity+json'
+          })
+          res.send(await postToJSONLD(post))
+        } else {
+          res.sendStatus(404)
+        }
       } else {
         res.sendStatus(404)
       }
-    } else {
-      res.sendStatus(404)
+      res.end()
     }
-    res.end()
-  })
+  )
   // Get blog for fediverse
   app.get('/fediverse/blog/:url', routeCache.cacheSeconds(300), async (req: any, res) => {
     if (req.params?.url) {

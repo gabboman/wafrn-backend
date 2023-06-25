@@ -26,12 +26,7 @@ import { activityPubRoutes } from './routes/activitypub/activitypub'
 import { wellKnownRoutes } from './routes/activitypub/well-known'
 import cacheRoutes from './routes/remoteCache'
 import likeRoutes from './routes/like'
-import {
-  workerInbox,
-  workerUpdateRemoteUsers,
-  workerSendPostChunk,
-  workerPrepareSendPost
-} from './utils/workers'
+import { workerInbox, workerUpdateRemoteUsers, workerSendPostChunk, workerPrepareSendPost } from './utils/workers'
 
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
@@ -83,7 +78,7 @@ app.get('/api/exploreLocal', async (req: any, res) => {
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      privacy: {[Op.in]: [0, 2]},
+      privacy: { [Op.in]: [0, 2] },
       literal: sequelize.literal(`userId in (select id from users where url not like "@%")`)
     }
   })
@@ -136,36 +131,35 @@ likeRoutes(app)
 frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {
-  logger.info(`⚡️Server is running at https://${environment.listenIp}:${PORT}. REMEMBER TO START THE FEDI RUNNER TOO`)
-
+  console.log('started app')
   workerInbox.on('completed', (job) => {
     // console.log(`${job.id} has completed!`)
   })
-  
+
   workerInbox.on('failed', (job, err) => {
     console.warn(`${job?.id} has failed with ${err.message}`)
   })
-  
+
   workerPrepareSendPost.on('completed', (job) => {
     // console.log(`${job.id} has completed!`)
   })
-  
+
   workerPrepareSendPost.on('failed', (job, err) => {
     console.warn(`sending post ${job?.id} has failed with ${err.message}`)
   })
-  
+
   workerUpdateRemoteUsers.on('failed', (job, err) => {
     console.warn(`update user ${job?.id} has failed with ${err.message}`)
   })
-  
+
   workerUpdateRemoteUsers.on('completed', (job) => {
     //console.warn(`user ${job?.id} has been updated`)
   })
-  
+
   workerSendPostChunk.on('completed', (job) => {
     //console.log(`${job.id} has completed!`)
   })
-  
+
   workerSendPostChunk.on('failed', (job, err) => {
     console.warn(`sending post to some inboxes ${job?.id} has failed with ${err.message}`)
   })
