@@ -26,6 +26,13 @@ import { activityPubRoutes } from './routes/activitypub/activitypub'
 import { wellKnownRoutes } from './routes/activitypub/well-known'
 import cacheRoutes from './routes/remoteCache'
 import likeRoutes from './routes/like'
+import {
+  workerInbox,
+  workerUpdateRemoteUsers,
+  workerSendPostChunk,
+  workerPrepareSendPost
+} from './utils/workers'
+
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
 
@@ -130,4 +137,36 @@ frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {
   logger.info(`⚡️Server is running at https://${environment.listenIp}:${PORT}. REMEMBER TO START THE FEDI RUNNER TOO`)
+
+  workerInbox.on('completed', (job) => {
+    // console.log(`${job.id} has completed!`)
+  })
+  
+  workerInbox.on('failed', (job, err) => {
+    console.warn(`${job?.id} has failed with ${err.message}`)
+  })
+  
+  workerPrepareSendPost.on('completed', (job) => {
+    // console.log(`${job.id} has completed!`)
+  })
+  
+  workerPrepareSendPost.on('failed', (job, err) => {
+    console.warn(`sending post ${job?.id} has failed with ${err.message}`)
+  })
+  
+  workerUpdateRemoteUsers.on('failed', (job, err) => {
+    console.warn(`update user ${job?.id} has failed with ${err.message}`)
+  })
+  
+  workerUpdateRemoteUsers.on('completed', (job) => {
+    //console.warn(`user ${job?.id} has been updated`)
+  })
+  
+  workerSendPostChunk.on('completed', (job) => {
+    //console.log(`${job.id} has completed!`)
+  })
+  
+  workerSendPostChunk.on('failed', (job, err) => {
+    console.warn(`sending post to some inboxes ${job?.id} has failed with ${err.message}`)
+  })
 })
