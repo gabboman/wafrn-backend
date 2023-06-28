@@ -173,6 +173,27 @@ const Tag = sequelize.define('tags', {
   tagName: Sequelize.TEXT
 })
 
+const Emoji = sequelize.define('emojis', {
+  id: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    primaryKey: true
+  },
+  name: Sequelize.STRING,
+  url: Sequelize.TEXT,
+  external: Sequelize.BOOLEAN
+})
+
+const EmojiCollection = sequelize.define('emojiCollections', {
+  id: {
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    allowNull: false,
+    primaryKey: true
+  },
+  name: Sequelize.STRING
+})
+
 const Media = sequelize.define('medias', {
   id: {
     type: Sequelize.UUID,
@@ -240,6 +261,15 @@ User.belongsToMany(User, {
   as: 'followed',
   foreignKey: 'followerId'
 })
+
+Post.belongsToMany(Emoji, {
+  through: 'postEmojiRelations'
+})
+Emoji.belongsToMany(Post, {
+  through: 'postEmojiRelations'
+})
+Emoji.belongsTo(EmojiCollection)
+EmojiCollection.hasMany(Emoji)
 
 User.belongsToMany(User, {
   through: Follows,
@@ -344,6 +374,7 @@ export {
   Tag,
   Follows,
   Media,
+  Emoji,
   PostMentionsUserRelation,
   UserLikesPostRelations,
   FederatedHost
