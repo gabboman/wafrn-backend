@@ -1,7 +1,8 @@
 import { Application } from 'express'
 import { Op, Sequelize } from 'sequelize'
 import { Follows, Post, PostMentionsUserRelation, User, UserLikesPostRelations } from '../db'
-import authenticateToken from '../utils/authenticateToken'
+import { authenticateToken } from '../utils/authenticateToken'
+
 import { sequelize } from '../db'
 import getStartScrollParam from '../utils/getStartScrollParam'
 import { environment } from '../environment'

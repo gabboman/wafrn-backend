@@ -4,7 +4,7 @@ import { Op } from 'sequelize'
 
 import cors from 'cors'
 import bodyParser from 'body-parser'
-import authenticateToken from './utils/authenticateToken'
+import { authenticateToken } from './utils/authenticateToken'
 import getPostBaseQuery from './utils/getPostBaseQuery'
 
 import userRoutes from './routes/users'

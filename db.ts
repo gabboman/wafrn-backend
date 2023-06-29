@@ -114,6 +114,10 @@ const User = sequelize.define(
     banned: {
       type: Sequelize.BOOLEAN,
       defaultValue: false
+    },
+    role: {
+      type: Sequelize.INTEGER,
+      defaultValue: 0
     }
   },
   {

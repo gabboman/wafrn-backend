@@ -1,5 +1,6 @@
 import { Application } from 'express'
-import authenticateToken from '../utils/authenticateToken'
+import { authenticateToken } from '../utils/authenticateToken'
+
 import { Post, User, UserLikesPostRelations } from '../db'
 import { logger } from '../utils/logger'
 import { likePostRemote } from '../utils/activitypub/likePost'

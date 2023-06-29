@@ -1,7 +1,8 @@
 import { Application } from 'express'
 import { Op } from 'sequelize'
 import { Post, PostMentionsUserRelation, PostReport, Tag, User } from '../db'
-import authenticateToken from '../utils/authenticateToken'
+import { authenticateToken } from '../utils/authenticateToken'
+
 import getPostBaseQuery from '../utils/getPostBaseQuery'
 import { sequelize } from '../db'
 

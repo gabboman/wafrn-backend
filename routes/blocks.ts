@@ -1,6 +1,7 @@
 import { Application } from 'express'
 import { User } from '../db'
-import authenticateToken from '../utils/authenticateToken'
+import { authenticateToken } from '../utils/authenticateToken'
+
 import { logger } from '../utils/logger'
 
 export default function blockRoutes(app: Application) {

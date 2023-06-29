@@ -1,7 +1,8 @@
 import { Application } from 'express'
 import { Op } from 'sequelize'
 import { User } from '../db'
-import authenticateToken from '../utils/authenticateToken'
+import { authenticateToken } from '../utils/authenticateToken'
+
 import generateRandomString from '../utils/generateRandomString'
 import getIp from '../utils/getIP'
 import sendActivationEmail from '../utils/sendActivationEmail'
@@ -254,7 +255,8 @@ export default function userRoutes(app: Application) {
                     userId: userWithEmail.id,
                     email: userWithEmail.email.toLowerCase(),
                     birthDate: userWithEmail.birthDate,
-                    url: userWithEmail.url
+                    url: userWithEmail.url,
+                    role: userWithEmail.role
                   },
                   environment.jwtSecret,
                   { expiresIn: '31536000s' }

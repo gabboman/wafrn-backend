@@ -2,7 +2,8 @@
 import { Application } from 'express'
 import { Media } from '../db'
 import uploadHandler from '../utils/uploads'
-import authenticateToken from '../utils/authenticateToken'
+import { authenticateToken } from '../utils/authenticateToken'
+
 import getIp from '../utils/getIP'
 import optimizeMedia from '../utils/optimizeMedia'
 import { environment } from '../environment'

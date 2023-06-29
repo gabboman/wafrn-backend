@@ -13,6 +13,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@bull-board/express": "^5.6.0",
     "@noble/ed25519": "^1.7.1",
     "@peertube/http-signature": "^1.7.0",
     "@types/bcrypt": "^5.0.0",
@@ -44,6 +45,7 @@
     "sequelize-hierarchy-fork": "^1.0.0",
     "sequelize-transparent-cache": "^2.3.0",
     "sequelize-transparent-cache-ioredis": "^2.3.0",
+    "sshpk": "^1.17.0",
     "swagger-autogen": "^2.21.5",
     "swagger-ui-express": "^4.5.0",
     "ts-node": "^10.4.0",

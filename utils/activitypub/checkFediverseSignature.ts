@@ -5,6 +5,7 @@ import { Op } from 'sequelize'
 import { getRemoteActor } from './getRemoteActor'
 import { LdSignature } from './rsa2017'
 import { logger } from '../logger'
+import crypto from 'crypto'
 const httpSignature = require('@peertube/http-signature')
 
 const adminUser = environment.forceSync
@@ -15,17 +16,16 @@ const adminUser = environment.forceSync
       }
     })
 
-
-const actorsCache: Map<string, string> = new Map();
+const actorsCache: Map<string, string> = new Map()
 
 User.findAll({
   where: {
-      remoteId: { [Op.ne]: null }
+    remoteId: { [Op.ne]: null }
   }
 }).then((allUsers: any) => {
   allUsers.forEach((user: any) => {
     actorsCache.set(user.remoteId, user.publicKey)
-  });
+  })
 })
 
 export default async function checkFediverseSignature(req: Request, res: Response, next: NextFunction) {
@@ -37,19 +37,23 @@ export default async function checkFediverseSignature(req: Request, res: Respons
     success = true
     try {
       // TODO do stuff here
-      const sigHead = httpSignature.parse(req)
+      const sigHead = httpSignature.parseRequest(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       success = true
       const cachedKey = actorsCache.get(remoteUserUrl)
       const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, adminUser)).publicKey
-      const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
-      if(!tmp) {
+      //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
+      const verifier = crypto.createVerify('RSA-SHA256')
+      verifier.update(sigHead.signingString, 'ascii')
+      const publicKeyBuf = Buffer.from(remoteKey, 'ascii')
+      const signatureBuf = Buffer.from(sigHead.params.signature, 'base64')
+      const tmp = verifier.verify(publicKeyBuf, signatureBuf)
+      if (!tmp) {
         logger.debug(`Failed to verify signature from ${remoteUserUrl}`)
-      }      
+      }
       //success = httpSignature.verifySignature(sigHead,  remoteKey)
     } catch (error: any) {
-      success = false;
-
+      success = false
     }
   }
   if (!success) {

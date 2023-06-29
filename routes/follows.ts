@@ -1,6 +1,7 @@
 import { Application } from 'express'
 import { User } from '../db'
-import authenticateToken from '../utils/authenticateToken'
+import { authenticateToken } from '../utils/authenticateToken'
+
 import getBlockedIds from '../utils/getBlockedIds'
 import getFollowedsIds from '../utils/getFollowedsIds'
 import { logger } from '../utils/logger'
