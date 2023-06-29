@@ -35,7 +35,7 @@ export class LdSignature {
       options.domain = undefined
     }
 
-    let toBeSigned = await this.createVerifyData(data, options)
+    const toBeSigned = await this.createVerifyData(data, options)
     const signer = crypto.createSign('sha256')
     signer.update(toBeSigned)
     signer.end()
@@ -55,7 +55,7 @@ export class LdSignature {
     const toBeSigned = await this.createVerifyData(data, data.signature)
     const verifier = crypto.createVerify('sha256')
     verifier.update(toBeSigned)
-    return verifier.verify(publicKey, data.signature.signatureValue, 'base64')
+    return verifier.verify(publicKey, data.signature.params.signature, 'base64')
   }
 
   public async createVerifyData(data: any, options: any) {
@@ -64,11 +64,8 @@ export class LdSignature {
       const transformedOptions = {
         ...options,
         '@context': `${environment.frontendUrl}/contexts/identity-v1.jsonld`
-        //"@context": "https://w3id.org/identity/v1",
       }
-      transformedOptions['type'] = undefined
-      transformedOptions['id'] = undefined
-      transformedOptions['signatureValue'] = undefined
+
       //const canonizedOptions = await this.normalize(transformedOptions);
       const canonizedOptions = JSON.stringify(transformedOptions)
       const optionsHash = this.sha256(canonizedOptions)

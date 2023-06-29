@@ -9,11 +9,7 @@ export default function blockRoutes(app: Application) {
     try {
       const posterId = req.jwtData.userId
       if (req.body?.userId) {
-        const userBlocked = await User.findOne({
-          where: {
-            id: req.body.userId
-          }
-        })
+        const userBlocked = await User.findByPk(req.body.userId)
         userBlocked.addBlocker(posterId)
         userBlocked.removeFollowed(posterId)
         success = true
@@ -31,12 +27,7 @@ export default function blockRoutes(app: Application) {
     let success = false
     const posterId = req.jwtData.userId
     if (req.body?.userId) {
-      const userUnblocked = await User.findOne({
-        where: {
-          id: req.body.userId
-        }
-      })
-
+      const userUnblocked = await User.findByPk(req.body.userId)
       userUnblocked.removeBlocker(posterId)
       success = true
     }

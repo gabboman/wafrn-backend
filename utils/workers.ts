@@ -9,7 +9,7 @@ console.log('starting workers')
 const workerInbox = new Worker('inbox', (job: Job) => inboxWorker(job), {
   connection: environment.bullmqConnection,
   metrics: {
-    maxDataPoints: MetricsTime.ONE_WEEK * 2,
+    maxDataPoints: MetricsTime.ONE_WEEK * 2
   },
   concurrency: environment.fediverseConcurrency
 })
@@ -17,7 +17,7 @@ const workerInbox = new Worker('inbox', (job: Job) => inboxWorker(job), {
 const workerUpdateRemoteUsers = new Worker('UpdateUsers', (job: Job) => updateUserWorker(job), {
   connection: environment.bullmqConnection,
   metrics: {
-    maxDataPoints: MetricsTime.ONE_WEEK * 2,
+    maxDataPoints: MetricsTime.ONE_WEEK * 2
   },
   concurrency: environment.fediverseConcurrency
 })
@@ -25,7 +25,7 @@ const workerUpdateRemoteUsers = new Worker('UpdateUsers', (job: Job) => updateUs
 const workerPrepareSendPost = new Worker('prepareSendPost', (job: Job) => prepareSendRemotePostWorker(job), {
   connection: environment.bullmqConnection,
   metrics: {
-    maxDataPoints: MetricsTime.ONE_WEEK * 2,
+    maxDataPoints: MetricsTime.ONE_WEEK * 2
   },
   concurrency: environment.fediverseConcurrency,
   lockDuration: 60000
@@ -34,7 +34,7 @@ const workerPrepareSendPost = new Worker('prepareSendPost', (job: Job) => prepar
 const workerSendPostChunk = new Worker('sendPostToInboxes', (job: Job) => sendPostToInboxes(job), {
   connection: environment.bullmqConnection,
   metrics: {
-    maxDataPoints: MetricsTime.ONE_WEEK * 2,
+    maxDataPoints: MetricsTime.ONE_WEEK * 2
   },
   concurrency: environment.fediverseConcurrency,
   lockDuration: 120000
