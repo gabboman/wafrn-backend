@@ -1,4 +1,4 @@
-import { Application } from 'express'
+import { Application, Response } from 'express'
 import { Op } from 'sequelize'
 import { Post, PostMentionsUserRelation, PostReport, Tag, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
@@ -12,6 +12,7 @@ import { logger } from '../utils/logger'
 import { createPostLimiter } from '../utils/rateLimiters'
 import { environment } from '../environment'
 import { Queue } from 'bullmq'
+import AuthorizedRequest from '../interfaces/authorizedRequest'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const routeCache = require('route-cache')
 
@@ -82,7 +83,7 @@ export default function postsRoutes(app: Application) {
 
   app.post('/api/createPost', authenticateToken, createPostLimiter, async (req: any, res) => {
     let success = false
-    const posterId = req.jwtData.userId
+    const posterId = req.jwtData?.userId
     try {
       if (req.body.parent) {
         const parent = await Post.findOne({
@@ -203,11 +204,11 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.post('/api/reportPost', authenticateToken, async (req: any, res) => {
+  app.post('/api/reportPost', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     let report
     try {
-      const posterId = req.jwtData.userId
+      const posterId = req.jwtData?.userId
       if (req.body?.postId && req.body.severity && req.body.description) {
         report = await PostReport.create({
           resolved: false,

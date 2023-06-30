@@ -1,4 +1,4 @@
-import { Application } from 'express'
+import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
 import { Follows, Post, PostMentionsUserRelation, User, UserLikesPostRelations } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
@@ -6,11 +6,12 @@ import { authenticateToken } from '../utils/authenticateToken'
 import { sequelize } from '../db'
 import getStartScrollParam from '../utils/getStartScrollParam'
 import { environment } from '../environment'
+import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 export default function notificationRoutes(app: Application) {
-  app.get('/api/notificationsScroll', authenticateToken, async (req: any, res) => {
+  app.get('/api/notificationsScroll', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const page = Number(req?.query.page) || 0
-    const userId = req.jwtData.userId
+    const userId = req.jwtData?.userId
     // const blockedUsers = await getBlockedIds(userId)
     const perPostReblogs = await Post.findAll({
       where: {
@@ -115,8 +116,8 @@ export default function notificationRoutes(app: Application) {
     })
   })
 
-  app.get('/api/notificationsCount', authenticateToken, async (req: any, res) => {
-    const userId = req.jwtData.userId
+  app.get('/api/notificationsCount', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+    const userId = req.jwtData?.userId
     //const blockedUsers = await getBlockedIds(userId)
     const perPostReblogs = await Post.count({
       where: {

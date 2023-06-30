@@ -1,4 +1,4 @@
-import express from 'express'
+import express, {Response} from 'express'
 import { Post, sequelize } from './db'
 import { Op } from 'sequelize'
 
@@ -27,6 +27,7 @@ import { wellKnownRoutes } from './routes/activitypub/well-known'
 import cacheRoutes from './routes/remoteCache'
 import likeRoutes from './routes/like'
 import { workerInbox, workerUpdateRemoteUsers, workerSendPostChunk, workerPrepareSendPost } from './utils/workers'
+import AuthorizedRequest from './interfaces/authorizedRequest'
 
 const swagger = require('swagger-ui-express')
 const swaggerJSON = require('./swagger.json')
@@ -56,8 +57,8 @@ app.use('/uploads', express.static('uploads'))
 
 app.use('/contexts', express.static('contexts'))
 
-app.get('/api/dashboard', authenticateToken, async (req: any, res) => {
-  const posterId = req.jwtData.userId
+app.get('/api/dashboard', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+  const posterId = req.jwtData?.userId
   const rawPostsByFollowed = await Post.findAll({
     ...getPostBaseQuery(req),
     where: {
@@ -99,8 +100,8 @@ app.get('/api/explore', async (req: any, res) => {
   res.send(responseWithNotes)
 })
 
-app.get('/api/private', authenticateToken, async (req: any, res) => {
-  const posterId = req.jwtData.userId
+app.get('/api/private', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+  const posterId = req.jwtData?.userId
   const rawPostsByFollowed = await Post.findAll({
     where: {
       // date the user has started scrolling

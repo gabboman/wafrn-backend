@@ -1,4 +1,4 @@
-import { Application } from 'express'
+import { Application, Response } from 'express'
 import { FederatedHost, Post, PostMentionsUserRelation, User, UserLikesPostRelations } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 import { Op, Sequelize } from 'sequelize'
@@ -7,6 +7,7 @@ import { Queue } from 'bullmq'
 import { environment } from '../environment'
 import { activityPubObject } from '../interfaces/fediverse/activityPubObject'
 import _ from 'underscore'
+import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 const sendPostQueue = new Queue('sendPostToInboxes', {
   connection: environment.bullmqConnection,
@@ -22,11 +23,11 @@ const sendPostQueue = new Queue('sendPostToInboxes', {
 })
 
 export default function deletePost(app: Application) {
-  app.delete('/api/deletePost', authenticateToken, async (req: any, res) => {
+  app.delete('/api/deletePost', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     try {
       const id = req.query.id
-      const posterId = req.jwtData.userId
+      const posterId = req.jwtData?.userId
       const user = await User.findByPk(posterId)
       if (id) {
         const postToDelete = await Post.findOne({
@@ -83,7 +84,7 @@ export default function deletePost(app: Application) {
         usersToSendThePost?.forEach((server: any) => {
           inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
         })
-        for await (const inboxChunk of _.chunk(inboxes, 10)) {
+        for await (const inboxChunk of _.chunk(inboxes, 25)) {
           await sendPostQueue.add('sencChunk', {
             objectToSend: objectToSend,
             petitionBy: user.dataValues,

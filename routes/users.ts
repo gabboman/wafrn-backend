@@ -1,4 +1,4 @@
-import { Application } from 'express'
+import { Application, Response } from 'express'
 import { Op } from 'sequelize'
 import { User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
@@ -286,7 +286,7 @@ export default function userRoutes(app: Application) {
     }
   })
 
-  app.get('/api/user', routeCache.cacheSeconds(300), async (req, res) => {
+  app.get('/api/user', async (req, res) => {
     let success = false
     if (req.query?.id) {
       const blogId: string = (req.query.id || '').toString().toLowerCase().trim()

@@ -1,4 +1,4 @@
-import { Application } from 'express'
+import { Application, Response } from 'express'
 import { Op } from 'sequelize'
 import { Tag, User } from '../db'
 import getPostBaseQuery from '../utils/getPostBaseQuery'
@@ -10,6 +10,7 @@ import optionalAuthentication from '../utils/optionalAuthentication'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import { searchRemoteUser } from '../utils/activitypub/searchRemoteUser'
+import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 export default function searchRoutes(app: Application) {
   app.get('/api/search/', optionalAuthentication, async (req: any, res) => {
@@ -70,8 +71,8 @@ export default function searchRoutes(app: Application) {
     })
   })
 
-  app.get('/api/userSearch/:term', authenticateToken, async (req: any, res) => {
-    const posterId = req.jwtData.userId
+  app.get('/api/userSearch/:term', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+    const posterId = req.jwtData?.userId
     // const success = false;
     let users: any = []
     const searchTerm = req.params.term.toLowerCase().trim()

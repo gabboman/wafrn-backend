@@ -1,4 +1,4 @@
-import { Application } from 'express'
+import { Application, Response } from 'express'
 import { User, Follows, Post, Media, UserLikesPostRelations } from '../../db'
 import checkFediverseSignature from '../../utils/activitypub/checkFediverseSignature'
 import { sequelize } from '../../db'

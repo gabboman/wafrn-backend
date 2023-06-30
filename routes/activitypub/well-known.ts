@@ -1,4 +1,4 @@
-import { Application } from 'express'
+import { Application, Response } from 'express'
 import { Post, User, sequelize } from '../../db'
 import { environment } from '../../environment'
 import { return404 } from '../../utils/return404'

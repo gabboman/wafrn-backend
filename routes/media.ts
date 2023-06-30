@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { Application } from 'express'
+import { Application, Response } from 'express'
 import { Media } from '../db'
 import uploadHandler from '../utils/uploads'
 import { authenticateToken } from '../utils/authenticateToken'
@@ -8,9 +8,10 @@ import getIp from '../utils/getIP'
 import optimizeMedia from '../utils/optimizeMedia'
 import { environment } from '../environment'
 import { logger } from '../utils/logger'
+import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 export default function mediaRoutes(app: Application) {
-  app.post('/api/uploadMedia', authenticateToken, uploadHandler.array('image'), async (req, res) => {
+  app.post('/api/uploadMedia', authenticateToken, uploadHandler.array('image'), async (req: AuthorizedRequest, res: Response) => {
     let result = []
     const picturesPromise = [] as Array<Promise<any>>
 
@@ -36,7 +37,7 @@ export default function mediaRoutes(app: Application) {
             url: fileUrl,
             // if its marked as adult content it must be NSFW
             NSFW: isAdultContent ? true : isNSFW,
-            userId: (req as any).jwtData.userId,
+            userId: req.jwtData?.userId,
             description: req.body.description,
             ipUpload: getIp(req),
             adultContent: isAdultContent
@@ -50,10 +51,10 @@ export default function mediaRoutes(app: Application) {
     res.send(result)
   })
 
-  app.get('/api/updateMedia', authenticateToken, async (req: any, res) => {
+  app.get('/api/updateMedia', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     try {
-      const posterId = req.jwtData.userId
+      const posterId = req.jwtData?.userId
       if (req.query?.id) {
         const mediaToUpdate = await Media.findOne({
           where: {

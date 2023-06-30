@@ -1,14 +1,15 @@
-import { Application } from 'express'
+import { Application, Response } from 'express'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import { Post, User, UserLikesPostRelations } from '../db'
 import { logger } from '../utils/logger'
 import { likePostRemote } from '../utils/activitypub/likePost'
+import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 export default function likeRoutes(app: Application) {
-  app.post('/api/like', authenticateToken, async (req: any, res) => {
+  app.post('/api/like', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false
-    const userId = req.jwtData.userId
+    const userId = req.jwtData?.userId
     const postId = req.body.postId
 
     const user = User.findOne({
@@ -47,9 +48,9 @@ export default function likeRoutes(app: Application) {
     res.send({ success: success })
   })
 
-  app.post('/api/unlike', authenticateToken, async (req: any, res) => {
+  app.post('/api/unlike', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false
-    const userId = req.jwtData.userId
+    const userId = req.jwtData?.userId
     const postId = req.body.postId
     const like = await UserLikesPostRelations.findOne({
       where: {
