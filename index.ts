@@ -130,7 +130,7 @@ activityPubRoutes(app)
 wellKnownRoutes(app)
 cacheRoutes(app)
 likeRoutes(app)
-// adminRoutes(app)
+adminRoutes(app)
 frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {
