@@ -28,8 +28,9 @@ import cacheRoutes from './routes/remoteCache'
 import likeRoutes from './routes/like'
 import { workerInbox, workerUpdateRemoteUsers, workerSendPostChunk, workerPrepareSendPost } from './utils/workers'
 import AuthorizedRequest from './interfaces/authorizedRequest'
+import adminRoutes from './routes/admin'
 
-const swagger = require('swagger-ui-express')
+import swagger from 'swagger-ui-express'
 const swaggerJSON = require('./swagger.json')
 
 // rest of the code remains same
@@ -87,7 +88,7 @@ app.get('/api/exploreLocal', async (req: any, res) => {
   res.send(responseWithNotes)
 })
 
-app.get('/api/explore', async (req: any, res) => {
+app.get('/api/explore', authenticateToken, async (req: any, res) => {
   const rawPosts = await Post.findAll({
     where: {
       // date the user has started scrolling
@@ -129,6 +130,7 @@ activityPubRoutes(app)
 wellKnownRoutes(app)
 cacheRoutes(app)
 likeRoutes(app)
+// adminRoutes(app)
 frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {
