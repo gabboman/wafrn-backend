@@ -49,7 +49,7 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       const signatureBuf = Buffer.from(sigHead.params.signature, 'base64')
       const tmp = verifier.verify(publicKeyBuf, signatureBuf)
       if (!tmp) {
-        logger.debug(`Failed to verify signature from ${remoteUserUrl}`)
+        logger.trace(`Failed to verify signature from ${remoteUserUrl}`)
       }
       //success = httpSignature.verifySignature(sigHead,  remoteKey)
     } catch (error: any) {
