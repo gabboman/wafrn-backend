@@ -98,9 +98,26 @@ export default function userRoutes(app: Application) {
           res.send({
             success: true
           })
+        } else {
+          logger.info({
+            message: 'Email exists',
+            email: req.body?.email,
+            url: req.body.url,
+            forbidChar: !forbiddenCharacters.some((char) => req.body.url.includes(char)),
+            emailValid: validateEmail(req.body.email)
+          })
         }
+      } else {
+        logger.info({
+          message: 'Failed registration',
+          email: req.body?.email,
+          url: req.body.url,
+          forbidChar: !forbiddenCharacters.some((char) => req.body.url.includes(char)),
+          emailValid: validateEmail(req.body.email)
+        })
       }
     } catch (error) {
+      console.log(error)
       logger.error(error)
     }
     if (!success) {
