@@ -41,7 +41,7 @@ export default function userRoutes(app: Application) {
               sequelize.where(
                 sequelize.fn('LOWER', sequelize.col('url')),
                 'LIKE',
-                `%${req.body.url.toLowerCase().trim().replace(' ', '_')}%`
+                req.body.url.toLowerCase().trim().replace(' ', '_')
               )
             ]
           }
