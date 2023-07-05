@@ -1,4 +1,4 @@
-import { Application, Response } from 'express'
+import { Application, Request, Response } from 'express'
 import { User, Follows, Post, Media, UserLikesPostRelations } from '../../db'
 import checkFediverseSignature from '../../utils/activitypub/checkFediverseSignature'
 import { sequelize } from '../../db'
@@ -33,7 +33,7 @@ function activityPubRoutes(app: Application) {
   app.get(
     ['/fediverse/post/:id', '/fediverse/activity/post/:id'],
     routeCache.cacheSeconds(300),
-    async (req: any, res) => {
+    async (req: Request, res) => {
       if (req.params?.id) {
         const post = await Post.findOne({
           where: {
@@ -59,7 +59,7 @@ function activityPubRoutes(app: Application) {
     }
   )
   // Get blog for fediverse
-  app.get('/fediverse/blog/:url', routeCache.cacheSeconds(300), async (req: any, res) => {
+  app.get('/fediverse/blog/:url', routeCache.cacheSeconds(300), async (req: Request, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -116,7 +116,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/following', async (req: any, res) => {
+  app.get('/fediverse/blog/:url/following', async (req: Request, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -135,8 +135,8 @@ function activityPubRoutes(app: Application) {
           totalItems: followedNumber,
           first: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/following?page=1`
         }
-        if (req.query?.page && req.query.page > 0) {
-          const pageNumber = parseInt(req.query.page)
+        if (req.query?.page && parseInt(req.query.page as string) > 0) {
+          const pageNumber = parseInt(req.query.page as string)
           const maxPage = Math.floor(followedNumber / 10)
           const followed = await User.findAll({
             where: {
@@ -181,7 +181,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/followers', async (req: any, res) => {
+  app.get('/fediverse/blog/:url/followers', async (req: Request, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -200,8 +200,8 @@ function activityPubRoutes(app: Application) {
           totalItems: followersNumber,
           first: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers?page=1`
         }
-        if (req.query?.page && req.query.page > 0) {
-          const pageNumber = parseInt(req.query.page)
+        if (req.query?.page && parseInt(req.query.page as string) > 0) {
+          const pageNumber = parseInt(req.query.page as string)
           const maxPage = Math.floor(followersNumber / 10)
           const followers = await User.findAll({
             where: {
@@ -246,7 +246,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/featured', async (req: any, res) => {
+  app.get('/fediverse/blog/:url/featured', async (req: Request, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -273,26 +273,30 @@ function activityPubRoutes(app: Application) {
   })
 
   // HERE is where the meat and potatoes are. This endpoint is what we use to recive stuff
-  app.post(['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'], checkFediverseSignature, async (req: any, res) => {
-    const urlToSearch = req.params?.url ? req.params.url : environment.adminUser
-    if (urlToSearch === environment.adminUser && req.body.type == 'Follow') {
-      res.sendStatus(200)
-      return ''
+  app.post(
+    ['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'],
+    checkFediverseSignature,
+    async (req: Request, res) => {
+      const urlToSearch = req.params?.url ? req.params.url : environment.adminUser
+      if (urlToSearch === environment.adminUser && req.body.type == 'Follow') {
+        res.sendStatus(200)
+        return ''
+      }
+      const url = urlToSearch.toLowerCase()
+      const user = await User.findOne({
+        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
+      })
+      if (user) {
+        res.sendStatus(200)
+        await inboxQueue.add('processInbox', { petition: req.body, petitionBy: user.id }, { jobId: req.body.id })
+      } else {
+        return404(res)
+      }
+      res.end()
     }
-    const url = urlToSearch.toLowerCase()
-    const user = await User.findOne({
-      where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
-    })
-    if (user) {
-      res.sendStatus(200)
-      await inboxQueue.add('processInbox', { petition: req.body, petitionBy: user.id }, { jobId: req.body.id })
-    } else {
-      return404(res)
-    }
-    res.end()
-  })
+  )
 
-  app.get('/fediverse/blog/:url/outbox', async (req: any, res) => {
+  app.get('/fediverse/blog/:url/outbox', async (req: Request, res) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({

@@ -37,4 +37,10 @@ export default function blockRoutes(app: Application) {
       success
     })
   })
+
+  app.get('/api/myBlocks', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+    const posterId = req.jwtData?.userId as string
+    const user = await User.findByPk(posterId)
+    res.send(user)
+  })
 }

@@ -1,4 +1,4 @@
-import express, {Response} from 'express'
+import express, { Response, Request } from 'express'
 import { Post, sequelize } from './db'
 import { Op } from 'sequelize'
 
@@ -74,7 +74,7 @@ app.get('/api/dashboard', authenticateToken, async (req: AuthorizedRequest, res:
   res.send(responseWithNotes)
 })
 
-app.get('/api/exploreLocal', async (req: any, res) => {
+app.get('/api/exploreLocal', async (req: Request, res) => {
   const rawPosts = await Post.findAll({
     ...getPostBaseQuery(req),
     where: {
@@ -88,7 +88,7 @@ app.get('/api/exploreLocal', async (req: any, res) => {
   res.send(responseWithNotes)
 })
 
-app.get('/api/explore', authenticateToken, async (req: any, res) => {
+app.get('/api/explore', authenticateToken, async (req: AuthorizedRequest, res) => {
   const rawPosts = await Post.findAll({
     where: {
       // date the user has started scrolling

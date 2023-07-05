@@ -1,4 +1,4 @@
-import { Application, Response } from 'express'
+import { Application, Request, Response } from 'express'
 import { Post, User, sequelize } from '../../db'
 import { environment } from '../../environment'
 import { return404 } from '../../utils/return404'
@@ -11,15 +11,15 @@ let activeUsersHalfYearCached: number
 
 function wellKnownRoutes(app: Application) {
   // webfinger protocol
-  app.get('/.well-known/host-meta', (req: any, res) => {
+  app.get('/.well-known/host-meta', (req: Request, res) => {
     res.send(
       `<?xml version="1.0" encoding="UTF-8"?><XRD xmlns="http://docs.oasis-open.org/ns/xri/xrd-1.0"><Link rel="lrdd" template="${environment.frontendUrl}/.well-known/webfinger?resource={uri}"/></XRD>`
     )
     res.end()
   })
-  app.get('/.well-known/webfinger/', routeCache.cacheSeconds(300), async (req: any, res) => {
+  app.get('/.well-known/webfinger/', routeCache.cacheSeconds(300), async (req: Request, res: Response) => {
     if (req.query?.resource) {
-      const urlQueryResource: string = req.query.resource
+      const urlQueryResource: string = req.query.resource as string
       if (urlQueryResource.startsWith('acct:') && urlQueryResource.endsWith(environment.instanceUrl)) {
         const userUrl = urlQueryResource.slice(5).slice(0, -(environment.instanceUrl.length + 1))
         const user = await User.findOne({

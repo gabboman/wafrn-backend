@@ -12,30 +12,29 @@ export default function adminRoutes(app: Application) {
     })
   })
   app.post('/api/admin/server-update', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
-    const petitionBody: Array<server> =  req.body
-    if(petitionBody) {
-      const hostsToUpdateIds = petitionBody.map(elem => elem.id);
+    const petitionBody: Array<server> = req.body
+    if (petitionBody) {
+      const hostsToUpdateIds = petitionBody.map((elem) => elem.id)
       const dbElements = await FederatedHost.findAll({
         where: {
           id: {
             [Op.in]: hostsToUpdateIds
           }
         }
-      });
+      })
       const promises: Array<Promise<any>> = []
-      dbElements.forEach((elemToUpdate: any)=> {
-        const newValue = petitionBody.find((elem) => elem.id === elemToUpdate.id )
-        if(newValue) {
-          elemToUpdate.blocked = newValue.blocked;
+      dbElements.forEach((elemToUpdate: any) => {
+        const newValue = petitionBody.find((elem) => elem.id === elemToUpdate.id)
+        if (newValue) {
+          elemToUpdate.blocked = newValue.blocked
           elemToUpdate.detail = newValue.detail
           promises.push(elemToUpdate.save())
         }
       })
-      await Promise.allSettled(promises);
+      await Promise.allSettled(promises)
       res.send({})
     } else {
       res.send({})
     }
-    
   })
 }

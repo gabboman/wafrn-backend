@@ -66,7 +66,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
           mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
         }
       }
-      const postToCreate = {
+      const postToCreate: any = {
         content: '' + postPetition.content + mediasString,
         content_warning: postPetition.sensitive
           ? postPetition.summary
@@ -154,10 +154,10 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       }
       if (postPetition.inReplyTo) {
         const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
+        postToCreate.parentId = parent.id
         const newPost = await Post.create(postToCreate)
         await newPost.setParent(parent)
         await newPost.save()
-        newPost.addMedias(medias)
         newPost.addEmojis(emojis)
         tagsToAdd.forEach(async (tag: any) => {
           try {

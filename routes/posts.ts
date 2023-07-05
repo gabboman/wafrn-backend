@@ -1,4 +1,4 @@
-import { Application, Response } from 'express'
+import { Application, Request, Response } from 'express'
 import { Op } from 'sequelize'
 import { Post, PostMentionsUserRelation, PostReport, Tag, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
@@ -29,7 +29,7 @@ const prepareSendPostQueue = new Queue('prepareSendPost', {
   }
 })
 export default function postsRoutes(app: Application) {
-  app.get('/api/singlePost/:id', routeCache.cacheSeconds(300), async (req: any, res) => {
+  app.get('/api/singlePost/:id', async (req: Request, res: Response) => {
     let success = false
     if (req.params?.id) {
       const post = await Post.findOne({
@@ -50,14 +50,14 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.get('/api/blog', async (req: any, res) => {
+  app.get('/api/blog', async (req: Request, res: Response) => {
     let success = false
     const id = req.query.id
 
     if (id) {
       const blog = await User.findOne({
         where: {
-          url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', id.toLowerCase())
+          url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', (id as string).toLowerCase())
         }
       })
       const blogId = blog?.id
@@ -81,7 +81,7 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.post('/api/createPost', authenticateToken, createPostLimiter, async (req: any, res) => {
+  app.post('/api/createPost', authenticateToken, createPostLimiter, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     const posterId = req.jwtData?.userId
     try {
@@ -123,7 +123,7 @@ export default function postsRoutes(app: Application) {
       const mediaInPost = req.body.content.match(wafrnMediaRegex)
       const mentionsInPost = req.body.content.match(mentionRegex)
       if (mediaInPost) {
-        const mediaToAdd: String[] = []
+        const mediaToAdd: string[] = []
         mediaInPost.forEach((element: string) => {
           const mediaUUIDs = element.match(uuidRegex)
           if (mediaUUIDs != null) {
@@ -138,7 +138,7 @@ export default function postsRoutes(app: Application) {
       }
 
       if (mentionsInPost) {
-        const mentionsToAdd: String[] = []
+        const mentionsToAdd: string[] = []
         mentionsInPost.forEach((elem: string) => {
           const mentionedUserUUID = elem.match(uuidRegex)
 

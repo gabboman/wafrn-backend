@@ -84,23 +84,7 @@ async function postToJSONLD(post: any) {
   })
 
   let postAsJSONLD: activityPubObject = {
-    '@context': [
-      'https://www.w3.org/ns/activitystreams',
-      {
-        ostatus: 'http://ostatus.org#',
-        atomUri: 'ostatus:atomUri',
-        inReplyToAtomUri: 'ostatus:inReplyToAtomUri',
-        conversation: 'ostatus:conversation',
-        sensitive: 'as:sensitive',
-        toot: 'http://joinmastodon.org/ns#',
-        votersCount: 'toot:votersCount',
-        blurhash: 'toot:blurhash',
-        focalPoint: {
-          '@container': '@list',
-          '@id': 'toot:focalPoint'
-        }
-      }
-    ],
+    '@context': ['https://www.w3.org/ns/activitystreams', `${environment.frontendUrl}/contexts/litepub-0.1.jsonld`],
     id: `${environment.frontendUrl}/fediverse/activity/post/${post.id}`,
     type: 'Create',
     actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
@@ -114,6 +98,7 @@ async function postToJSONLD(post: any) {
     cc: post.privacy / 1 === 0 ? [...mentionedUsers] : [],
     object: {
       id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
+      actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
       type: 'Note',
       summary: post.content_warning ? post.content_warning : '',
       inReplyTo: parentPostString,

@@ -13,13 +13,13 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
     if (err) {
       return res.sendStatus(403)
     }
-    (req as AuthorizedRequest).jwtData = jwtData
+    ;(req as AuthorizedRequest).jwtData = jwtData
     next()
   })
 }
 
 function adminToken(req: AuthorizedRequest, res: Response, next: NextFunction) {
-  if(req.jwtData?.role === 10) {
+  if (req.jwtData?.role === 10) {
     next()
   } else {
     return res.sendStatus(403)

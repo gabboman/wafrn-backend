@@ -1,11 +1,14 @@
 import * as crypto from 'node:crypto'
-import jsonld from 'jsonld'
+const jsonld = require('jsonld')
 import axios from 'axios'
 import { environment } from '../../environment'
+import { logger } from '../logger'
 
 //import { httpAgent, httpsAgent } from "@/misc/fetch.js";
 
 // RsaSignature2017 based from https://github.com/transmute-industries/RsaSignature2017
+
+const contextCache: Map<string, any> = new Map()
 
 export class LdSignature {
   constructor() {}
@@ -71,38 +74,37 @@ export class LdSignature {
       const optionsHash = this.sha256(canonizedOptions)
       const transformedData = { ...data }
       transformedData['signature'] = undefined
-      const cannonidedData = await this.normalize(transformedData)
-      const documentHash = this.sha256(cannonidedData)
+      const canonizedData = await this.normalize(transformedData)
+      const documentHash = this.sha256(canonizedData)
       const verifyData = `${optionsHash}${documentHash}`
       res = verifyData
     } catch (error) {
-      console.log(error)
+      logger.info(error)
     }
 
     return res
   }
 
   public async normalize(data: any) {
-    const customLoader = this.getLoader()
-    return await jsonld.normalize(data)
+    return await jsonld.normalize(data, { documentLoader: this.getLoader(), safe: false })
   }
 
   private getLoader() {
     return async (url: string): Promise<any> => {
-      const urlObject = new URL(url)
-      if (!url.match('^https?://')) throw new Error(`Invalid URL ${url}`)
-
-      const document = await axios.get(url, {
-        headers: {
-          'Content-Type': 'application/activity+json',
-          Accept: 'application/activity+json',
-          Host: urlObject.host
+      if (contextCache.has(url)) {
+        return {
+          contextUrl: null,
+          document: contextCache.get(url),
+          documentUrl: url
         }
-      })
-      return {
-        contextUrl: null,
-        document: document,
-        documentUrl: url
+      } else {
+        const document = await jsonld.documentLoader(url)
+        contextCache.set(url, document)
+        return {
+          contextUrl: null,
+          document: document,
+          documentUrl: url
+        }
       }
     }
   }
