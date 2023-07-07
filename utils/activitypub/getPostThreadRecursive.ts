@@ -157,8 +157,9 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         postToCreate.parentId = parent.id
         const newPost = await Post.create(postToCreate)
         await newPost.setParent(parent)
-        await newPost.save()
         newPost.addEmojis(emojis)
+        newPost.addMedias(medias)
+        await newPost.save()
         tagsToAdd.forEach(async (tag: any) => {
           try {
             await newPost.addTag(tag)
