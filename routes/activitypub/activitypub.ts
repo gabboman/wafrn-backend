@@ -33,7 +33,7 @@ function activityPubRoutes(app: Application) {
   app.get(
     ['/fediverse/post/:id', '/fediverse/activity/post/:id'],
     routeCache.cacheSeconds(300),
-    async (req: Request, res) => {
+    async (req: Request, res: Response) => {
       if (req.params?.id) {
         const post = await Post.findOne({
           where: {
@@ -59,7 +59,7 @@ function activityPubRoutes(app: Application) {
     }
   )
   // Get blog for fediverse
-  app.get('/fediverse/blog/:url', routeCache.cacheSeconds(300), async (req: Request, res) => {
+  app.get('/fediverse/blog/:url', routeCache.cacheSeconds(300), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -116,7 +116,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/following', async (req: Request, res) => {
+  app.get('/fediverse/blog/:url/following', async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -181,7 +181,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/followers', async (req: Request, res) => {
+  app.get('/fediverse/blog/:url/followers', async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -246,7 +246,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/featured', async (req: Request, res) => {
+  app.get('/fediverse/blog/:url/featured', async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -276,7 +276,7 @@ function activityPubRoutes(app: Application) {
   app.post(
     ['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'],
     checkFediverseSignature,
-    async (req: Request, res) => {
+    async (req: Request, res: Response) => {
       const urlToSearch = req.params?.url ? req.params.url : environment.adminUser
       if (urlToSearch === environment.adminUser && req.body.type == 'Follow') {
         res.sendStatus(200)
@@ -296,7 +296,7 @@ function activityPubRoutes(app: Application) {
     }
   )
 
-  app.get('/fediverse/blog/:url/outbox', async (req: Request, res) => {
+  app.get('/fediverse/blog/:url/outbox', async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -313,6 +313,10 @@ function activityPubRoutes(app: Application) {
       return404(res)
     }
     res.end()
+  })
+
+  app.get('/fediverse/accept/:id', (req: Request, res: Response) => {
+    res.sendStatus(200);
   })
 }
 
