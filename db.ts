@@ -3,18 +3,7 @@ import { logger } from './utils/logger'
 const { Sequelize } = require('sequelize')
 import { Table, Column, Model, HasMany } from 'sequelize-typescript'
 
-const Redis = require('ioredis')
-
 require('sequelize-hierarchy-fork')(Sequelize)
-
-const redis = new Redis()
-
-const RedisAdaptor = require('sequelize-transparent-cache-ioredis')
-const redisAdaptor = new RedisAdaptor({
-  client: redis,
-  namespace: 'model',
-  lifetime: 60 * 60
-})
 
 const sequelize = new Sequelize(environment.databaseConnectionString, {
   logging: (sql: any, time: number) => {
@@ -146,8 +135,11 @@ const Follows = sequelize.define(
 )
 
 const Blocks = sequelize.define('blocks', {
-  remoteBlockId: Sequelize.TEXT
+  remoteBlockId: Sequelize.TEXT,
+  reason: Sequelize.TEXT
 })
+
+const ServerBlock = sequelize.define('serverBlocks', {})
 
 const Post = sequelize.define(
   'posts',
@@ -294,7 +286,7 @@ Follows.belongsTo(User, {
 User.belongsToMany(User, {
   through: Blocks,
   as: 'blocker',
-  foreignKey: 'blockerId'
+  foreignKey: 'blockedId'
 })
 
 User.belongsToMany(User, {
@@ -311,6 +303,13 @@ Blocks.belongsTo(User, {
 Blocks.belongsTo(User, {
   as: 'blocked',
   foreignKey: 'blockedId'
+})
+
+ServerBlock.belongsTo(User, {
+  as: 'blockedServer'
+})
+ServerBlock.belongsTo(FederatedHost, {
+  as: 'userBlocker'
 })
 
 PostReport.belongsTo(User)
@@ -372,6 +371,7 @@ sequelize
 export {
   sequelize,
   User,
+  Blocks,
   Post,
   PostReport,
   UserReport,
@@ -381,5 +381,6 @@ export {
   Emoji,
   PostMentionsUserRelation,
   UserLikesPostRelations,
-  FederatedHost
+  FederatedHost,
+  ServerBlock
 }
