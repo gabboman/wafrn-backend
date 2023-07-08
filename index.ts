@@ -54,7 +54,7 @@ app.get('/api/', (req, res) =>
 )
 
 // serve static images
-app.use('/uploads', express.static('uploads'))
+app.use('/api/uploads', express.static('uploads'))
 
 app.use('/contexts', express.static('contexts'))
 
