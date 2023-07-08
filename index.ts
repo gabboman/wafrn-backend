@@ -38,7 +38,7 @@ const app = express()
 const PORT = environment.port
 
 app.use(overrideContentType)
-app.use(bodyParser.json())
+app.use(bodyParser.json({limit: '50mb'}))
 app.use(cors())
 app.set('trust proxy', 1)
 
