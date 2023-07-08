@@ -44,11 +44,10 @@ export default function blockRoutes(app: Application) {
     })
   })
 
-  app.get('/api/myBlocks', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-    const posterId = req.jwtData?.userId as string
-    const blocks = await Blocks.findAll({
+  async function myBlocks(id: string) {
+    return Blocks.findAll({
       where: {
-        blockerId: posterId
+        blockerId: id
       },
       attributes: [
         'reason',
@@ -58,10 +57,30 @@ export default function blockRoutes(app: Application) {
         {
           model: User,
           as: 'blocked',
-          attributes: ['url', 'avatar', 'description']
+          attributes: ['id', 'url', 'avatar', 'description']
         }
       ]
     })
+  }
+
+
+  app.get('/api/myBlocks', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+    const posterId = req.jwtData?.userId as string
+    const blocks = await myBlocks(posterId);
     res.send(blocks)
   })
+
+  app.post('/api/unblock-user', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+    const userToBeUnblockedId = req.query.id;
+    const userUnblockerId = req.jwtData?.userId as (string);
+    const tmp = await Blocks.destroy({
+      where: {
+        blockedId: userToBeUnblockedId,
+        blockerId: userUnblockerId,
+      }
+    });
+    res.send(await myBlocks(userUnblockerId))
+  })
+
+
 }
