@@ -116,7 +116,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/following', async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/following',routeCache.cacheSeconds(15), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -181,7 +181,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/followers', async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/followers', routeCache.cacheSeconds(15), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -246,7 +246,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/featured', async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/featured', routeCache.cacheSeconds(300), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -296,7 +296,7 @@ function activityPubRoutes(app: Application) {
     }
   )
 
-  app.get('/fediverse/blog/:url/outbox', async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/outbox', routeCache.cacheSeconds(300), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -315,7 +315,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/accept/:id', (req: Request, res: Response) => {
+  app.get('/fediverse/accept/:id', routeCache.cacheSeconds(300), (req: Request, res: Response) => {
     res.sendStatus(200);
   })
 }
