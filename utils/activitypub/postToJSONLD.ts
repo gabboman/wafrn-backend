@@ -116,7 +116,7 @@ async function postToJSONLD(post: any) {
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
       // conversation: conversationString,
-      content: processedContent + finalTags,
+      content: (processedContent + finalTags).replaceAll('<br>', ''),
       attachment: postMedias.map((media: any) => {
         const extension = media.url.split('.')[media.url.split('.').length - 1].toLowerCase()
         return {
