@@ -97,7 +97,6 @@ export default function searchRoutes(app: Application) {
     })
     const result = localUsers
       .concat(users)
-      .concat(await searchRemoteUser('@' + searchTerm, await User.findOne({ where: { id: posterId } })))
       .concat(await searchRemoteUser(searchTerm, await User.findOne({ where: { id: posterId } })))
     res.send({
       users: result
