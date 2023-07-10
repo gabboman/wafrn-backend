@@ -89,7 +89,10 @@ export default function deletePost(app: Application) {
             objectToSend: objectToSend,
             petitionBy: user.dataValues,
             inboxList: inboxChunk
-          })
+          },{
+            priority: 50
+          }
+          )
         }
         await PostMentionsUserRelation.destroy({
           where: {

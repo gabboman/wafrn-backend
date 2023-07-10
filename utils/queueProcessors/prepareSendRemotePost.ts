@@ -142,6 +142,9 @@ async function prepareSendRemotePostWorker(job: Job) {
         objectToSend: objectToSendComplete,
         petitionBy: localUser.dataValues,
         inboxList: inboxChunk
+      },
+      {
+        priority: 5
       })
     }
   }

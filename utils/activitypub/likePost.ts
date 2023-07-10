@@ -159,6 +159,9 @@ async function likePostRemote(like: any, dislike = false) {
         objectToSend: likeObject,
         petitionBy: user.dataValues,
         inboxList: inboxChunk
+      },
+      {
+        priority: 50000
       })
     }
   }
