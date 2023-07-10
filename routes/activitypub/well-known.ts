@@ -17,7 +17,7 @@ function wellKnownRoutes(app: Application) {
     )
     res.end()
   })
-  app.get('/.well-known/webfinger/', routeCache.cacheSeconds(300), async (req: Request, res: Response) => {
+  app.get('/.well-known/webfinger/', routeCache.cacheSeconds(15), async (req: Request, res: Response) => {
     if (req.query?.resource) {
       const urlQueryResource: string = req.query.resource as string
       if (urlQueryResource.startsWith('acct:') && urlQueryResource.endsWith(environment.instanceUrl)) {
