@@ -234,7 +234,7 @@ async function inboxWorker(job: Job) {
                   if (postToDelete) {
                     const children = await postToDelete.getChildren()
                     if (children && children.length > 0) {
-                      postToDelete.content = 'Post has been deleted'
+                      postToDelete.content = 'Post has been deleted';
                       await postToDelete.save()
                     } else {
                       await postToDelete.destroy()

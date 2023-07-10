@@ -31,6 +31,9 @@ import AuthorizedRequest from './interfaces/authorizedRequest'
 import adminRoutes from './routes/admin'
 
 import swagger from 'swagger-ui-express'
+import muteRoutes from './routes/mute'
+import blockUserServerRoutes from './routes/blockUserServer'
+import optionalAuthentication from './utils/optionalAuthentication'
 const swaggerJSON = require('./swagger.json')
 
 // rest of the code remains same
@@ -74,14 +77,18 @@ app.get('/api/dashboard', authenticateToken, async (req: AuthorizedRequest, res:
   res.send(responseWithNotes)
 })
 
-app.get('/api/exploreLocal', async (req: Request, res) => {
+app.get('/api/exploreLocal', optionalAuthentication,  async (req: AuthorizedRequest, res) => {
   const rawPosts = await Post.findAll({
     ...getPostBaseQuery(req),
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
+      // TODO privacy depending on if we are following user. needs a day or two for this.
       privacy: { [Op.in]: [0, 2] },
-      literal: sequelize.literal(`userId in (select id from users where url not like "@%")`)
+      literal: sequelize.literal( req.jwtData?.userId ? `userId in (select id from users where url not like "@%" 
+      and id not in (SELECT mutedId from mutes where muterId = "${req.jwtData.userId}") )`
+      :
+      `userId in (select id from users where url not like "@%")`)
     }
   })
   const responseWithNotes = await getPosstGroupDetails(rawPosts)
@@ -131,6 +138,8 @@ wellKnownRoutes(app)
 cacheRoutes(app)
 likeRoutes(app)
 adminRoutes(app)
+muteRoutes(app)
+blockUserServerRoutes(app)
 frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {

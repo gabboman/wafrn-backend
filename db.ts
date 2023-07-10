@@ -20,7 +20,7 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
     idle: 100000
   },
   retry: {
-    max: 5,
+    max: environment.prod ? 5: 0,
     backoffBase: 3000, // Initial backoff duration in ms. Default: 100,
     backoffExponent: 1.5 // Exponent to increase backoff each try. Default: 1.1
   },
@@ -136,6 +136,10 @@ const Follows = sequelize.define(
 
 const Blocks = sequelize.define('blocks', {
   remoteBlockId: Sequelize.TEXT,
+  reason: Sequelize.TEXT
+})
+
+const Mutes = sequelize.define('mutes', {
   reason: Sequelize.TEXT
 })
 
@@ -305,11 +309,38 @@ Blocks.belongsTo(User, {
   foreignKey: 'blockedId'
 })
 
+User.belongsToMany(User, {
+  through: Mutes,
+  as: 'muter',
+  foreignKey: 'mutedId'
+})
+
+User.belongsToMany(User, {
+  through: Mutes,
+  as: 'muted',
+  foreignKey: 'muterId'
+})
+
+Mutes.belongsTo(
+  User, {
+    as: 'muter',
+    foreignKey: 'muterId'
+  }
+)
+
+Mutes.belongsTo(
+  User, {
+    as: 'muted',
+    foreignKey: 'mutedId'
+  }
+)
+
 ServerBlock.belongsTo(User, {
-  as: 'blockedServer'
+  as: 'userBlocker'
+
 })
 ServerBlock.belongsTo(FederatedHost, {
-  as: 'userBlocker'
+  as: 'blockedServer'
 })
 
 PostReport.belongsTo(User)
@@ -372,6 +403,7 @@ export {
   sequelize,
   User,
   Blocks,
+  Mutes,
   Post,
   PostReport,
   UserReport,

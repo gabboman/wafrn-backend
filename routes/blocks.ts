@@ -5,12 +5,13 @@ import { logger } from '../utils/logger'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 export default function blockRoutes(app: Application) {
+  
   app.post('/api/block', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     try {
       const posterId = req.jwtData?.userId
       const userBlocker = await User.findByPk(posterId)
-      if (req.body?.userId) {
+      if (req.body?.userId && req.body.userId != req.jwtData?.userId) {
         const userToBeBlocked = await User.findByPk(req.body.userId)
         if(userToBeBlocked) {
           userToBeBlocked.addBlocker(userBlocker)
