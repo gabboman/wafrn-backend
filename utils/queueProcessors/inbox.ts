@@ -55,7 +55,7 @@ async function inboxWorker(job: Job) {
         case 'Create': {
           // Create new post
           const postRecived = body.object
-          if (postRecived.type === 'Note') {
+          if (postRecived.type === 'Note' || postRecived.type === 'ChatMessage') {
             await getPostThreadRecursive(user, postRecived.id, postRecived)
             await signAndAccept({ body: body }, remoteUser, user)
           } else {

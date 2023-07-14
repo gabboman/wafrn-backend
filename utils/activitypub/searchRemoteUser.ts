@@ -11,10 +11,16 @@ async function searchRemoteUser(searchTerm: string, user: any) {
     const username = usernameAndDomain[1]
     const domain = usernameAndDomain[2]
     try {
-      const remoteResponse = await getPetitionSigned(
+      let remoteResponse = await getPetitionSigned(
         user,
         `https://${domain}/.well-known/webfinger/?resource=acct:${username}@${domain}`
-      )
+      );
+      if (!remoteResponse) {
+        remoteResponse = await getPetitionSigned(
+          user,
+          `https://${domain}/.well-known/webfinger?resource=acct:${username}@${domain}`
+        );
+      }
       const links = remoteResponse.links
       for await (const responseLink of links) {
         if (responseLink.rel === 'self') {

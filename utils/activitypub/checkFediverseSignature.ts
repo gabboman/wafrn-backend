@@ -41,7 +41,7 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       success = true
       const cachedKey = actorsCache.get(remoteUserUrl)
-      const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, adminUser)).publicKey
+      const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, await adminUser)).publicKey
       //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
       const verifier = crypto.createVerify('RSA-SHA256')
       verifier.update(sigHead.signingString, 'ascii')

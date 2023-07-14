@@ -32,15 +32,17 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const medias = []
       const fediTags: fediverseTag[] = [
         ...new Set<fediverseTag>(
-          postPetition.tag
-            .filter((elem: fediverseTag) => elem.type === 'Hashtag')
+          postPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Hashtag')
             .map((elem: fediverseTag) => {
               return { href: elem.href.toLocaleLowerCase(), type: elem.type, name: elem.name.toLowerCase() }
             })
         )
       ]
-      const fediMentions: fediverseTag[] = postPetition.tag.filter((elem: fediverseTag) => elem.type === 'Mention')
-      const fediEmojis: any[] = postPetition.tag.filter((elem: fediverseTag) => elem.type === 'Emoji')
+      let fediMentions: fediverseTag[] = postPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Mention')
+      if (fediMentions == undefined) {
+        fediMentions = postPetition.to.map((elem: string) => {return {href: elem}} );
+      }
+      const fediEmojis: any[] = postPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
 
       let privacy = 10
       if (postPetition.to.includes('https://www.w3.org/ns/activitystreams#Public')) {
@@ -83,23 +85,27 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const mentionedUsersIds = []
       const tagsToAdd: any = []
       const emojis: any[] = []
-      for await (const emoji of fediEmojis) {
-        let emojiToAdd = await Emoji.findByPk(emoji.id)
-        if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
-          emojiToAdd.name = emoji.name
-          emojiToAdd.updatedAt = new Date()
-          emojiToAdd.url = emoji.icon.url
-          await emojiToAdd.save()
+      try {
+        for await (const emoji of fediEmojis) {
+          let emojiToAdd = await Emoji.findByPk(emoji.id)
+          if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
+            emojiToAdd.name = emoji.name
+            emojiToAdd.updatedAt = new Date()
+            emojiToAdd.url = emoji.icon.url
+            await emojiToAdd.save()
+          }
+          if (!emojiToAdd) {
+            emojiToAdd = await Emoji.create({
+              id: emoji.id,
+              name: emoji.name,
+              url: emoji.icon.url,
+              external: true
+            })
+          }
+          emojis.push(emojiToAdd)
         }
-        if (!emojiToAdd) {
-          emojiToAdd = await Emoji.create({
-            id: emoji.id,
-            name: emoji.name,
-            url: emoji.icon.url,
-            external: true
-          })
-        }
-        emojis.push(emojiToAdd)
+      } catch (error) {
+        logger.debug('Problem processing emojis')
       }
       try {
         for await (const mention of fediMentions) {
