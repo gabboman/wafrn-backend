@@ -19,7 +19,7 @@ export default function notificationRoutes(app: Application) {
           [Op.lt]: getStartScrollParam(req)
         },
         literal: Sequelize.literal(
-          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId like "${userId}")) AND userId NOT LIKE "${userId}"`
+          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}" AND  posts.userId not in (select blockedId from blocks where blockerId = "${userId}")`
         )
       },
       include: [
@@ -36,6 +36,7 @@ export default function notificationRoutes(app: Application) {
 
     const newFollowsQuery = await Follows.findAll({
       where: {
+        literal: sequelize.literal(`followerId not in (select blockedId from blocks where blockerId = "${userId}")`),
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
@@ -64,7 +65,9 @@ export default function notificationRoutes(app: Application) {
     const newMentions = await Post.findAll({
       where: {
         literal: sequelize.literal(
-          `posts.id in (select postId from postMentionsUserRelations where userId like "${userId}")`
+          `posts.id in (select postId from postMentionsUserRelations where userId = "${userId}")
+          AND
+          posts.userId not in (select blockedId from blocks where blockerId = "${userId}")`
         ),
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
@@ -87,7 +90,9 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
+        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")
+        AND
+        userId not in (select blockedId from blocks where blockerId = "${userId}")`)
       },
       include: [
         {
@@ -125,12 +130,13 @@ export default function notificationRoutes(app: Application) {
           [Op.gt]: getStartScrollParam(req)
         },
         literal: Sequelize.literal(
-          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId like "${userId}")) AND userId NOT LIKE "${userId}"`
+          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}" AND  posts.userId not in (select blockedId from blocks where blockerId = "${userId}")`
         )
       }
     })
     const newFollows = await Follows.count({
       where: {
+        literal: sequelize.literal(`followerId not in (select blockedId from blocks where blockerId = "${userId}")`),
         createdAt: {
           [Op.gt]: getStartScrollParam(req)
         },
@@ -152,7 +158,8 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.gt]: getStartScrollParam(req)
         },
-        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
+        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}") AND
+        userId not in (select blockedId from blocks where blockerId = "${userId}")`)
       },
       attributes: ['postId']
     })
