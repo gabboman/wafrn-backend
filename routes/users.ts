@@ -19,6 +19,7 @@ import { environment } from '../environment'
 import { logger } from '../utils/logger'
 import { createAccountLimiter, loginRateLimiter } from '../utils/rateLimiters'
 import fs from 'fs/promises'
+import AuthorizedRequest from '../interfaces/authorizedRequest'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const routeCache = require('route-cache')
 
@@ -126,7 +127,18 @@ export default function userRoutes(app: Application) {
     }
   })
 
-  app.post('/api/editProfile', authenticateToken, uploadHandler.single('avatar'), async (req, res) => {
+  app.post('/api/updateCSS', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+    const posterId = req.jwtData?.userId
+    if (req.body.css) {
+      try {
+        await fs.writeFile(`uploads/themes/${posterId}.css`, req.body.css)
+      } catch (error) {
+        logger.warn(error)
+      }
+    }
+  });
+  
+  app.post('/api/editProfile', authenticateToken, uploadHandler.single('avatar'), async (req: AuthorizedRequest, res: Response) => {
     let success = false
     try {
       const posterId = (req as any).jwtData.userId
@@ -147,16 +159,14 @@ export default function userRoutes(app: Application) {
             user.avatar = avatarURL
           }
         }
-
         if (req.body.css) {
           try {
-            await fs.writeFile(`uploads/themes/${posterId}.css`, req.body.css)
+            fs.writeFile(`uploads/themes/${posterId}.css`, req.body.css)
           } catch (error) {
             logger.warn(error)
           }
         }
-
-        user.save()
+        await user.save()
         success = true
       }
     } catch (error) {
