@@ -1,5 +1,5 @@
 import { Application, Response } from 'express'
-import { Op } from 'sequelize'
+import { Op, Sequelize } from 'sequelize'
 import { Tag, User } from '../db'
 import getPostBaseQuery from '../utils/getPostBaseQuery'
 import { sequelize } from '../db'
@@ -11,6 +11,7 @@ import { authenticateToken } from '../utils/authenticateToken'
 
 import { searchRemoteUser } from '../utils/activitypub/searchRemoteUser'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
+import { environment } from '../environment'
 
 export default function searchRoutes(app: Application) {
   app.get('/api/search/', optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
@@ -50,7 +51,14 @@ export default function searchRoutes(app: Application) {
         limit: 20,
         offset: Number(req.query.page || 0) * 20,
         where: {
+          id: {
+            [Op.ne]: environment.deletedUser
+          },
           activated: true,
+          federatedHostId: {
+            [Op.in]: Sequelize.literal(`(SELECT id FROM federatedHosts WHERE blocked= false)`)
+          },
+          banned: false,
           [Op.or]: [
             sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`),
             sequelize.where(sequelize.fn('LOWER', sequelize.col('description')), 'LIKE', `%${searchTerm}%`)
@@ -81,7 +89,11 @@ export default function searchRoutes(app: Application) {
       where: {
         activated: true,
         url: { [Op.like]: '@%' },
-        [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
+        federatedHostId: {
+          [Op.in]: Sequelize.literal(`(SELECT id FROM federatedHosts WHERE blocked= false)`)
+        },
+        banned: false,
+        [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)],
       },
       attributes: ['url', 'avatar', 'id', 'remoteId']
     })
@@ -89,6 +101,9 @@ export default function searchRoutes(app: Application) {
     const localUsers = await User.findAll({
       limit: 20,
       where: {
+        id: {
+          [Op.ne]: environment.deletedUser
+        },
         activated: true,
         url: { [Op.notLike]: '@%' },
         [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]

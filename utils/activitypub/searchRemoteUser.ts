@@ -1,3 +1,4 @@
+import { FederatedHost } from '../../db'
 import { logger } from '../logger'
 import { getPetitionSigned } from './getPetitionSigned'
 import { getRemoteActor } from './getRemoteActor'
@@ -10,6 +11,14 @@ async function searchRemoteUser(searchTerm: string, user: any) {
     // fediverse users are like emails right? god I hope so
     const username = usernameAndDomain[1]
     const domain = usernameAndDomain[2]
+    const domainBlocked = await FederatedHost.findOne({
+      where: {
+        displayName: domain
+      }
+    });
+    if(domainBlocked) {
+      return []
+    }
     try {
       let remoteResponse = await getPetitionSigned(
         user,
