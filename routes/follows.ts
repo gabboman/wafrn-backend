@@ -1,5 +1,5 @@
 import { Application, Response } from 'express'
-import { User } from '../db'
+import { Blocks, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import getBlockedIds from '../utils/getBlockedIds'
@@ -7,7 +7,7 @@ import getFollowedsIds from '../utils/getFollowedsIds'
 import { logger } from '../utils/logger'
 import { remoteFollow } from '../utils/activitypub/remoteFollow'
 import { remoteUnfollow } from '../utils/activitypub/remoteUnfollow'
-import { Sequelize } from 'sequelize'
+import { Op, Sequelize } from 'sequelize'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 export default function followsRoutes(app: Application) {
@@ -22,13 +22,30 @@ export default function followsRoutes(app: Application) {
             id: req.body.userId
           }
         })
-
+        const blocksExisting = await Blocks.count({
+          where: {
+            [Op.or] : [{
+              blockerId: posterId,
+              blockedId: {[Op.in]: [req.body.userId]}
+            },{
+              blockedId: posterId,
+              blockerId: {[Op.in]: [req.body.userId]}
+            }]
+            
+          }
+        });
+        if(blocksExisting > 0 ) {
+          res.sendStatus(500);
+          res.send({
+            error: true,
+            message: 'You can not follow someone who you have blocked, nor who has blocked you'
+          })
+        }
         userFollowed.addFollower(posterId)
         success = true
         if (userFollowed.remoteId) {
           const localUser = await User.findOne({ where: { id: posterId } })
-          remoteFollow(localUser, userFollowed)
-            .then(() => {})
+          await remoteFollow(localUser, userFollowed)
             .catch((error) => {
               logger.info('error following remote user')
             })
