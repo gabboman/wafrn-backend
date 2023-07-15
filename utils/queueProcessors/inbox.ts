@@ -1,11 +1,12 @@
 import { Job } from 'bullmq'
 import { logger } from '../logger'
-import { FederatedHost, Follows, Media, Post, User, UserLikesPostRelations } from '../../db'
+import { Blocks, FederatedHost, Follows, Media, Post, ServerBlock, User, UserLikesPostRelations } from '../../db'
 import { getRemoteActor } from '../activitypub/getRemoteActor'
 import { signAndAccept } from '../activitypub/signAndAccept'
 import { environment } from '../../environment'
 import { removeUser } from '../activitypub/removeUser'
 import { getPostThreadRecursive } from '../activitypub/getPostThreadRecursive'
+import { Op, Sequelize } from 'sequelize'
 
 async function inboxWorker(job: Job) {
   try {
@@ -22,6 +23,28 @@ async function inboxWorker(job: Job) {
         displayName: new URL(req.body.actor).host
       }
     })
+    // we check if the user has blocked the user or the server. This will mostly work for follows and dms. Will investigate further down the line
+    const blocksExisting = await Blocks.count({
+      where: {
+        [Op.or] : [{
+          blockerId: user.id,
+          blockedId: remoteUser.id
+        },{
+          blockedId: user.id,
+          blockerId: remoteUser.id
+        }]
+        
+      }
+    });
+    const blocksServers = await ServerBlock.count({
+      where: {
+        blockedServerId: host.id,
+        userBlockerId: user.id
+      }
+    })
+    if(blocksExisting + blocksServers > 0) {
+      return null
+    }
     if (!remoteUser?.banned && !host?.blocked) {
       switch (req.body.type) {
         case 'Accept': {
