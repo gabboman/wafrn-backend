@@ -191,6 +191,7 @@ export default function postsRoutes(app: Application) {
         });
         const blocksServers = await ServerBlock.count({
           where: {
+            userBlockerId: posterId,
             literal: Sequelize.literal(`blockedServerId IN (SELECT federatedHostId from users where id IN (${mentionsToAdd.map(elem => '"' + elem + '"')}))`)
           }
         })
