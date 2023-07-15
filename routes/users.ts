@@ -131,10 +131,15 @@ export default function userRoutes(app: Application) {
     const posterId = req.jwtData?.userId
     if (req.body.css) {
       try {
-        await fs.writeFile(`uploads/themes/${posterId}.css`, req.body.css)
+        await fs.writeFile(`uploads/themes/${posterId}.css`, req.body.css);
+        res.send({success: true})
       } catch (error) {
         logger.warn(error)
+        res.status(500);
+        res.send({error: true})
       }
+    } else {
+      res.sendStatus(500)
     }
   });
   
@@ -157,13 +162,6 @@ export default function userRoutes(app: Application) {
           if (environment.removeFolderNameFromFileUploads) {
             avatarURL = avatarURL.slice('/uploads/'.length - 1)
             user.avatar = avatarURL
-          }
-        }
-        if (req.body.css) {
-          try {
-            fs.writeFile(`uploads/themes/${posterId}.css`, req.body.css)
-          } catch (error) {
-            logger.warn(error)
           }
         }
         await user.save()
