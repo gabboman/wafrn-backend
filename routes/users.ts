@@ -1,5 +1,5 @@
 import { Application, Response } from 'express'
-import { Op } from 'sequelize'
+import { Op, Sequelize } from 'sequelize'
 import { User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
@@ -320,7 +320,12 @@ export default function userRoutes(app: Application) {
       const blog = await User.findOne({
         attributes: ['id', 'url', 'description', 'remoteId', 'avatar'],
         where: {
-          url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId)
+          id: {
+            [Op.ne]: environment.deletedUser
+          },
+          url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId),
+          banned: false,
+          literal: Sequelize.literal(`(federatedHostId  IN (SELECT id FROM federatedHosts WHERE blocked= false) OR federatedHostId IS NULL)`)
         }
       })
       success = blog
