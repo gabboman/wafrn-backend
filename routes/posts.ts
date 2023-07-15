@@ -1,6 +1,6 @@
 import { Application, Request, Response } from 'express'
-import { Op } from 'sequelize'
-import { Post, PostMentionsUserRelation, PostReport, Tag, User } from '../db'
+import { Op, Sequelize } from 'sequelize'
+import { Blocks, Post, PostMentionsUserRelation, PostReport, ServerBlock, Tag, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import getPostBaseQuery from '../utils/getPostBaseQuery'
@@ -89,11 +89,38 @@ export default function postsRoutes(app: Application) {
         const parent = await Post.findOne({
           where: {
             id: req.body.parent
-          }
-        })
+          },
+          include: [
+            {
+              model: Post,
+              as: 'ancestors'
+            }
+          ]
+        });
         if (!parent) {
           success = false
+          res.status(500)
           res.send({ success: false, message: 'non existent parent' })
+          return false
+        }
+        // we check that the user is not reblogging a post by someone who blocked them or the other way arround
+        const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId);
+        postParentsUsers.push(parent.userId);
+        const blocksExistingOnParents = await Blocks.count({
+          where: {
+            [Op.or] : [{
+              blockerId: posterId,
+              blockedId: {[Op.in]: postParentsUsers}
+            },{
+              blockedId: posterId,
+              blockerId: {[Op.in]: postParentsUsers}
+            }]
+          }
+        });
+        if(blocksExistingOnParents > 0) {
+          success = false
+          res.status(500)
+          res.send({ success: false, message: 'You have no permission to reblog this post' })
           return false
         }
       }
@@ -150,6 +177,32 @@ export default function postsRoutes(app: Application) {
             mentionsToAdd.push(mentionedUserUUID[0])
           }
         })
+        const blocksExisting = await Blocks.count({
+          where: {
+            [Op.or] : [{
+              blockerId: posterId,
+              blockedId: {[Op.in]: mentionsToAdd}
+            },{
+              blockedId: posterId,
+              blockerId: {[Op.in]: mentionsToAdd}
+            }]
+            
+          }
+        });
+        const blocksServers = await ServerBlock.count({
+          where: {
+            literal: Sequelize.literal(`blockedServerId IN (SELECT federatedHostId from users where id IN (${mentionsToAdd.map(elem => '"' + elem + '"')}))`)
+          }
+        })
+        if(blocksExisting + blocksServers > 0) {
+          res.status(500);
+          post.destroy();
+          res.send({
+            error: true,
+            message: 'You can not mention an user that you have blocked or has blocked you'
+          })
+          return null;
+        }
         mentionsToAdd.forEach((mention) => {
           PostMentionsUserRelation.create({
             userId: mention,
