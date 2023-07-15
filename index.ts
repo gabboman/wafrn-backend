@@ -86,7 +86,10 @@ app.get('/api/exploreLocal', optionalAuthentication,  async (req: AuthorizedRequ
       // TODO privacy depending on if we are following user. needs a day or two for this.
       privacy: { [Op.in]: [0, 2] },
       literal: sequelize.literal( req.jwtData?.userId ? `userId in (select id from users where url not like "@%" 
-      and id not in (SELECT mutedId from mutes where muterId = "${req.jwtData.userId}") )`
+      and id not in (SELECT mutedId from mutes where muterId = "${req.jwtData.userId}")
+      and id not in (select blockerId from blocks where blockedId ="${req.jwtData.userId}")
+      and id not in (select blockedId from blocks where blockerId ="${req.jwtData.userId}")
+      )`
       :
       `userId in (select id from users where url not like "@%")`)
     }
