@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { User } from '../db'
+import { Blocks, Mutes, ServerBlock, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import generateRandomString from '../utils/generateRandomString'
@@ -20,6 +20,7 @@ import { logger } from '../utils/logger'
 import { createAccountLimiter, loginRateLimiter } from '../utils/rateLimiters'
 import fs from 'fs/promises'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
+import optionalAuthentication from '../utils/optionalAuthentication'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const routeCache = require('route-cache')
 
@@ -311,21 +312,46 @@ export default function userRoutes(app: Application) {
     }
   })
 
-  app.get('/api/user', async (req, res) => {
+  app.get('/api/user', optionalAuthentication, async (req: AuthorizedRequest, res) => {
     let success = false
     if (req.query?.id) {
       const blogId: string = (req.query.id || '').toString().toLowerCase().trim()
       const blog = await User.findOne({
-        attributes: ['id', 'url', 'description', 'remoteId', 'avatar'],
+        attributes: ['id', 'url', 'description', 'remoteId', 'avatar', 'federatedHostId'],
         where: {
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId),
           banned: false,
           literal: Sequelize.literal(`(federatedHostId  IN (SELECT id FROM federatedHosts WHERE blocked= false) OR federatedHostId IS NULL)`)
         }
       })
+      let muted = false;
+      let blocked = false;
+      let serverBlocked = false;
+      if(req.jwtData?.userId) {
+        const mutedQuery = Mutes.count({
+          where: {
+            muterId: req.jwtData.userId,
+            mutedId: blog.id
+          }
+        });
+        const blockedQuery = Blocks.count({
+          where: {
+            blockerId: req.jwtData.userId,
+            blockedId: blog.id
+          }
+        });
+        const serverBlockedQuery = ServerBlock.count({
+          userBlockerId: req.jwtData.userId,
+          blockedServerId: blog.federatedHostId
+        })
+        await Promise.all([mutedQuery, blockedQuery, serverBlockedQuery]);
+        muted = await mutedQuery === 1;
+        blocked = await blockedQuery === 1;
+        serverBlocked = await serverBlockedQuery === 1;
+      }
       success = blog
       if (success) {
-        res.send(blog)
+        res.send({...blog.dataValues, muted, blocked, serverBlocked})
       }
     }
 
