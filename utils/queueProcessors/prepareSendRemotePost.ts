@@ -106,7 +106,7 @@ async function prepareSendRemotePostWorker(job: Job) {
             attributes: ['remoteInbox'],
             where: {
               banned: false,
-              literal: sequelize.literal(`FederatedHosts.id NOT IN (select blockedId from blocks where userBlockerId = "${localUser.id}")`)
+              literal: sequelize.literal(`blocks.id NOT IN (select blockedId from blocks where userBlockerId = "${localUser.id}")`)
 
             }
           }
