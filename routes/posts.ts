@@ -112,7 +112,7 @@ export default function postsRoutes(app: Application) {
             id: {
               [Op.in]: postParentsUsers
             },
-            banned: false,
+            banned: true,
           }
         })
         const blocksExistingOnParents = await Blocks.count({
