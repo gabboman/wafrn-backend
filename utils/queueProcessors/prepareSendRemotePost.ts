@@ -89,20 +89,25 @@ async function prepareSendRemotePostWorker(job: Job) {
       serversToSendThePost = await FederatedHost.findAll({
         where: {
           publicInbox: { [Op.ne]: null },
-          blocked: false
+          blocked: false,
+          literal: `id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`
         }
       })
       usersToSendThePost = await FederatedHost.findAll({
         where: {
           publicInbox: { [Op.eq]: null },
-          blocked: false
+          blocked: false,
+          literal: `id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`
+
         },
         include: [
           {
             model: User,
             attributes: ['remoteInbox'],
             where: {
-              banned: false
+              banned: false,
+              literal: `id NOT IN (select blockedId from blocks where blockerId = "${localUser.id}")`
+
             }
           }
         ]
