@@ -1,5 +1,5 @@
 import { Op } from 'sequelize'
-import { Emoji, FederatedHost, Media, Post, PostMentionsUserRelation, Tag, User, sequelize } from '../../db'
+import { Blocks, Emoji, FederatedHost, Media, Post, PostMentionsUserRelation, ServerBlock, Tag, User, sequelize } from '../../db'
 import { environment } from '../../environment'
 import { logger } from '../logger'
 import { getRemoteActor } from './getRemoteActor'
@@ -184,10 +184,30 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         })
 
         for await (const mention of mentionedUsersIds) {
-          PostMentionsUserRelation.create({
-            userId: mention,
-            postId: newPost.id
-          })
+          const blocksExisting = await Blocks.count({
+            where: {
+              [Op.or] : [{
+                blockerId: mention,
+                blockedId: remoteUser.id
+              },{
+                blockedId: mention,
+                blockerId: remoteUser.id
+              }]
+              
+            }
+          });
+          const blocksServers = await ServerBlock.count({
+            where: {
+              blockedServerId: remoteUser.federatedHostId,
+              userBlockerId: mention
+            }
+          });
+          if (blocksExisting + blocksServers === 0){
+            await PostMentionsUserRelation.create({
+              userId: mention,
+              postId: newPost.id
+            });
+          }
         }
         return newPost
       } else {
