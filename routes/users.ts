@@ -327,17 +327,17 @@ export default function userRoutes(app: Application) {
       let muted = false;
       let blocked = false;
       let serverBlocked = false;
-      if(req.jwtData?.userId) {
+      if(req.jwtData?.userId && blog) {
         const mutedQuery = Mutes.count({
           where: {
             muterId: req.jwtData.userId,
-            mutedId: blog?.id
+            mutedId: blog.id
           }
         });
         const blockedQuery = Blocks.count({
           where: {
             blockerId: req.jwtData.userId,
-            blockedId: blog?.id
+            blockedId: blog.id
           }
         });
         const serverBlockedQuery = ServerBlock.count({
