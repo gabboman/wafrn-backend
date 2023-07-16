@@ -50,19 +50,21 @@ export default function blockUserServerRoutes(app: Application) {
   })
 
   async function myServerBlocks(id: string) {
-    return Mutes.findAll({
+    return ServerBlock.findAll({
       where: {
-        blockerId: id
+        userBlockerId: id
       },
       attributes: [
-        'reason',
         'createdAt'
       ],
       include: [
         {
-          model: User,
-          as: 'muted',
-          attributes: ['id', 'url', 'avatar', 'description']
+          model: FederatedHost,
+          as: 'blockedServer',
+          attributes: [
+            'id',
+            'displayName'
+          ]
         }
       ]
     })
@@ -71,20 +73,20 @@ export default function blockUserServerRoutes(app: Application) {
 
   app.get('/api/myServerBlocks', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const posterId = req.jwtData?.userId as string
-    const mutes = await myServerBlocks(posterId);
-    res.send(mutes)
+    const blocks = await myServerBlocks(posterId);
+    res.send(blocks)
   })
 
-  app.post('/api/unmute-user', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-    const userToBeUnmuted = req.query.id;
-    const userUnmuterId = req.jwtData?.userId as (string);
-    await Mutes.destroy({
+  app.post('/api/unblockServer', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+    const serverToBeUnblocked = req.query.id;
+    const userUnblocker = req.jwtData?.userId as (string);
+    await ServerBlock.destroy({
       where: {
-        mutedId: userToBeUnmuted,
-        muterId: userUnmuterId,
+        blockedServerId: serverToBeUnblocked,
+        userBlockerId: userUnblocker,
       }
     });
-    res.send(await myServerBlocks(userUnmuterId))
+    res.send(await myServerBlocks(userUnblocker))
   })
 
 
