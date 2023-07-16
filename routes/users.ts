@@ -331,13 +331,13 @@ export default function userRoutes(app: Application) {
         const mutedQuery = Mutes.count({
           where: {
             muterId: req.jwtData.userId,
-            mutedId: blog.id
+            mutedId: blog?.id
           }
         });
         const blockedQuery = Blocks.count({
           where: {
             blockerId: req.jwtData.userId,
-            blockedId: blog.id
+            blockedId: blog?.id
           }
         });
         const serverBlockedQuery = ServerBlock.count({
