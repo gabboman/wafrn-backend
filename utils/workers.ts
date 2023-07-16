@@ -11,7 +11,7 @@ const workerInbox = new Worker('inbox', (job: Job) => inboxWorker(job), {
   metrics: {
     maxDataPoints: MetricsTime.ONE_WEEK * 2
   },
-  concurrency: environment.fediverseConcurrency
+  concurrency: environment.workers.low
 })
 
 const workerUpdateRemoteUsers = new Worker('UpdateUsers', (job: Job) => updateUserWorker(job), {
@@ -19,7 +19,7 @@ const workerUpdateRemoteUsers = new Worker('UpdateUsers', (job: Job) => updateUs
   metrics: {
     maxDataPoints: MetricsTime.ONE_WEEK * 2
   },
-  concurrency: environment.fediverseConcurrency
+  concurrency: environment.workers.low
 })
 
 const workerPrepareSendPost = new Worker('prepareSendPost', (job: Job) => prepareSendRemotePostWorker(job), {
@@ -27,7 +27,7 @@ const workerPrepareSendPost = new Worker('prepareSendPost', (job: Job) => prepar
   metrics: {
     maxDataPoints: MetricsTime.ONE_WEEK * 2
   },
-  concurrency: environment.fediverseConcurrency,
+  concurrency: environment.workers.medium,
   lockDuration: 60000
 })
 
@@ -36,7 +36,7 @@ const workerSendPostChunk = new Worker('sendPostToInboxes', (job: Job) => sendPo
   metrics: {
     maxDataPoints: MetricsTime.ONE_WEEK * 2
   },
-  concurrency: environment.fediverseConcurrency,
+  concurrency: environment.workers.high,
   lockDuration: 120000
 })
 

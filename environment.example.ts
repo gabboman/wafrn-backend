@@ -3,7 +3,11 @@ export const environment = {
   logSQLQueries: false,
   forceSync: false,
   enableFediverse: true,
-  fediverseConcurrency: 15,
+  workers: {
+    low: 2,
+    medium: 10,
+    high: 25
+  },
   databaseConnectionString: 'mariadb://user:password@127.0.0.1/wafrn',
   port: 3000,
   fediPort: 6000,
