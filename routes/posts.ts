@@ -104,8 +104,17 @@ export default function postsRoutes(app: Application) {
           return false
         }
         // we check that the user is not reblogging a post by someone who blocked them or the other way arround
+        // TODO: make poostparentusers an unique array.
         const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId);
         postParentsUsers.push(parent.userId);
+        const bannedUsers = await User.count({
+          where: {
+            id: {
+              [Op.in]: postParentsUsers
+            },
+            banned: false,
+          }
+        })
         const blocksExistingOnParents = await Blocks.count({
           where: {
             [Op.or] : [{
@@ -117,7 +126,7 @@ export default function postsRoutes(app: Application) {
             }]
           }
         });
-        if(blocksExistingOnParents > 0) {
+        if(blocksExistingOnParents + bannedUsers > 0) {
           success = false
           res.status(500)
           res.send({ success: false, message: 'You have no permission to reblog this post' })

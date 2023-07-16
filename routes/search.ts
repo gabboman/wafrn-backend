@@ -51,9 +51,6 @@ export default function searchRoutes(app: Application) {
         limit: 20,
         offset: Number(req.query.page || 0) * 20,
         where: {
-          id: {
-            [Op.ne]: environment.deletedUser
-          },
           activated: true,
           federatedHostId: {
             [Op.in]: Sequelize.literal(`(SELECT id FROM federatedHosts WHERE blocked= false)`)
@@ -101,9 +98,6 @@ export default function searchRoutes(app: Application) {
     const localUsers = await User.findAll({
       limit: 20,
       where: {
-        id: {
-          [Op.ne]: environment.deletedUser
-        },
         activated: true,
         url: { [Op.notLike]: '@%' },
         [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]

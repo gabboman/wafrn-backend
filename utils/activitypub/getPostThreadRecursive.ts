@@ -1,5 +1,5 @@
 import { Op } from 'sequelize'
-import { Emoji, Media, Post, PostMentionsUserRelation, Tag, User, sequelize } from '../../db'
+import { Emoji, FederatedHost, Media, Post, PostMentionsUserRelation, Tag, User, sequelize } from '../../db'
 import { environment } from '../../environment'
 import { logger } from '../logger'
 import { getRemoteActor } from './getRemoteActor'
@@ -28,6 +28,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
     try {
       const postPetition = remotePostObject ? remotePostObject : await getPetitionSigned(user, remotePostId)
       const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
+      const remoteUserServerBaned = remoteUser.federatedHostId ? (await FederatedHost.findByPk(remoteUser.federatedHostId)).blocked : false
       let mediasString = ''
       const medias = []
       const fediTags: fediverseTag[] = [
@@ -53,7 +54,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         privacy = 1
       }
 
-      if (postPetition.attachment && postPetition.attachment.length > 0) {
+      if (postPetition.attachment && postPetition.attachment.length > 0 && !remoteUser.banned) {
         for await (const remoteFile of postPetition.attachment) {
           const wafrnMedia = await Media.create({
             url: remoteFile.url,
@@ -86,72 +87,80 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const tagsToAdd: any = []
       const emojis: any[] = []
       try {
-        for await (const emoji of fediEmojis) {
-          let emojiToAdd = await Emoji.findByPk(emoji.id)
-          if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
-            emojiToAdd.name = emoji.name
-            emojiToAdd.updatedAt = new Date()
-            emojiToAdd.url = emoji.icon.url
-            await emojiToAdd.save()
+        if(!remoteUser.banned && !remoteUserServerBaned) {
+          for await (const emoji of fediEmojis) {
+            let emojiToAdd = await Emoji.findByPk(emoji.id)
+            if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
+              emojiToAdd.name = emoji.name
+              emojiToAdd.updatedAt = new Date()
+              emojiToAdd.url = emoji.icon.url
+              await emojiToAdd.save()
+            }
+            if (!emojiToAdd) {
+              emojiToAdd = await Emoji.create({
+                id: emoji.id,
+                name: emoji.name,
+                url: emoji.icon.url,
+                external: true
+              })
+            }
+            emojis.push(emojiToAdd)
           }
-          if (!emojiToAdd) {
-            emojiToAdd = await Emoji.create({
-              id: emoji.id,
-              name: emoji.name,
-              url: emoji.icon.url,
-              external: true
-            })
-          }
-          emojis.push(emojiToAdd)
         }
+        
       } catch (error) {
         logger.debug('Problem processing emojis')
       }
       try {
-        for await (const mention of fediMentions) {
-          let mentionedUser
-          if (mention.href.indexOf(environment.frontendUrl) !== -1) {
-            const username = mention.href.substring(`${environment.frontendUrl}/fediverse/blog/`.length)
-            mentionedUser = await User.findOne({
-              where: {
-                [Op.or]: [
-                  sequelize.where(
-                    sequelize.fn('LOWER', sequelize.col('url')),
-                    'LIKE',
-                    // TODO fix
-                    username.toLowerCase()
-                  )
-                ]
-              }
-            })
-          } else {
-            mentionedUser = await getRemoteActor(mention.href, user)
+        if(!remoteUser.banned && !remoteUserServerBaned) {
+          for await (const mention of fediMentions) {
+            let mentionedUser
+            if (mention.href.indexOf(environment.frontendUrl) !== -1) {
+              const username = mention.href.substring(`${environment.frontendUrl}/fediverse/blog/`.length)
+              mentionedUser = await User.findOne({
+                where: {
+                  [Op.or]: [
+                    sequelize.where(
+                      sequelize.fn('LOWER', sequelize.col('url')),
+                      'LIKE',
+                      // TODO fix
+                      username.toLowerCase()
+                    )
+                  ]
+                }
+              })
+            } else {
+              mentionedUser = await getRemoteActor(mention.href, user)
+            }
+  
+            mentionedUsersIds.push(mentionedUser.id)
           }
-
-          mentionedUsersIds.push(mentionedUser.id)
         }
+        
       } catch (error) {
         logger.info('problem processing mentions')
       }
       try {
-        for await (const federatedTag of fediTags) {
-          // remove #
-          const tagToAdd = federatedTag.name.substring(1)
-          const existingTag = await Tag.findOne({
-            where: {
-              tagName: tagToAdd
-            }
-          })
-          if (existingTag) {
-            tagsToAdd.push(existingTag)
-          } else if (!existingTag) {
-            const newTag = await Tag.create({
-              tagName: tagToAdd
+        if(!remoteUser.banned && !remoteUserServerBaned) {
+          for await (const federatedTag of fediTags) {
+            // remove #
+            const tagToAdd = federatedTag.name.substring(1)
+            const existingTag = await Tag.findOne({
+              where: {
+                tagName: tagToAdd
+              }
             })
-            // we check that we dont add the same tag twice
-            const tmpTags: string[] = tagsToAdd.map((elem: any) => elem.tagName)
-            if (!tmpTags.includes(tagToAdd)) {
-              tagsToAdd.push(newTag)
+            if (existingTag) {
+              tagsToAdd.push(existingTag)
+            } else if (!existingTag) {
+              const newTag = await Tag.create({
+                tagName: tagToAdd
+              })
+              // we check that we dont add the same tag twice
+              const tmpTags: string[] = tagsToAdd.map((elem: any) => elem.tagName)
+              if (!tmpTags.includes(tagToAdd)) {
+                tagsToAdd.push(newTag)
+              }
             }
           }
         }

@@ -42,10 +42,7 @@ async function inboxWorker(job: Job) {
         userBlockerId: user.id
       }
     })
-    if(blocksExisting + blocksServers > 0) {
-      return null
-    }
-    if (!remoteUser?.banned && !host?.blocked) {
+    if (!remoteUser?.banned && !host?.blocked && blocksExisting + blocksServers === 0) {
       switch (req.body.type) {
         case 'Accept': {
           break
@@ -60,19 +57,21 @@ async function inboxWorker(job: Job) {
           if (req.body.to[0].toString().indexOf('followers') !== -1) {
             privacy = 1
           }
-          const postToCreate = {
-            content: '',
-            content_warning: '',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            userId: remoteUser.id,
-            remotePostId: body.id,
-            privacy: privacy
+          if (remoteUser.url !== environment.deletedUser) {
+            const postToCreate = {
+              content: '',
+              content_warning: '',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              userId: remoteUser.id,
+              remotePostId: body.id,
+              privacy: privacy
+            }
+            const newToot = await Post.create(postToCreate)
+            await newToot.setParent(retooted_content)
+            await newToot.save()
+            await signAndAccept({ body: body }, remoteUser, user)
           }
-          const newToot = await Post.create(postToCreate)
-          await newToot.setParent(retooted_content)
-          await newToot.save()
-          await signAndAccept({ body: body }, remoteUser, user)
           break
         }
         case 'Create': {
@@ -104,7 +103,6 @@ async function inboxWorker(job: Job) {
               }
             })
           }
-
           remoteFollow.remoteFollowId = req.body.id
           remoteFollow.save()
           // we accept it
@@ -289,7 +287,7 @@ async function inboxWorker(job: Job) {
         }
       }
     } else {
-      logger.trace(`Ignoring petition from ${host.displayName}: ${remoteUser.url}`)
+      logger.debug(`Ignoring petition from ${host.displayName}: ${remoteUser.url} to ${user.url}`)
     }
   } catch (err) {
     logger.trace(err)

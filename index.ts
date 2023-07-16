@@ -1,4 +1,4 @@
-import express, { Response, Request } from 'express'
+import express, { Response } from 'express'
 import { Post, sequelize } from './db'
 import { Op } from 'sequelize'
 
@@ -20,7 +20,6 @@ import getPosstGroupDetails from './utils/getPostGroupDetails'
 import overrideContentType from './utils/overrideContentType'
 
 import { environment } from './environment'
-import { logger } from './utils/logger'
 import frontend from './routes/frontend'
 import { activityPubRoutes } from './routes/activitypub/activitypub'
 import { wellKnownRoutes } from './routes/activitypub/well-known'

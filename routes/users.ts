@@ -318,9 +318,6 @@ export default function userRoutes(app: Application) {
       const blog = await User.findOne({
         attributes: ['id', 'url', 'description', 'remoteId', 'avatar'],
         where: {
-          id: {
-            [Op.ne]: environment.deletedUser
-          },
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId),
           banned: false,
           literal: Sequelize.literal(`(federatedHostId  IN (SELECT id FROM federatedHosts WHERE blocked= false) OR federatedHostId IS NULL)`)
