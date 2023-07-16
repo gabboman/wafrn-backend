@@ -90,14 +90,14 @@ async function prepareSendRemotePostWorker(job: Job) {
         where: {
           publicInbox: { [Op.ne]: null },
           blocked: false,
-          literal: sequelize.literal(`FederatedHosts.id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`)
+          literal: sequelize.literal(`federatedHosts.id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`)
         }
       })
       usersToSendThePost = await FederatedHost.findAll({
         where: {
           publicInbox: { [Op.eq]: null },
           blocked: false,
-          literal: sequelize.literal(`FederatedHosts.id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`)
+          literal: sequelize.literal(`federatedHosts.id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`)
 
         },
         include: [
