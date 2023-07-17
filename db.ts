@@ -308,7 +308,7 @@ User.belongsToMany(User, {
 
 Blocks.belongsTo(User, {
   as: 'blocker',
-  foreignKey: 'blockedId'
+  foreignKey: 'blockerId'
 })
 
 Blocks.belongsTo(User, {

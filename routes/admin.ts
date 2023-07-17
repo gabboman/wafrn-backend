@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { adminToken, authenticateToken } from '../utils/authenticateToken'
-import { FederatedHost } from '../db'
+import { Blocks, FederatedHost, Post, PostReport, ServerBlock, User, sequelize } from '../db'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { server } from '../interfaces/server'
 import { Op } from 'sequelize'
@@ -37,4 +37,101 @@ export default function adminRoutes(app: Application) {
       res.send({})
     }
   })
+
+  app.get('/api/admin/userBlockList', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
+    res.send({
+      userBlocks: await Blocks.findAll({
+        include: [
+          {
+            model: User,
+            as: 'blocker',
+            attributes: ['url', 'avatar']
+          },
+          {
+            model: User,
+            as: 'blocked',
+            attributes: ['url', 'avatar']
+          }
+        ]
+      }),
+      userServerBlocks: await ServerBlock.findAll({
+        include: [
+          {
+            model: User,
+            as: 'userBlocker',
+            attributes:  ['url', 'avatar']
+          },
+          {
+            model: FederatedHost,
+            as: 'blockedServer',
+            attributes: ['displayName']
+          }
+        ]
+      })
+    })
+  })
+
+  app.get('/api/admin/reportCount', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
+    res.send(await PostReport.count({
+      where: {
+        resolved: false
+      }
+    }))
+  })
+
+  function getReportList() {
+    return PostReport.findAll({
+      include: [
+        {
+          model: User,
+          attributes: [
+            'url',
+            'avatar',
+            'id'
+          ]
+        },
+        {
+          model: Post,
+          include: [
+            {
+              model: User,
+              attributes: [
+                'url',
+                'avatar',
+                'id'
+              ]
+            }
+          ]
+        }
+      ]
+    })
+  }
+
+  app.get('/api/admin/reportList', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
+    res.send(await getReportList())
+  })
+
+  app.post('/api/admin/closeReport', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
+    const reportToBeClosed = await PostReport.findByPk(req.body.id);
+    reportToBeClosed.resolved = true;
+    await reportToBeClosed.save();
+    res.send(await getReportList())
+  })
+
+  app.post('/api/admin/banUser', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
+    const userToBeBanned = await User.findByPk(req.body.id);
+    userToBeBanned.banned = 1;
+    await userToBeBanned.save();
+    await PostReport.update({
+      resolved: true
+    }, {
+      where: {
+        postId: {[Op.in]: sequelize.literal(`select id from posts where userId="${req.body.id}"`)}
+      }
+    })
+    res.send({
+      success: true
+    })
+  })
+
 }
