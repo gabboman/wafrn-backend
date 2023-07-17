@@ -12,14 +12,16 @@ const updateUsersQueue = new Queue('UpdateUsers', {
   }
 })
 
+const deletedUser = User.findOne({
+  where: {
+    url: environment.deletedUser
+  }
+});
+
 async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdate = false): Promise<any> {
   if (level === 100) {
     //Actor is not valid.
-    return await User.findOne({
-      where: {
-        url: environment.deletedUser
-      }
-    })
+    return await deletedUser
   }
   const url = new URL(actorUrl)
   const hostQuery = await FederatedHost.findOne({
@@ -30,11 +32,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
   const hostBanned = hostQuery?.blocked
 
   if (hostBanned) {
-    return await User.findOne({
-      where: {
-        url: environment.deletedUser
-      }
-    })
+    return await deletedUser
   }
   let remoteUser = await User.findOne({
     where: {
@@ -81,7 +79,9 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
       logger.trace({ message: 'error fetching user', error: error })
     }
   }
-
+  if(remoteUser && remoteUser.banned ) {
+    return await deletedUser
+  }
   return remoteUser
 }
 
