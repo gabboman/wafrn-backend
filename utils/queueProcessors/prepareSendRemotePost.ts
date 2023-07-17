@@ -39,7 +39,24 @@ async function prepareSendRemotePostWorker(job: Job) {
   // servers with shared inbox
   let serversToSendThePost
   // for servers with no shared inbox
-  let usersToSendThePost
+  let usersToSendThePost = await FederatedHost.findAll({
+    where: {
+      publicInbox: { [Op.eq]: null },
+      blocked: false
+    },
+    include: [
+      {
+        model: User,
+        attributes: ['remoteInbox'],
+        where: {
+          banned: false,
+          literal: Sequelize.literal(
+            `users.id IN (SELECT followerId from follows where followedId = "${post.userId}")`
+          )
+        }
+      }
+    ]
+  })
   // mentioned users
   const mentionedUsers = await User.findAll({
     attributes: ['remoteInbox'],
@@ -59,25 +76,6 @@ async function prepareSendRemotePostWorker(job: Job) {
           )
         }
       })
-      usersToSendThePost = usersToSendThePost = await FederatedHost.findAll({
-        where: {
-          publicInbox: { [Op.eq]: null },
-          blocked: false
-        },
-        include: [
-          {
-            model: User,
-            attributes: ['remoteInbox'],
-            where: {
-              banned: false,
-              literal: Sequelize.literal(
-                `users.id IN (SELECT followerId from follows where followedId = "${post.userId}")`
-              )
-            }
-          }
-        ]
-      })
-
       break
     }
     case 10: {
@@ -92,25 +90,6 @@ async function prepareSendRemotePostWorker(job: Job) {
           blocked: false,
           literal: sequelize.literal(`federatedHosts.id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`)
         }
-      })
-      usersToSendThePost = await FederatedHost.findAll({
-        where: {
-          publicInbox: { [Op.eq]: null },
-          blocked: false,
-          literal: sequelize.literal(`federatedHosts.id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`)
-
-        },
-        include: [
-          {
-            model: User,
-            attributes: ['remoteInbox'],
-            where: {
-              banned: false,
-              literal: sequelize.literal(`users.id NOT IN (select blockedId from blocks where blockerId = "${localUser.id}")`)
-
-            }
-          }
-        ]
       })
     }
   }
