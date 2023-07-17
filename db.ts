@@ -115,7 +115,7 @@ const User = sequelize.define(
         unique: true,
         fields: ['remoteId']
       }, {
-        unique: true,
+        unique: false,
         fields: ['remoteInbox']
       },
       {
