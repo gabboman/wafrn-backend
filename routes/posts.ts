@@ -13,8 +13,6 @@ import { createPostLimiter } from '../utils/rateLimiters'
 import { environment } from '../environment'
 import { Queue } from 'bullmq'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const routeCache = require('route-cache')
 
 const prepareSendPostQueue = new Queue('prepareSendPost', {
   connection: environment.bullmqConnection,

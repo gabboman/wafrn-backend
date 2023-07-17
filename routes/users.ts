@@ -21,8 +21,6 @@ import { createAccountLimiter, loginRateLimiter } from '../utils/rateLimiters'
 import fs from 'fs/promises'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import optionalAuthentication from '../utils/optionalAuthentication'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const routeCache = require('route-cache')
 
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 

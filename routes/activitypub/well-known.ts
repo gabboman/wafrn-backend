@@ -4,7 +4,8 @@ import { environment } from '../../environment'
 import { return404 } from '../../utils/return404'
 import { Op } from 'sequelize'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const routeCache = require('route-cache')
+const Cacher = require("cacher")
+const cacher = new Cacher()
 let lastTimeCached: Date = new Date(0)
 let activeUsersMonthCached: number
 let activeUsersHalfYearCached: number
@@ -17,7 +18,7 @@ function wellKnownRoutes(app: Application) {
     )
     res.end()
   })
-  app.get('/.well-known/webfinger/', routeCache.cacheSeconds(15), async (req: Request, res: Response) => {
+  app.get('/.well-known/webfinger/', cacher.cache('seconds', 15), async (req: Request, res: Response) => {
     if (req.query?.resource) {
       const urlQueryResource: string = req.query.resource as string
       if (urlQueryResource.startsWith('acct:') && urlQueryResource.endsWith(environment.instanceUrl)) {
@@ -57,7 +58,7 @@ function wellKnownRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/.well-known/nodeinfo', routeCache.cacheSeconds(300), (req, res) => {
+  app.get('/.well-known/nodeinfo', cacher.cache('seconds', 300), (req, res) => {
     res.send({
       links: [
         {
@@ -69,7 +70,7 @@ function wellKnownRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/.well-known/nodeinfo/2.0', routeCache.cacheSeconds(300), async (req, res) => {
+  app.get('/.well-known/nodeinfo/2.0', cacher.cache('seconds', 300), async (req, res) => {
     const localUsers = await User.count({
       where: {
         remoteInbox: { [Op.eq]: null }

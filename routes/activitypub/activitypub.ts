@@ -8,7 +8,8 @@ import { return404 } from '../../utils/return404'
 import { postToJSONLD } from '../../utils/activitypub/postToJSONLD'
 import { Queue } from 'bullmq'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const routeCache = require('route-cache')
+const Cacher = require("cacher")
+const cacher = new Cacher()
 // global activitypub variables
 
 // queues
@@ -32,7 +33,7 @@ function activityPubRoutes(app: Application) {
   // get post
   app.get(
     ['/fediverse/post/:id', '/fediverse/activity/post/:id'],
-    routeCache.cacheSeconds(300),
+    cacher.cache('minutes', 5),
     async (req: Request, res: Response) => {
       if (req.params?.id) {
         const post = await Post.findOne({
@@ -59,7 +60,7 @@ function activityPubRoutes(app: Application) {
     }
   )
   // Get blog for fediverse
-  app.get('/fediverse/blog/:url', routeCache.cacheSeconds(300), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url', cacher.cache('minutes', 5), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -116,7 +117,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/following',routeCache.cacheSeconds(15), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/following',cacher.cache('seconds', 15), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -181,7 +182,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/followers', routeCache.cacheSeconds(15), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/followers', cacher.cache('seconds', 15), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -246,7 +247,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/featured', routeCache.cacheSeconds(300), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/featured', cacher.cache('minutes', 5), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -296,7 +297,7 @@ function activityPubRoutes(app: Application) {
     }
   )
 
-  app.get('/fediverse/blog/:url/outbox', routeCache.cacheSeconds(300), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/outbox', cacher.cache('minutes', 5), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -315,7 +316,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/accept/:id', routeCache.cacheSeconds(300), (req: Request, res: Response) => {
+  app.get('/fediverse/accept/:id', cacher.cache('minutes', 5), (req: Request, res: Response) => {
     res.sendStatus(200);
   })
 }
