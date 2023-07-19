@@ -83,11 +83,13 @@ export default function adminRoutes(app: Application) {
   })
 
   app.get('/api/admin/reportCount', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
-    res.send(await PostReport.count({
-      where: {
-        resolved: false
-      }
-    }))
+    res.send({
+      reports: await PostReport.count({
+        where: {
+          resolved: false
+        }
+      })
+    })
   })
 
   function getReportList() {
