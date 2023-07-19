@@ -352,6 +352,8 @@ ServerBlock.belongsTo(FederatedHost, {
 
 PostReport.belongsTo(User)
 PostReport.belongsTo(Post)
+Post.hasMany(PostReport)
+User.hasMany(PostReport)
 
 UserReport.belongsTo(User, { foreignKey: 'ReporterId' })
 UserReport.belongsTo(User, { foreignKey: 'ReportedId' })
