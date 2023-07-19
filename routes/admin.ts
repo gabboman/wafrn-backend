@@ -164,6 +164,37 @@ export default function adminRoutes(app: Application) {
       id: req.body.id
     }}))
 
-  })
+  });
 
+  async function getBannedUsers() {
+    return await User.findAll({
+      where: {
+        banned: true
+      },
+      attributes: [
+        'id',
+        'url',
+        'avatar'
+      ]
+    })
+  }
+
+  app.get('/api/admin/getBannedUsers', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
+    res.send({
+      users: await getBannedUsers()
+    })
+  });
+
+  app.post('/api/admin/unbanUser', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
+    await User.update({
+      banned: false
+    }, {
+      where: {
+        id:req.body.id
+      }
+    })
+    res.send({
+      users: await getBannedUsers()
+    })
+  });
 }
