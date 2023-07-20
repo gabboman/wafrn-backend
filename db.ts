@@ -172,6 +172,10 @@ const Post = sequelize.define(
       {
         //unique: true,
         fields: ['remotePostId']
+      },
+      {
+        unique: false,
+        fields: ['parentId']
       }
     ]
   }
