@@ -5,7 +5,7 @@ import { FederatedHost, User, sequelize } from '../db'
 
 async function blockHosts() {
   const ignoreHostsList = environment.ignoreBlockHosts
-  const deletedUser = await User.findOne({
+  const deletedUser = environment.forceSync ? undefined : await User.findOne({
     where: {
       url: environment.deletedUser
     }

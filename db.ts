@@ -89,7 +89,7 @@ const User = sequelize.define(
     lastTimeNotificationsCheck: {
       type: Sequelize.DATE,
       allowNull: false,
-      defaultValue: new Date().setTime(0)
+      defaultValue: new Date()
     },
     privateKey: Sequelize.TEXT,
     publicKey: Sequelize.TEXT,
@@ -113,15 +113,24 @@ const User = sequelize.define(
     indexes: [
       {
         unique: true,
-        fields: ['remoteId']
+        fields: [{
+          attribute: 'remoteId',
+          length: 512
+        }],
       },
       {
         unique: false,
-        fields: ['remoteInbox']
+        fields: [{
+          attribute: 'remoteInbox',
+          length: 512
+        }]
       },
       {
         unique: true,
-        fields: ['url']
+        fields: [{
+          attribute: 'url',
+          length: 128
+        }]
       }
     ]
   }
@@ -171,7 +180,10 @@ const Post = sequelize.define(
     indexes: [
       {
         //unique: true,
-        fields: ['remotePostId']
+        fields: [{
+          attribute: 'remotePostId',
+          length: 512
+        }]
       },
       {
         unique: false,
@@ -190,7 +202,10 @@ const Tag = sequelize.define(
     indexes: [
       {
         // unique: true,
-        fields: ['tagName']
+        fields: [{
+          attribute: 'tagName',
+          length: 1024
+        }]
       }
     ]
   }

@@ -16,6 +16,9 @@ const userCache = new Map<string, any>()
 let userCacheRefreshed: Date = new Date()
 
 function updateLocalUserCache() {
+  if (environment.forceSync) {
+    return undefined;
+  }
   userCacheRefreshed = new Date()
   userCache.clear()
   User.findAll({

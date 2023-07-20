@@ -12,7 +12,7 @@ const updateUsersQueue = new Queue('UpdateUsers', {
   }
 })
 
-const deletedUser = User.findOne({
+const deletedUser = environment.forceSync? undefined : User.findOne({
   where: {
     url: environment.deletedUser
   }
@@ -25,6 +25,9 @@ const hostCache: Map<string, any> = new Map()
 const userCache: Map<string, string> = new Map()
 
 function updateHostCache() {
+  if (environment.forceSync) {
+    return undefined;
+  }
   hostCacheUpdated = new Date()
   hostCache.clear()
   FederatedHost.findAll({}).then((hosts: any) => {
@@ -35,6 +38,9 @@ function updateHostCache() {
 }
 
 function updateUserCache() {
+  if (environment.forceSync) {
+    return undefined;
+  }
   userCache.clear()
   User.findAll().then((users: any) => {
     users.forEach((user: any) => {

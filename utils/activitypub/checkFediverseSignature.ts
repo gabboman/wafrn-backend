@@ -17,16 +17,17 @@ const adminUser = environment.forceSync
     })
 
 const actorsCache: Map<string, string> = new Map()
-
-User.findAll({
-  where: {
-    remoteId: { [Op.ne]: null }
-  }
-}).then((allUsers: any) => {
-  allUsers.forEach((user: any) => {
-    actorsCache.set(user.remoteId, user.publicKey)
+if (!environment.forceSync) {
+  User.findAll({
+    where: {
+      remoteId: { [Op.ne]: null }
+    }
+  }).then((allUsers: any) => {
+    allUsers.forEach((user: any) => {
+      actorsCache.set(user.remoteId, user.publicKey)
+    })
   })
-})
+}
 
 export default async function checkFediverseSignature(req: Request, res: Response, next: NextFunction) {
   let success = false
