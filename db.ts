@@ -178,6 +178,14 @@ const Post = sequelize.define(
 
 const Tag = sequelize.define('tags', {
   tagName: Sequelize.TEXT
+},
+{
+  indexes: [
+    {
+    // unique: true,
+    fields: ['tagName']
+  }
+]
 })
 
 const Emoji = sequelize.define('emojis', {
