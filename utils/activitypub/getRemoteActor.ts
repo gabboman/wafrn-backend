@@ -80,6 +80,7 @@ async function getHostFromCache(displayName: string): Promise<any> {
 
 
 updateHostCache();
+updateUserCache();
 
 
 
