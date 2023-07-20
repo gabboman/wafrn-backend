@@ -5,7 +5,6 @@ import { logger } from '../utils/logger'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 export default function blockRoutes(app: Application) {
-  
   app.post('/api/block', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     try {
@@ -13,12 +12,11 @@ export default function blockRoutes(app: Application) {
       const userBlocker = await User.findByPk(posterId)
       if (req.body?.userId && req.body.userId != req.jwtData?.userId) {
         const userToBeBlocked = await User.findByPk(req.body.userId)
-        if(userToBeBlocked) {
+        if (userToBeBlocked) {
           userToBeBlocked.addBlocker(userBlocker)
           userToBeBlocked.removeFollowed(userBlocker)
           userBlocker.removeFollowed(userToBeBlocked)
         }
-        
 
         success = true
       }
@@ -50,10 +48,7 @@ export default function blockRoutes(app: Application) {
       where: {
         blockerId: id
       },
-      attributes: [
-        'reason',
-        'createdAt'
-      ],
+      attributes: ['reason', 'createdAt'],
       include: [
         {
           model: User,
@@ -64,24 +59,21 @@ export default function blockRoutes(app: Application) {
     })
   }
 
-
   app.get('/api/myBlocks', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const posterId = req.jwtData?.userId as string
-    const blocks = await myBlocks(posterId);
+    const blocks = await myBlocks(posterId)
     res.send(blocks)
   })
 
   app.post('/api/unblock-user', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-    const userToBeUnblockedId = req.query.id;
-    const userUnblockerId = req.jwtData?.userId as (string);
+    const userToBeUnblockedId = req.query.id
+    const userUnblockerId = req.jwtData?.userId as string
     const tmp = await Blocks.destroy({
       where: {
         blockedId: userToBeUnblockedId,
-        blockerId: userUnblockerId,
+        blockerId: userUnblockerId
       }
-    });
+    })
     res.send(await myBlocks(userUnblockerId))
   })
-
-
 }

@@ -85,13 +85,16 @@ export default function deletePost(app: Application) {
           inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
         })
         for await (const inboxChunk of _.chunk(inboxes, 25)) {
-          await sendPostQueue.add('sencChunk', {
-            objectToSend: objectToSend,
-            petitionBy: user.dataValues,
-            inboxList: inboxChunk
-          },{
-            priority: 50
-          }
+          await sendPostQueue.add(
+            'sencChunk',
+            {
+              objectToSend: objectToSend,
+              petitionBy: user.dataValues,
+              inboxList: inboxChunk
+            },
+            {
+              priority: 50
+            }
           )
         }
         await PostMentionsUserRelation.destroy({

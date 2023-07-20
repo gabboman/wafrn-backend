@@ -23,18 +23,20 @@ export default function followsRoutes(app: Application) {
         })
         const blocksExisting = await Blocks.count({
           where: {
-            [Op.or] : [{
-              blockerId: posterId,
-              blockedId: {[Op.in]: [req.body.userId]}
-            },{
-              blockedId: posterId,
-              blockerId: {[Op.in]: [req.body.userId]}
-            }]
-            
+            [Op.or]: [
+              {
+                blockerId: posterId,
+                blockedId: { [Op.in]: [req.body.userId] }
+              },
+              {
+                blockedId: posterId,
+                blockerId: { [Op.in]: [req.body.userId] }
+              }
+            ]
           }
-        });
-        if(blocksExisting > 0 ) {
-          res.sendStatus(500);
+        })
+        if (blocksExisting > 0) {
+          res.sendStatus(500)
           res.send({
             error: true,
             message: 'You can not follow someone who you have blocked, nor who has blocked you'
@@ -44,10 +46,9 @@ export default function followsRoutes(app: Application) {
         success = true
         if (userFollowed.remoteId) {
           const localUser = await User.findOne({ where: { id: posterId } })
-          await remoteFollow(localUser, userFollowed)
-            .catch((error) => {
-              logger.info('error following remote user')
-            })
+          await remoteFollow(localUser, userFollowed).catch((error) => {
+            logger.info('error following remote user')
+          })
         }
       }
     } catch (error) {
@@ -102,7 +103,7 @@ export default function followsRoutes(app: Application) {
         )
       }
     })
-    const blockedUsers = getBlockedIds(req.jwtData?.userId as (string))
+    const blockedUsers = getBlockedIds(req.jwtData?.userId as string)
     res.send({
       followedUsers: followedUsers.map((elem: any) => elem.id).concat(req.jwtData?.userId),
       blockedUsers: await blockedUsers

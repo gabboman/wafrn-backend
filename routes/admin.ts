@@ -30,15 +30,22 @@ export default function adminRoutes(app: Application) {
           elemToUpdate.detail = newValue.detail
           promises.push(elemToUpdate.save())
           if (newValue.blocked) {
-            promises.push(PostReport.update({
-              resolved: true
-            }, {
-              where: {
-                postId: {
-                  [Op.in]: sequelize.literal(`(select id from posts where userId in (SELECT id from users where federatedHostId="${elemToUpdate.id}"))`)
+            promises.push(
+              PostReport.update(
+                {
+                  resolved: true
+                },
+                {
+                  where: {
+                    postId: {
+                      [Op.in]: sequelize.literal(
+                        `(select id from posts where userId in (SELECT id from users where federatedHostId="${elemToUpdate.id}"))`
+                      )
+                    }
+                  }
                 }
-              }
-            }))
+              )
+            )
           }
         }
       })
@@ -70,7 +77,7 @@ export default function adminRoutes(app: Application) {
           {
             model: User,
             as: 'userBlocker',
-            attributes:  ['url', 'avatar']
+            attributes: ['url', 'avatar']
           },
           {
             model: FederatedHost,
@@ -97,11 +104,7 @@ export default function adminRoutes(app: Application) {
       include: [
         {
           model: User,
-          attributes: [
-            'url',
-            'avatar',
-            'id'
-          ]
+          attributes: ['url', 'avatar', 'id']
         },
         {
           model: Post,
@@ -109,18 +112,11 @@ export default function adminRoutes(app: Application) {
             {
               model: User,
               as: 'user',
-              attributes: [
-                'url',
-                'avatar',
-                'id'
-              ],
+              attributes: ['url', 'avatar', 'id'],
               include: [
                 {
                   model: FederatedHost,
-                  attributes: [
-                    'id',
-                    'displayName'
-                  ]
+                  attributes: ['id', 'displayName']
                 }
               ]
             }
@@ -135,47 +131,52 @@ export default function adminRoutes(app: Application) {
   })
 
   app.post('/api/admin/closeReport', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
-    const reportToBeClosed = await PostReport.findByPk(req.body.id);
-    reportToBeClosed.resolved = true;
-    await reportToBeClosed.save();
+    const reportToBeClosed = await PostReport.findByPk(req.body.id)
+    reportToBeClosed.resolved = true
+    await reportToBeClosed.save()
     res.send(await getReportList())
   })
 
   app.post('/api/admin/banUser', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
-    const userToBeBanned = await User.findByPk(req.body.id);
-    userToBeBanned.banned = 1;
-    await userToBeBanned.save();
-    const reportupdate =await PostReport.update({
-      resolved: true
-    }, {
-      where: {
-        postId: {[Op.in]: sequelize.literal(`(select id from posts where userId="${req.body.id}")`)}
+    const userToBeBanned = await User.findByPk(req.body.id)
+    userToBeBanned.banned = 1
+    await userToBeBanned.save()
+    const reportupdate = await PostReport.update(
+      {
+        resolved: true
+      },
+      {
+        where: {
+          postId: { [Op.in]: sequelize.literal(`(select id from posts where userId="${req.body.id}")`) }
+        }
       }
-    })
+    )
     res.send({
       success: true
     })
   })
 
   app.post('/api/admin/ignoreReport', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
-    res.send(await PostReport.update({
-      resolved: true
-    }, {where: {
-      id: req.body.id
-    }}))
-
-  });
+    res.send(
+      await PostReport.update(
+        {
+          resolved: true
+        },
+        {
+          where: {
+            id: req.body.id
+          }
+        }
+      )
+    )
+  })
 
   async function getBannedUsers() {
     return await User.findAll({
       where: {
         banned: true
       },
-      attributes: [
-        'id',
-        'url',
-        'avatar'
-      ]
+      attributes: ['id', 'url', 'avatar']
     })
   }
 
@@ -183,18 +184,21 @@ export default function adminRoutes(app: Application) {
     res.send({
       users: await getBannedUsers()
     })
-  });
+  })
 
   app.post('/api/admin/unbanUser', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
-    await User.update({
-      banned: false
-    }, {
-      where: {
-        id:req.body.id
+    await User.update(
+      {
+        banned: false
+      },
+      {
+        where: {
+          id: req.body.id
+        }
       }
-    })
+    )
     res.send({
       users: await getBannedUsers()
     })
-  });
+  })
 }

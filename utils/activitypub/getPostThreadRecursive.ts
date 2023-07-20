@@ -1,5 +1,16 @@
 import { Op } from 'sequelize'
-import { Blocks, Emoji, FederatedHost, Media, Post, PostMentionsUserRelation, ServerBlock, Tag, User, sequelize } from '../../db'
+import {
+  Blocks,
+  Emoji,
+  FederatedHost,
+  Media,
+  Post,
+  PostMentionsUserRelation,
+  ServerBlock,
+  Tag,
+  User,
+  sequelize
+} from '../../db'
 import { environment } from '../../environment'
 import { logger } from '../logger'
 import { getRemoteActor } from './getRemoteActor'
@@ -28,12 +39,15 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
     try {
       const postPetition = remotePostObject ? remotePostObject : await getPetitionSigned(user, remotePostId)
       const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
-      const remoteUserServerBaned = remoteUser.federatedHostId ? (await FederatedHost.findByPk(remoteUser.federatedHostId)).blocked : false
+      const remoteUserServerBaned = remoteUser.federatedHostId
+        ? (await FederatedHost.findByPk(remoteUser.federatedHostId)).blocked
+        : false
       let mediasString = ''
       const medias = []
       const fediTags: fediverseTag[] = [
         ...new Set<fediverseTag>(
-          postPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Hashtag')
+          postPetition.tag
+            ?.filter((elem: fediverseTag) => elem.type === 'Hashtag')
             .map((elem: fediverseTag) => {
               return { href: elem.href.toLocaleLowerCase(), type: elem.type, name: elem.name.toLowerCase() }
             })
@@ -41,7 +55,9 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       ]
       let fediMentions: fediverseTag[] = postPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Mention')
       if (fediMentions == undefined) {
-        fediMentions = postPetition.to.map((elem: string) => {return {href: elem}} );
+        fediMentions = postPetition.to.map((elem: string) => {
+          return { href: elem }
+        })
       }
       const fediEmojis: any[] = postPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
 
@@ -87,7 +103,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const tagsToAdd: any = []
       const emojis: any[] = []
       try {
-        if(!remoteUser.banned && !remoteUserServerBaned) {
+        if (!remoteUser.banned && !remoteUserServerBaned) {
           for await (const emoji of fediEmojis) {
             let emojiToAdd = await Emoji.findByPk(emoji.id)
             if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
@@ -107,12 +123,11 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
             emojis.push(emojiToAdd)
           }
         }
-        
       } catch (error) {
         logger.debug('Problem processing emojis')
       }
       try {
-        if(!remoteUser.banned && !remoteUserServerBaned) {
+        if (!remoteUser.banned && !remoteUserServerBaned) {
           for await (const mention of fediMentions) {
             let mentionedUser
             if (mention.href.indexOf(environment.frontendUrl) !== -1) {
@@ -132,16 +147,15 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
             } else {
               mentionedUser = await getRemoteActor(mention.href, user)
             }
-  
+
             mentionedUsersIds.push(mentionedUser.id)
           }
         }
-        
       } catch (error) {
         logger.info('problem processing mentions')
       }
       try {
-        if(!remoteUser.banned && !remoteUserServerBaned) {
+        if (!remoteUser.banned && !remoteUserServerBaned) {
           for await (const federatedTag of fediTags) {
             // remove #
             const tagToAdd = federatedTag.name.substring(1)
@@ -186,27 +200,29 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         for await (const mention of mentionedUsersIds) {
           const blocksExisting = await Blocks.count({
             where: {
-              [Op.or] : [{
-                blockerId: mention,
-                blockedId: remoteUser.id
-              },{
-                blockedId: mention,
-                blockerId: remoteUser.id
-              }]
-              
+              [Op.or]: [
+                {
+                  blockerId: mention,
+                  blockedId: remoteUser.id
+                },
+                {
+                  blockedId: mention,
+                  blockerId: remoteUser.id
+                }
+              ]
             }
-          });
+          })
           const blocksServers = await ServerBlock.count({
             where: {
               blockedServerId: remoteUser.federatedHostId,
               userBlockerId: mention
             }
-          });
-          if (blocksExisting + blocksServers === 0){
+          })
+          if (blocksExisting + blocksServers === 0) {
             await PostMentionsUserRelation.create({
               userId: mention,
               postId: newPost.id
-            });
+            })
           }
         }
         return newPost

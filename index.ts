@@ -40,7 +40,7 @@ const app = express()
 const PORT = environment.port
 
 app.use(overrideContentType)
-app.use(bodyParser.json({limit: '50mb'}))
+app.use(bodyParser.json({ limit: '50mb' }))
 app.use(cors())
 app.set('trust proxy', 1)
 
@@ -76,7 +76,7 @@ app.get('/api/dashboard', authenticateToken, async (req: AuthorizedRequest, res:
   res.send(responseWithNotes)
 })
 
-app.get('/api/exploreLocal', optionalAuthentication,  async (req: AuthorizedRequest, res) => {
+app.get('/api/exploreLocal', optionalAuthentication, async (req: AuthorizedRequest, res) => {
   const rawPosts = await Post.findAll({
     ...getPostBaseQuery(req),
     where: {
@@ -84,13 +84,15 @@ app.get('/api/exploreLocal', optionalAuthentication,  async (req: AuthorizedRequ
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       // TODO privacy depending on if we are following user. needs a day or two for this.
       privacy: { [Op.in]: [0, 2] },
-      literal: sequelize.literal( req.jwtData?.userId ? `userId in (select id from users where url not like "@%" 
+      literal: sequelize.literal(
+        req.jwtData?.userId
+          ? `userId in (select id from users where url not like "@%" 
       and id not in (SELECT mutedId from mutes where muterId = "${req.jwtData.userId}")
       and id not in (select blockerId from blocks where blockedId ="${req.jwtData.userId}")
       and id not in (select blockedId from blocks where blockerId ="${req.jwtData.userId}")
       )`
-      :
-      `userId in (select id from users where url not like "@%")`)
+          : `userId in (select id from users where url not like "@%")`
+      )
     }
   })
   const responseWithNotes = await getPosstGroupDetails(rawPosts)

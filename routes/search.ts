@@ -90,7 +90,7 @@ export default function searchRoutes(app: Application) {
           [Op.in]: Sequelize.literal(`(SELECT id FROM federatedHosts WHERE blocked= false)`)
         },
         banned: false,
-        [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)],
+        [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
       },
       attributes: ['url', 'avatar', 'id', 'remoteId']
     })

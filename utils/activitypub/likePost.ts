@@ -155,14 +155,17 @@ async function likePostRemote(like: any, dislike = false) {
       inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
     })
     for await (const inboxChunk of _.chunk(inboxes, 10)) {
-      await sendPostQueue.add('sencChunk', {
-        objectToSend: likeObject,
-        petitionBy: user.dataValues,
-        inboxList: inboxChunk
-      },
-      {
-        priority: 50000
-      })
+      await sendPostQueue.add(
+        'sencChunk',
+        {
+          objectToSend: likeObject,
+          petitionBy: user.dataValues,
+          inboxList: inboxChunk
+        },
+        {
+          priority: 50000
+        }
+      )
     }
   }
 }

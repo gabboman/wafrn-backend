@@ -94,7 +94,7 @@ export default function postsRoutes(app: Application) {
               as: 'ancestors'
             }
           ]
-        });
+        })
         if (!parent) {
           success = false
           res.status(500)
@@ -103,28 +103,31 @@ export default function postsRoutes(app: Application) {
         }
         // we check that the user is not reblogging a post by someone who blocked them or the other way arround
         // TODO: make poostparentusers an unique array.
-        const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId);
-        postParentsUsers.push(parent.userId);
+        const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId)
+        postParentsUsers.push(parent.userId)
         const bannedUsers = await User.count({
           where: {
             id: {
               [Op.in]: postParentsUsers
             },
-            banned: true,
+            banned: true
           }
         })
         const blocksExistingOnParents = await Blocks.count({
           where: {
-            [Op.or] : [{
-              blockerId: posterId,
-              blockedId: {[Op.in]: postParentsUsers}
-            },{
-              blockedId: posterId,
-              blockerId: {[Op.in]: postParentsUsers}
-            }]
+            [Op.or]: [
+              {
+                blockerId: posterId,
+                blockedId: { [Op.in]: postParentsUsers }
+              },
+              {
+                blockedId: posterId,
+                blockerId: { [Op.in]: postParentsUsers }
+              }
+            ]
           }
-        });
-        if(blocksExistingOnParents + bannedUsers > 0) {
+        })
+        if (blocksExistingOnParents + bannedUsers > 0) {
           success = false
           res.status(500)
           res.send({ success: false, message: 'You have no permission to reblog this post' })
@@ -186,30 +189,36 @@ export default function postsRoutes(app: Application) {
         })
         const blocksExisting = await Blocks.count({
           where: {
-            [Op.or] : [{
-              blockerId: posterId,
-              blockedId: {[Op.in]: mentionsToAdd}
-            },{
-              blockedId: posterId,
-              blockerId: {[Op.in]: mentionsToAdd}
-            }]
-            
+            [Op.or]: [
+              {
+                blockerId: posterId,
+                blockedId: { [Op.in]: mentionsToAdd }
+              },
+              {
+                blockedId: posterId,
+                blockerId: { [Op.in]: mentionsToAdd }
+              }
+            ]
           }
-        });
+        })
         const blocksServers = await ServerBlock.count({
           where: {
             userBlockerId: posterId,
-            literal: Sequelize.literal(`blockedServerId IN (SELECT federatedHostId from users where id IN (${mentionsToAdd.map(elem => '"' + elem + '"')}))`)
+            literal: Sequelize.literal(
+              `blockedServerId IN (SELECT federatedHostId from users where id IN (${mentionsToAdd.map(
+                (elem) => '"' + elem + '"'
+              )}))`
+            )
           }
         })
-        if(blocksExisting + blocksServers > 0) {
-          res.status(500);
-          post.destroy();
+        if (blocksExisting + blocksServers > 0) {
+          res.status(500)
+          post.destroy()
           res.send({
             error: true,
             message: 'You can not mention an user that you have blocked or has blocked you'
           })
-          return null;
+          return null
         }
         mentionsToAdd.forEach((mention) => {
           PostMentionsUserRelation.create({

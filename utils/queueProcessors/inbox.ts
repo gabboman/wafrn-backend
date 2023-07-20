@@ -26,16 +26,18 @@ async function inboxWorker(job: Job) {
     // we check if the user has blocked the user or the server. This will mostly work for follows and dms. Will investigate further down the line
     const blocksExisting = await Blocks.count({
       where: {
-        [Op.or] : [{
-          blockerId: user.id,
-          blockedId: remoteUser.id
-        },{
-          blockedId: user.id,
-          blockerId: remoteUser.id
-        }]
-        
+        [Op.or]: [
+          {
+            blockerId: user.id,
+            blockedId: remoteUser.id
+          },
+          {
+            blockedId: user.id,
+            blockerId: remoteUser.id
+          }
+        ]
       }
-    });
+    })
     const blocksServers = await ServerBlock.count({
       where: {
         blockedServerId: host.id,
@@ -255,7 +257,7 @@ async function inboxWorker(job: Job) {
                   if (postToDelete) {
                     const children = await postToDelete.getChildren()
                     if (children && children.length > 0) {
-                      postToDelete.content = 'Post has been deleted';
+                      postToDelete.content = 'Post has been deleted'
                       await postToDelete.save()
                     } else {
                       await postToDelete.destroy()

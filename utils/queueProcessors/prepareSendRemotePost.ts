@@ -50,9 +50,7 @@ async function prepareSendRemotePostWorker(job: Job) {
         attributes: ['remoteInbox'],
         where: {
           banned: false,
-          literal: Sequelize.literal(
-            `users.id IN (SELECT followerId from follows where followedId = "${post.userId}")`
-          )
+          literal: Sequelize.literal(`users.id IN (SELECT followerId from follows where followedId = "${post.userId}")`)
         }
       }
     ]
@@ -88,7 +86,9 @@ async function prepareSendRemotePostWorker(job: Job) {
         where: {
           publicInbox: { [Op.ne]: null },
           blocked: false,
-          literal: sequelize.literal(`federatedHosts.id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`)
+          literal: sequelize.literal(
+            `federatedHosts.id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`
+          )
         }
       })
     }
@@ -122,14 +122,17 @@ async function prepareSendRemotePostWorker(job: Job) {
       inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
     })
     for await (const inboxChunk of _.chunk(inboxes, 10)) {
-      await sendPostQueue.add('sencChunk', {
-        objectToSend: objectToSendComplete,
-        petitionBy: localUser.dataValues,
-        inboxList: inboxChunk
-      },
-      {
-        priority: 5
-      })
+      await sendPostQueue.add(
+        'sencChunk',
+        {
+          objectToSend: objectToSendComplete,
+          petitionBy: localUser.dataValues,
+          inboxList: inboxChunk
+        },
+        {
+          priority: 5
+        }
+      )
     }
   }
 }

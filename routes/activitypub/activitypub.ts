@@ -8,15 +8,15 @@ import { return404 } from '../../utils/return404'
 import { postToJSONLD } from '../../utils/activitypub/postToJSONLD'
 import { Queue } from 'bullmq'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const Cacher = require("cacher")
+const Cacher = require('cacher')
 const cacher = new Cacher()
 
 // local user cache
-const userCache = new Map<string, any>();
+const userCache = new Map<string, any>()
 let userCacheRefreshed: Date = new Date()
 
 function updateLocalUserCache() {
-  userCacheRefreshed = new Date();
+  userCacheRefreshed = new Date()
   userCache.clear()
   User.findAll({
     where: {
@@ -26,28 +26,27 @@ function updateLocalUserCache() {
       banned: false
     }
   }).then((users: any[]) => {
-    users.forEach((user: any) =>{
+    users.forEach((user: any) => {
       userCache.set(user.url.toLowerCase(), user)
     })
-  });
+  })
 }
 
-updateLocalUserCache();
-
+updateLocalUserCache()
 
 // we get the user from the memory cache. if does not exist we try to find it
 async function getLocalUserByUrl(url: string): Promise<any> {
-  if(new Date().getTime() - userCacheRefreshed.getTime() > 3600000) {
+  if (new Date().getTime() - userCacheRefreshed.getTime() > 3600000) {
     updateLocalUserCache()
   }
-  let result = userCache.get(url.toLocaleLowerCase());
+  let result = userCache.get(url.toLocaleLowerCase())
   if (!result && !url.startsWith('@')) {
     result = await User.findOne({
       where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
     })
     userCache.set(url.toLocaleLowerCase(), result)
   }
-  return result;
+  return result
 }
 
 const inboxQueue = new Queue('inbox', {
@@ -99,7 +98,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url', cacher.cache('minutes', 5), async (req: Request, res: Response) => {
     if (!req.params.url?.startsWith('@')) {
       const url = req.params.url.toLowerCase()
-      const user = await getLocalUserByUrl(url);
+      const user = await getLocalUserByUrl(url)
       if (user) {
         const userForFediverse = {
           '@context': ['https://www.w3.org/ns/activitystreams', 'https://w3id.org/security/v1'],
@@ -151,7 +150,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/following',cacher.cache('seconds', 15), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/following', cacher.cache('seconds', 15), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -343,7 +342,7 @@ function activityPubRoutes(app: Application) {
   })
 
   app.get('/fediverse/accept/:id', cacher.cache('minutes', 5), (req: Request, res: Response) => {
-    res.sendStatus(200);
+    res.sendStatus(200)
   })
 }
 

@@ -15,20 +15,20 @@ async function searchRemoteUser(searchTerm: string, user: any) {
       where: {
         displayName: domain
       }
-    });
-    if(domainBlocked) {
+    })
+    if (domainBlocked) {
       return []
     }
     try {
       let remoteResponse = await getPetitionSigned(
         user,
         `https://${domain}/.well-known/webfinger/?resource=acct:${username}@${domain}`
-      );
+      )
       if (!remoteResponse) {
         remoteResponse = await getPetitionSigned(
           user,
           `https://${domain}/.well-known/webfinger?resource=acct:${username}@${domain}`
-        );
+        )
       }
       const links = remoteResponse.links
       for await (const responseLink of links) {

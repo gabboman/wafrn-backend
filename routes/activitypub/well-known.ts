@@ -4,7 +4,7 @@ import { environment } from '../../environment'
 import { return404 } from '../../utils/return404'
 import { Op } from 'sequelize'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const Cacher = require("cacher")
+const Cacher = require('cacher')
 const cacher = new Cacher()
 let lastTimeCached: Date = new Date(0)
 let activeUsersMonthCached: number

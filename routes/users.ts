@@ -130,50 +130,55 @@ export default function userRoutes(app: Application) {
     const posterId = req.jwtData?.userId
     if (req.body.css) {
       try {
-        await fs.writeFile(`uploads/themes/${posterId}.css`, req.body.css);
-        res.send({success: true})
+        await fs.writeFile(`uploads/themes/${posterId}.css`, req.body.css)
+        res.send({ success: true })
       } catch (error) {
         logger.warn(error)
-        res.status(500);
-        res.send({error: true})
+        res.status(500)
+        res.send({ error: true })
       }
     } else {
       res.sendStatus(500)
     }
-  });
-  
-  app.post('/api/editProfile', authenticateToken, uploadHandler.single('avatar'), async (req: AuthorizedRequest, res: Response) => {
-    let success = false
-    try {
-      const posterId = (req as any).jwtData.userId
-      const user = await User.findOne({
-        where: {
-          id: posterId
-        }
-      })
-      if (req.body) {
-        if (req.body.description) {
-          user.description = req.body.description
-        }
-
-        if (req.file != null) {
-          let avatarURL = `/${optimizeMedia(req.file.path)}`
-          if (environment.removeFolderNameFromFileUploads) {
-            avatarURL = avatarURL.slice('/uploads/'.length - 1)
-            user.avatar = avatarURL
-          }
-        }
-        await user.save()
-        success = true
-      }
-    } catch (error) {
-      logger.error(error)
-    }
-
-    res.send({
-      success
-    })
   })
+
+  app.post(
+    '/api/editProfile',
+    authenticateToken,
+    uploadHandler.single('avatar'),
+    async (req: AuthorizedRequest, res: Response) => {
+      let success = false
+      try {
+        const posterId = (req as any).jwtData.userId
+        const user = await User.findOne({
+          where: {
+            id: posterId
+          }
+        })
+        if (req.body) {
+          if (req.body.description) {
+            user.description = req.body.description
+          }
+
+          if (req.file != null) {
+            let avatarURL = `/${optimizeMedia(req.file.path)}`
+            if (environment.removeFolderNameFromFileUploads) {
+              avatarURL = avatarURL.slice('/uploads/'.length - 1)
+              user.avatar = avatarURL
+            }
+          }
+          await user.save()
+          success = true
+        }
+      } catch (error) {
+        logger.error(error)
+      }
+
+      res.send({
+        success
+      })
+    }
+  )
 
   app.post('/api/forgotPassword', createAccountLimiter, async (req, res) => {
     const resetCode = generateRandomString()
@@ -319,37 +324,39 @@ export default function userRoutes(app: Application) {
         where: {
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId),
           banned: false,
-          literal: Sequelize.literal(`(federatedHostId  IN (SELECT id FROM federatedHosts WHERE blocked= false) OR federatedHostId IS NULL)`)
+          literal: Sequelize.literal(
+            `(federatedHostId  IN (SELECT id FROM federatedHosts WHERE blocked= false) OR federatedHostId IS NULL)`
+          )
         }
       })
-      let muted = false;
-      let blocked = false;
-      let serverBlocked = false;
-      if(req.jwtData?.userId && blog) {
+      let muted = false
+      let blocked = false
+      let serverBlocked = false
+      if (req.jwtData?.userId && blog) {
         const mutedQuery = Mutes.count({
           where: {
             muterId: req.jwtData.userId,
             mutedId: blog.id
           }
-        });
+        })
         const blockedQuery = Blocks.count({
           where: {
             blockerId: req.jwtData.userId,
             blockedId: blog.id
           }
-        });
+        })
         const serverBlockedQuery = ServerBlock.count({
           userBlockerId: req.jwtData.userId,
           blockedServerId: blog.federatedHostId
         })
-        await Promise.all([mutedQuery, blockedQuery, serverBlockedQuery]);
-        muted = await mutedQuery === 1;
-        blocked = await blockedQuery === 1;
-        serverBlocked = await serverBlockedQuery === 1;
+        await Promise.all([mutedQuery, blockedQuery, serverBlockedQuery])
+        muted = (await mutedQuery) === 1
+        blocked = (await blockedQuery) === 1
+        serverBlocked = (await serverBlockedQuery) === 1
       }
       success = blog
       if (success) {
-        res.send({...blog.dataValues, muted, blocked, serverBlocked})
+        res.send({ ...blog.dataValues, muted, blocked, serverBlocked })
       }
     }
 

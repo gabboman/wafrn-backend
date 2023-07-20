@@ -6,14 +6,14 @@ export default async function getBlockedIds(userId: string): Promise<string[]> {
       where: {
         blockerId: userId
       }
-    });
+    })
     const mutes = Mutes.findAll({
       where: {
         muterId: userId
       }
-    });
-    await Promise.all([blocks, mutes]);
-    return (await blocks).concat(await mutes);
+    })
+    await Promise.all([blocks, mutes])
+    return (await blocks).concat(await mutes)
   } catch (error) {
     return []
   }

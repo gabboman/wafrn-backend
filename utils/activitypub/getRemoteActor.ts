@@ -16,73 +16,70 @@ const deletedUser = User.findOne({
   where: {
     url: environment.deletedUser
   }
-});
+})
 
-let hostCacheUpdated: Date = new Date();
-const hostCache: Map<string, any> = new Map();
+let hostCacheUpdated: Date = new Date()
+const hostCache: Map<string, any> = new Map()
 
-let userCacheUpdated: Date = new Date();
-const userCache: Map<string, any> = new Map();
+let userCacheUpdated: Date = new Date()
+const userCache: Map<string, any> = new Map()
 
 function updateHostCache() {
-  hostCacheUpdated = new Date();
-  hostCache.clear();
+  hostCacheUpdated = new Date()
+  hostCache.clear()
   FederatedHost.findAll({}).then((hosts: any) => {
     hosts.forEach((host: any) => {
       hostCache.set(host.displayName, host)
-    });
+    })
   })
 }
 
 function updateUserCache() {
-  userCacheUpdated = new Date();
-  userCache.clear();
+  userCacheUpdated = new Date()
+  userCache.clear()
   User.findAll().then((users: any) => {
     users.forEach((user: any) => {
       userCache.set(user.remoteId, user)
-    });
+    })
   })
 }
 
 async function getUserFromCache(remoteId: string) {
   // cache for one hour
-  if(new Date().getTime() - userCacheUpdated.getTime() > 60 * 60 * 1000) {
-    updateUserCache();
+  if (new Date().getTime() - userCacheUpdated.getTime() > 60 * 60 * 1000) {
+    updateUserCache()
   }
-  let result = userCache.get(remoteId);
+  let result = userCache.get(remoteId)
   if (!result) {
     result = await User.findOne({
       where: {
         remoteId: remoteId
       }
-    });
-    userCache.set(remoteId, result);
+    })
+    userCache.set(remoteId, result)
   }
-  return result;
+  return result
 }
 
 async function getHostFromCache(displayName: string): Promise<any> {
   // cache hosts for 5 minutes only
-  if(new Date().getTime() - hostCacheUpdated.getTime() > 60 * 5 * 1000) {
-    updateHostCache();
+  if (new Date().getTime() - hostCacheUpdated.getTime() > 60 * 5 * 1000) {
+    updateHostCache()
   }
-  let result = hostCache.get(displayName);
+  let result = hostCache.get(displayName)
   if (!result) {
     result = await FederatedHost.findOne({
       where: {
         displayName: displayName
       }
-    });
-    hostCache.set(displayName, result);
+    })
+    hostCache.set(displayName, result)
   }
-  return result;
+  return result
 }
 
-
-updateHostCache();
-updateUserCache();
-
-
+updateHostCache()
+updateUserCache()
 
 async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdate = false): Promise<any> {
   if (level === 100) {
@@ -90,7 +87,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
     return await deletedUser
   }
   const url = new URL(actorUrl)
-  const hostQuery = await getHostFromCache(url.host);
+  const hostQuery = await getHostFromCache(url.host)
   const hostBanned = hostQuery?.blocked
 
   if (hostBanned) {
@@ -138,7 +135,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
       logger.trace({ message: 'error fetching user', error: error })
     }
   }
-  if(remoteUser && remoteUser.banned ) {
+  if (remoteUser && remoteUser.banned) {
     return await deletedUser
   }
   return remoteUser

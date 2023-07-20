@@ -20,7 +20,7 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
     idle: 100000
   },
   retry: {
-    max: environment.prod ? 5: 0,
+    max: environment.prod ? 5 : 0,
     backoffBase: 3000, // Initial backoff duration in ms. Default: 100,
     backoffExponent: 1.5 // Exponent to increase backoff each try. Default: 1.1
   },
@@ -114,7 +114,8 @@ const User = sequelize.define(
       {
         unique: true,
         fields: ['remoteId']
-      }, {
+      },
+      {
         unique: false,
         fields: ['remoteInbox']
       },
@@ -176,17 +177,20 @@ const Post = sequelize.define(
   }
 )
 
-const Tag = sequelize.define('tags', {
-  tagName: Sequelize.TEXT
-},
-{
-  indexes: [
-    {
-    // unique: true,
-    fields: ['tagName']
+const Tag = sequelize.define(
+  'tags',
+  {
+    tagName: Sequelize.TEXT
+  },
+  {
+    indexes: [
+      {
+        // unique: true,
+        fields: ['tagName']
+      }
+    ]
   }
-]
-})
+)
 
 const Emoji = sequelize.define('emojis', {
   id: {
@@ -336,23 +340,18 @@ User.belongsToMany(User, {
   foreignKey: 'muterId'
 })
 
-Mutes.belongsTo(
-  User, {
-    as: 'muter',
-    foreignKey: 'muterId'
-  }
-)
+Mutes.belongsTo(User, {
+  as: 'muter',
+  foreignKey: 'muterId'
+})
 
-Mutes.belongsTo(
-  User, {
-    as: 'muted',
-    foreignKey: 'mutedId'
-  }
-)
+Mutes.belongsTo(User, {
+  as: 'muted',
+  foreignKey: 'mutedId'
+})
 
 ServerBlock.belongsTo(User, {
   as: 'userBlocker'
-
 })
 ServerBlock.belongsTo(FederatedHost, {
   as: 'blockedServer'

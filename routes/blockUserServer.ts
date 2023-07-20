@@ -5,22 +5,21 @@ import { logger } from '../utils/logger'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 export default function blockUserServerRoutes(app: Application) {
-  
   app.post('/api/blockUserServer', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     try {
       const posterId = req.jwtData?.userId
-      const userBlocker = await User.findByPk(posterId,)
+      const userBlocker = await User.findByPk(posterId)
       if (req.body?.userId) {
         const userToGetServerBlocked = await User.findByPk(req.body.userId, {
           include: [
             {
-              model: FederatedHost,
+              model: FederatedHost
             }
           ]
         })
-        if(userToGetServerBlocked) {
-           await ServerBlock.create({
+        if (userToGetServerBlocked) {
+          await ServerBlock.create({
             userBlockerId: userBlocker.id,
             blockedServerId: userToGetServerBlocked.federatedHost.id
           })
@@ -54,40 +53,32 @@ export default function blockUserServerRoutes(app: Application) {
       where: {
         userBlockerId: id
       },
-      attributes: [
-        'createdAt'
-      ],
+      attributes: ['createdAt'],
       include: [
         {
           model: FederatedHost,
           as: 'blockedServer',
-          attributes: [
-            'id',
-            'displayName'
-          ]
+          attributes: ['id', 'displayName']
         }
       ]
     })
   }
 
-
   app.get('/api/myServerBlocks', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const posterId = req.jwtData?.userId as string
-    const blocks = await myServerBlocks(posterId);
+    const blocks = await myServerBlocks(posterId)
     res.send(blocks)
   })
 
   app.post('/api/unblockServer', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-    const serverToBeUnblocked = req.query.id;
-    const userUnblocker = req.jwtData?.userId as (string);
+    const serverToBeUnblocked = req.query.id
+    const userUnblocker = req.jwtData?.userId as string
     await ServerBlock.destroy({
       where: {
         blockedServerId: serverToBeUnblocked,
-        userBlockerId: userUnblocker,
+        userBlockerId: userUnblocker
       }
-    });
+    })
     res.send(await myServerBlocks(userUnblocker))
   })
-
-
 }
