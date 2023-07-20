@@ -21,8 +21,8 @@ const deletedUser = User.findOne({
 let hostCacheUpdated: Date = new Date()
 const hostCache: Map<string, any> = new Map()
 
-let userCacheUpdated: Date = new Date()
-const userCache: Map<string, any> = new Map()
+// we only cache the uuids
+const userCache: Map<string, string> = new Map()
 
 function updateHostCache() {
   hostCacheUpdated = new Date()
@@ -35,28 +35,32 @@ function updateHostCache() {
 }
 
 function updateUserCache() {
-  userCacheUpdated = new Date()
   userCache.clear()
   User.findAll().then((users: any) => {
     users.forEach((user: any) => {
-      userCache.set(user.remoteId, user)
+      userCache.set(user.remoteId, user.id)
     })
   })
 }
 
 async function getUserFromCache(remoteId: string) {
-  // cache for one hour
-  if (new Date().getTime() - userCacheUpdated.getTime() > 60 * 60 * 1000) {
-    updateUserCache()
+  let result = undefined;
+  let userId = userCache.get(remoteId)
+  if(userId) {
+    result = await User.findByPk(userId)
+    if (result.id != userId ) {
+      console.log('findbypk did not returned the correct thing');
+      userId = undefined
+    }
+
   }
-  let result = userCache.get(remoteId)
-  if (!result) {
+  if (!userId) {
     result = await User.findOne({
       where: {
         remoteId: remoteId
       }
-    })
-    userCache.set(remoteId, result)
+    });
+    userCache.set(remoteId, result.id)
   }
   return result
 }
@@ -98,7 +102,6 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
   const validUntil = new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
   if ((remoteUser && new Date(remoteUser.updatedAt).getTime() < validUntil.getTime()) || forceUpdate) {
     updateUsersQueue.add('updateUser', { userToUpdate: actorUrl, petitionBy: user }, { jobId: actorUrl })
-    userCache.get(actorUrl).updatedAt = new Date()
   }
 
   if (!remoteUser) {
