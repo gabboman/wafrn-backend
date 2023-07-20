@@ -10,9 +10,45 @@ import { Queue } from 'bullmq'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Cacher = require("cacher")
 const cacher = new Cacher()
-// global activitypub variables
 
-// queues
+// local user cache
+const userCache = new Map<string, any>();
+let userCacheRefreshed: Date = new Date()
+
+function updateLocalUserCache() {
+  userCacheRefreshed = new Date();
+  userCache.clear()
+  User.findAll({
+    where: {
+      url: {
+        [Op.notLike]: '@%'
+      },
+      banned: false
+    }
+  }).then((users: any[]) => {
+    users.forEach((user: any) =>{
+      userCache.set(user.url.toLowerCase(), user)
+    })
+  });
+}
+
+updateLocalUserCache();
+
+
+// we get the user from the memory cache. if does not exist we try to find it
+async function getLocalUserByUrl(url: string): Promise<any> {
+  if(new Date().getTime() - userCacheRefreshed.getTime() > 3600000) {
+    updateLocalUserCache()
+  }
+  let result = userCache.get(url.toLocaleLowerCase());
+  if (!result && !url.startsWith('@')) {
+    result = await User.findOne({
+      where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
+    })
+    userCache.set(url.toLocaleLowerCase(), result)
+  }
+  return result;
+}
 
 const inboxQueue = new Queue('inbox', {
   connection: environment.bullmqConnection,
@@ -61,11 +97,9 @@ function activityPubRoutes(app: Application) {
   )
   // Get blog for fediverse
   app.get('/fediverse/blog/:url', cacher.cache('minutes', 5), async (req: Request, res: Response) => {
-    if (req.params?.url) {
+    if (!req.params.url?.startsWith('@')) {
       const url = req.params.url.toLowerCase()
-      const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
-      })
+      const user = await getLocalUserByUrl(url);
       if (user) {
         const userForFediverse = {
           '@context': ['https://www.w3.org/ns/activitystreams', 'https://w3id.org/security/v1'],
@@ -120,9 +154,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/following',cacher.cache('seconds', 15), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
-      })
+      const user = await getLocalUserByUrl(url)
       if (user) {
         const followedNumber = await User.count({
           where: {
@@ -185,9 +217,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/followers', cacher.cache('seconds', 15), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
-      })
+      const user = await getLocalUserByUrl(url)
       if (user) {
         const followersNumber = await User.count({
           where: {
@@ -250,9 +280,7 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/featured', cacher.cache('minutes', 5), async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
-      })
+      const user = await getLocalUserByUrl(url)
       if (user) {
         res.set({
           'content-type': 'application/activity+json'
@@ -284,9 +312,7 @@ function activityPubRoutes(app: Application) {
         return ''
       }
       const url = urlToSearch.toLowerCase()
-      const user = await User.findOne({
-        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
-      })
+      const user = await getLocalUserByUrl(url)
       if (user) {
         res.sendStatus(200)
         await inboxQueue.add('processInbox', { petition: req.body, petitionBy: user.id }, { jobId: req.body.id })
