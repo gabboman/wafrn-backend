@@ -18,31 +18,89 @@ const deletedUser = User.findOne({
   }
 });
 
+let hostCacheUpdated: Date = new Date();
+const hostCache: Map<string, any> = new Map();
+
+let userCacheUpdated: Date = new Date();
+const userCache: Map<string, any> = new Map();
+
+function updateHostCache() {
+  hostCacheUpdated = new Date();
+  hostCache.clear();
+  FederatedHost.findAll({}).then((hosts: any) => {
+    hosts.forEach((host: any) => {
+      hostCache.set(host.displayName, host)
+    });
+  })
+}
+
+function updateUserCache() {
+  userCacheUpdated = new Date();
+  userCache.clear();
+  User.findAll().then((users: any) => {
+    users.forEach((user: any) => {
+      userCache.set(user.remoteId, user)
+    });
+  })
+}
+
+async function getUserFromCache(remoteId: string) {
+  // cache for one hour
+  if(new Date().getTime() - userCacheUpdated.getTime() > 60 * 60 * 1000) {
+    updateUserCache();
+  }
+  let result = userCache.get(remoteId);
+  if (!result) {
+    result = await User.findOne({
+      where: {
+        remoteId: remoteId
+      }
+    });
+    userCache.set(remoteId, result);
+  }
+  return result;
+}
+
+async function getHostFromCache(displayName: string): Promise<any> {
+  // cache hosts for 5 minutes only
+  if(new Date().getTime() - hostCacheUpdated.getTime() > 60 * 5 * 1000) {
+    updateHostCache();
+  }
+  let result = hostCache.get(displayName);
+  if (!result) {
+    result = await FederatedHost.findOne({
+      where: {
+        displayName: displayName
+      }
+    });
+    hostCache.set(displayName, result);
+  }
+  return result;
+}
+
+
+updateHostCache();
+
+
+
 async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdate = false): Promise<any> {
   if (level === 100) {
     //Actor is not valid.
     return await deletedUser
   }
   const url = new URL(actorUrl)
-  const hostQuery = await FederatedHost.findOne({
-    where: {
-      displayName: url.host
-    }
-  })
+  const hostQuery = await getHostFromCache(url.host);
   const hostBanned = hostQuery?.blocked
 
   if (hostBanned) {
     return await deletedUser
   }
-  let remoteUser = await User.findOne({
-    where: {
-      remoteId: actorUrl
-    }
-  })
+  let remoteUser = await getUserFromCache(actorUrl)
   // we check if the user has changed avatar and stuff
   const validUntil = new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
   if ((remoteUser && new Date(remoteUser.updatedAt).getTime() < validUntil.getTime()) || forceUpdate) {
     updateUsersQueue.add('updateUser', { userToUpdate: actorUrl, petitionBy: user }, { jobId: actorUrl })
+    userCache.get(actorUrl).updatedAt = new Date()
   }
 
   if (!remoteUser) {
