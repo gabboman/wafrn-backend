@@ -131,6 +131,13 @@ const User = sequelize.define(
           attribute: 'url',
           length: 128
         }]
+      },
+      {
+        unique: true,
+        fields: [{
+          attribute: 'email',
+          length: 128
+        }]
       }
     ]
   }
