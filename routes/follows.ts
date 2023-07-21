@@ -1,5 +1,5 @@
 import { Application, Response } from 'express'
-import { Blocks, User } from '../db'
+import { Blocks, Follows, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import getBlockedIds from '../utils/getBlockedIds'
@@ -95,18 +95,17 @@ export default function followsRoutes(app: Application) {
 
   app.get('/api/getFollowedUsers', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     // const followedUsers = getFollowedsIds(req.jwtData?.userId)
-    const followedUsers = await User.findAll({
-      attributes: ['id'],
+    const followedUsers = Follows.findAll({
       where: {
-        literal: Sequelize.literal(
-          `id in (SELECT followedId from follows where followerId LIKE "${req.jwtData?.userId}")`
-        )
+        followerId: req.jwtData?.userId
       }
     })
-    const blockedUsers = getBlockedIds(req.jwtData?.userId as string)
+    const blockedUsers = getBlockedIds(req.jwtData?.userId as string);
+
+    Promise.all([followedUsers, blockedUsers])
     res.send({
-      followedUsers: followedUsers.map((elem: any) => elem.id).concat(req.jwtData?.userId),
-      blockedUsers: await blockedUsers
+      followedUsers: (await followedUsers).map((elem: any) => elem.followedId).concat(req.jwtData?.userId),
+      blockedUsers: await  blockedUsers
     })
   })
 }
