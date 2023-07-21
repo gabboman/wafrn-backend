@@ -12,7 +12,7 @@ const Cacher = require('cacher')
 const cacher = new Cacher()
 
 // local user cache
-const userCache = new Map<string, any>()
+const userCache = new Map<string, string>()
 let userCacheRefreshed: Date = new Date()
 
 function updateLocalUserCache() {
@@ -22,6 +22,7 @@ function updateLocalUserCache() {
   userCacheRefreshed = new Date()
   userCache.clear()
   User.findAll({
+    attributes: ['id'],
     where: {
       url: {
         [Op.notLike]: '@%'
@@ -30,7 +31,7 @@ function updateLocalUserCache() {
     }
   }).then((users: any[]) => {
     users.forEach((user: any) => {
-      userCache.set(user.url.toLowerCase(), user)
+      userCache.set(user.url.toLowerCase(), user.id)
     })
   })
 }
@@ -39,15 +40,15 @@ updateLocalUserCache()
 
 // we get the user from the memory cache. if does not exist we try to find it
 async function getLocalUserByUrl(url: string): Promise<any> {
-  if (new Date().getTime() - userCacheRefreshed.getTime() > 3600000) {
-    updateLocalUserCache()
-  }
-  let result = userCache.get(url.toLocaleLowerCase())
-  if (!result && !url.startsWith('@')) {
+  const resultId = userCache.get(url.toLocaleLowerCase())
+  let result: any;
+  if (!resultId && !url.startsWith('@')) {
     result = await User.findOne({
       where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
     })
-    userCache.set(url.toLocaleLowerCase(), result)
+    userCache.set(url.toLocaleLowerCase(), result.id)
+  } else {
+    result = await User.findByPk(resultId)
   }
   return result
 }
