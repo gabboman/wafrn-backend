@@ -152,6 +152,14 @@ const Follows = sequelize.define(
     indexes: [
       {
         unique: false,
+        fields: ['followerId']
+      },
+      {
+        unique: false,
+        fields: ['followedId']
+      },
+      {
+        unique: true,
         fields: ['followedId', 'followerId']
       }
     ]
@@ -161,7 +169,24 @@ const Follows = sequelize.define(
 const Blocks = sequelize.define('blocks', {
   remoteBlockId: Sequelize.TEXT,
   reason: Sequelize.TEXT
-})
+},
+{
+  indexes: [
+    {
+      unique: false,
+      fields: ['blockerId']
+    },
+    {
+      unique: false,
+      fields: ['blockedId']
+    },
+    {
+      unique: true,
+      fields: ['blockedId', 'blockerId']
+    }
+  ]
+}
+)
 
 const Mutes = sequelize.define('mutes', {
   reason: Sequelize.TEXT
