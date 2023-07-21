@@ -22,7 +22,7 @@ function updateLocalUserCache() {
   userCacheRefreshed = new Date()
   userCache.clear()
   User.findAll({
-    attributes: ['id'],
+    attributes: ['id', 'url'],
     where: {
       url: {
         [Op.notLike]: '@%'
