@@ -195,6 +195,10 @@ const Post = sequelize.define(
       {
         unique: false,
         fields: ['parentId']
+      },
+      {
+        unique: false,
+        fields: ['userId']
       }
     ]
   }
@@ -211,7 +215,7 @@ const Tag = sequelize.define(
         // unique: true,
         fields: [{
           attribute: 'tagName',
-          length: 1024
+          length: 512
         }]
       }
     ]
@@ -270,7 +274,19 @@ const UserReport = sequelize.define('userReports', {
   description: Sequelize.TEXT
 })
 
-const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {})
+const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {},
+{
+  indexes: [
+    {
+      // unique: true,
+      fields: [{
+        attribute: 'postId',
+        //length: 1024
+      }]
+    }
+  ]
+}
+)
 
 PostMentionsUserRelation.removeAttribute('id')
 
@@ -299,7 +315,17 @@ const UserLikesPostRelations = sequelize.define('userLikesPostRelations', {
     type: Sequelize.STRING,
     allowNull: true
   }
-})
+},
+{
+  indexes: [
+    {
+      fields: [{
+        attribute: 'postId',
+      }]
+    }
+  ]
+}
+)
 
 User.belongsToMany(User, {
   through: Follows,
