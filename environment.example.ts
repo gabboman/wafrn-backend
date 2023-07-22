@@ -29,8 +29,10 @@ export const environment = {
   externalCacheurl: 'FEDIVERSE_CACHINATOR',
   // this was a dev thing. leave to true unless you are doing stuff in local or your media url is yourinstance/uploads (not recomended)
   removeFolderNameFromFileUploads: true,
-  // after the first run, create the admin user. update the environment
+  // after the first run, create the admin user. and a deleted user
   adminUser: 'ADMIN_USER_URL',
+  // after creating the deleted_user we advice to also set the user to BANNED
+  deleted_user: '@deleted_user',
   // in MB. Please make sure you have the same in the frontend
   uploadSize: 50,
   // 20 is a good number. more could take too much to load, 10 might be "faster" but you do loads more often and you see the loader a bit more
