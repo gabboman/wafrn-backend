@@ -164,14 +164,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         await newPost.save()
         try {
           if (!remoteUser.banned && !remoteUserServerBaned) {
-            await PostTag.bulkCreate(
-              fediTags.map(elem => {
-                return {
-                  tagName: elem.name,
-                  postId: newPost.id
-                }
-              })
-            )
+            await addTagsToPost(newPost.id, fediTags)
           }
         } catch (error) {
           logger.info('problem processing tags')
@@ -209,7 +202,9 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       } else {
         const post = await Post.create(postToCreate)
         post.addMedias(medias)
-        post.addPostTags(tagsToAdd)
+        if (!remoteUser.banned && !remoteUserServerBaned) {
+          await addTagsToPost(post.id, fediTags)
+        }
         post.addEmojis(emojis)
         for await (const mention of mentionedUsersIds) {
           PostMentionsUserRelation.create({
@@ -230,5 +225,21 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
     }
   }
 }
+
+async function addTagsToPost(postId: string, tags: fediverseTag[]) {
+  await PostTag.bulkCreate(
+    tags.map(elem => {
+      return {
+        tagName: elem.name.replace('#', ''),
+        postId: postId
+      }
+    })
+  )
+
+}
+
+// async function processMentions(postId: string, mentions: fediverseTag[]) {}
+
+// async function processEmojis(postId: string, emojis: fediverseTag[]) {}
 
 export { getPostThreadRecursive }
