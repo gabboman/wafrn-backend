@@ -25,7 +25,6 @@ import { activityPubRoutes } from './routes/activitypub/activitypub'
 import { wellKnownRoutes } from './routes/activitypub/well-known'
 import cacheRoutes from './routes/remoteCache'
 import likeRoutes from './routes/like'
-import { workerInbox, workerUpdateRemoteUsers, workerSendPostChunk, workerPrepareSendPost } from './utils/workers'
 import AuthorizedRequest from './interfaces/authorizedRequest'
 import adminRoutes from './routes/admin'
 
@@ -33,6 +32,9 @@ import swagger from 'swagger-ui-express'
 import muteRoutes from './routes/mute'
 import blockUserServerRoutes from './routes/blockUserServer'
 import optionalAuthentication from './utils/optionalAuthentication'
+import { workerInbox, workerUpdateRemoteUsers, workerSendPostChunk, workerPrepareSendPost } from './utils/workers'
+import { logger } from './utils/logger'
+
 const swaggerJSON = require('./swagger.json')
 
 // rest of the code remains same
@@ -148,35 +150,46 @@ frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {
   console.log('started app')
-  workerInbox.on('completed', (job) => {
-    // console.log(`${job.id} has completed!`)
-  })
 
-  workerInbox.on('failed', (job, err) => {
-    console.warn(`${job?.id} has failed with ${err.message}`)
-  })
+  if(environment.workers.mainThread) {
 
-  workerPrepareSendPost.on('completed', (job) => {
-    // console.log(`${job.id} has completed!`)
-  })
+    workerInbox.on('completed', (job) => {
+      // console.log(`${job.id} has completed!`)
+    })
+  
+    workerInbox.on('failed', (job, err) => {
+      logger.warn(`${job?.id} has failed with ${err.message}`)
+    })
+  
+    workerPrepareSendPost.on('completed', (job) => {
+      // console.log(`${job.id} has completed!`)
+    })
+  
+    workerPrepareSendPost.on('failed', (job, err) => {
+      console.warn(`sending post ${job?.id} has failed with ${err.message}`)
+    })
+  
+    workerUpdateRemoteUsers.on('failed', (job, err) => {
+      console.warn(`update user ${job?.id} has failed with ${err.message}`)
+    })
+  
+    workerUpdateRemoteUsers.on('completed', (job) => {
+      //console.warn(`user ${job?.id} has been updated`)
+    })
+  
+    workerSendPostChunk.on('completed', (job) => {
+      //console.log(`${job.id} has completed!`)
+    })
+  
+    workerSendPostChunk.on('failed', (job, err) => {
+      console.warn(`sending post to some inboxes ${job?.id} has failed with ${err.message}`)
+    })
 
-  workerPrepareSendPost.on('failed', (job, err) => {
-    console.warn(`sending post ${job?.id} has failed with ${err.message}`)
-  })
-
-  workerUpdateRemoteUsers.on('failed', (job, err) => {
-    console.warn(`update user ${job?.id} has failed with ${err.message}`)
-  })
-
-  workerUpdateRemoteUsers.on('completed', (job) => {
-    //console.warn(`user ${job?.id} has been updated`)
-  })
-
-  workerSendPostChunk.on('completed', (job) => {
-    //console.log(`${job.id} has completed!`)
-  })
-
-  workerSendPostChunk.on('failed', (job, err) => {
-    console.warn(`sending post to some inboxes ${job?.id} has failed with ${err.message}`)
-  })
+  } else {
+    workerInbox.pause();
+    workerPrepareSendPost.pause()
+    workerSendPostChunk.pause()
+    workerUpdateRemoteUsers.pause()
+  }
+  
 })
