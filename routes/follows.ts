@@ -11,7 +11,6 @@ import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 export default function followsRoutes(app: Application) {
   app.post('/api/follow', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-    // TODO remote user follow
     let success = false
     try {
       const posterId = req.jwtData?.userId
@@ -42,7 +41,11 @@ export default function followsRoutes(app: Application) {
             message: 'You can not follow someone who you have blocked, nor who has blocked you'
           })
         }
-        userFollowed.addFollower(posterId)
+        await Follows.create({
+          followerId: posterId,
+          followedId: userFollowed.id,
+          accepted: userFollowed.url.startsWith('@') ? false : ! userFollowed.manuallyAcceptsFollows
+        })
         success = true
         if (userFollowed.remoteId) {
           const localUser = await User.findOne({ where: { id: posterId } })

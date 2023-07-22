@@ -47,6 +47,26 @@ async function inboxWorker(job: Job) {
     if (!remoteUser?.banned && !host?.blocked && blocksExisting + blocksServers === 0) {
       switch (req.body.type) {
         case 'Accept': {
+          if(req.body.object.type === 'Follow' && req.body.object.id.startsWith(environment.frontendUrl)) {
+            const followUrl = req.body.object.id;
+            const partToRemove = `${environment.frontendUrl}/fediverse/follows/`
+            const follows = followUrl.substring(partToRemove.length).split('/');
+            if(follows.length === 2) {
+              const followToUpdate = await Follows.findOne({
+                where: {
+                  followerId: follows[0],
+                  followedId: follows[1]
+                }
+              });
+              if(followToUpdate) {
+                followToUpdate.accepted = true;
+                await followToUpdate.save()
+              }
+            }
+            
+
+            
+          }
           break
         }
         case 'Announce': {
@@ -96,8 +116,13 @@ async function inboxWorker(job: Job) {
             }
           })
           if (!remoteFollow) {
+            await Follows.create({
+              followerId: remoteUser.id,
+              followedId: user.id,
+              remoteFollowId: req.body.id,
+              accepted: !user.manuallyAcceptsFollows
+            })
             await user.addFollower(remoteUser)
-            await user.save()
             remoteFollow = await Follows.findOne({
               where: {
                 followerId: remoteUser.id,

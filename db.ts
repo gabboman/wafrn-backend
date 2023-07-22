@@ -107,6 +107,10 @@ const User = sequelize.define(
     role: {
       type: Sequelize.INTEGER,
       defaultValue: 0
+    },
+    manuallyAcceptsFollows: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
     }
   },
   {
@@ -146,7 +150,11 @@ const User = sequelize.define(
 const Follows = sequelize.define(
   'follows',
   {
-    remoteFollowId: Sequelize.TEXT
+    remoteFollowId: Sequelize.TEXT,
+    accepted: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false
+    }
   },
   {
     indexes: [

@@ -345,7 +345,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/accept/:id', cacher.cache('minutes', 5), (req: Request, res: Response) => {
+  app.get('/fediverse/accept/:id', (req: Request, res: Response) => {
     res.sendStatus(200)
   })
 }
