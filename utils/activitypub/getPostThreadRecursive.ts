@@ -209,7 +209,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       } else {
         const post = await Post.create(postToCreate)
         post.addMedias(medias)
-        post.addTags(tagsToAdd)
+        post.addPostTags(tagsToAdd)
         post.addEmojis(emojis)
         for await (const mention of mentionedUsersIds) {
           PostMentionsUserRelation.create({
