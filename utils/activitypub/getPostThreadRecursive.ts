@@ -99,7 +99,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         privacy: privacy
       }
 
-      const mentionedUsersIds = []
+      const mentionedUsersIds: string[] = []
       const tagsToAdd: any = []
       const emojis: any[] = []
       try {
@@ -169,35 +169,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         } catch (error) {
           logger.info('problem processing tags')
         }
-
-        for await (const mention of mentionedUsersIds) {
-          const blocksExisting = await Blocks.count({
-            where: {
-              [Op.or]: [
-                {
-                  blockerId: mention,
-                  blockedId: remoteUser.id
-                },
-                {
-                  blockedId: mention,
-                  blockerId: remoteUser.id
-                }
-              ]
-            }
-          })
-          const blocksServers = await ServerBlock.count({
-            where: {
-              blockedServerId: remoteUser.federatedHostId,
-              userBlockerId: mention
-            }
-          })
-          if (blocksExisting + blocksServers === 0) {
-            await PostMentionsUserRelation.create({
-              userId: mention,
-              postId: newPost.id
-            })
-          }
-        }
+        await processMentions(newPost, mentionedUsersIds)
         return newPost
       } else {
         const post = await Post.create(postToCreate)
@@ -206,12 +178,8 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
           await addTagsToPost(post.id, fediTags)
         }
         post.addEmojis(emojis)
-        for await (const mention of mentionedUsersIds) {
-          PostMentionsUserRelation.create({
-            userId: mention,
-            postId: post.id
-          })
-        }
+        await processMentions(post, mentionedUsersIds)
+
         return post
       }
     } catch (error) {
@@ -227,7 +195,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
 }
 
 async function addTagsToPost(postId: string, tags: fediverseTag[]) {
-  await PostTag.bulkCreate(
+  return await PostTag.bulkCreate(
     tags.map(elem => {
       return {
         tagName: elem.name.replace('#', ''),
@@ -238,7 +206,35 @@ async function addTagsToPost(postId: string, tags: fediverseTag[]) {
 
 }
 
-// async function processMentions(postId: string, mentions: fediverseTag[]) {}
+async function processMentions(post: any, userIds: string[]) {
+  const blocks = await Blocks.findAll({
+    where: {
+      blockerId: {
+        [Op.in]: userIds
+      },
+      blockedId: post.userId
+    }
+  })
+  const remoteUser = await User.findByPk(post.userId, {attributes: ['federatedHostId']});
+  const userServerBlocks = await ServerBlock.findAll({
+    where: {
+      userBlockerId: {
+        [Op.in]: userIds,
+      },
+      blockedServerId: remoteUser.federatedHostId
+    }
+  })
+  const blockerIds: string[] = blocks.map((block: any) => block.blockerId).concat(userServerBlocks.map((elem: any) => elem.userBlockerId))
+
+  return await PostMentionsUserRelation.bulkCreate(
+    userIds.filter(elem => !blockerIds.includes(elem)).map(elem => {
+      return {
+        postId: post.id,
+        userId: elem
+      }
+    })
+  )
+}
 
 // async function processEmojis(postId: string, emojis: fediverseTag[]) {}
 
