@@ -104,30 +104,6 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const emojis: any[] = []
       try {
         if (!remoteUser.banned && !remoteUserServerBaned) {
-          for await (const emoji of fediEmojis) {
-            let emojiToAdd = await Emoji.findByPk(emoji.id)
-            if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
-              emojiToAdd.name = emoji.name
-              emojiToAdd.updatedAt = new Date()
-              emojiToAdd.url = emoji.icon.url
-              await emojiToAdd.save()
-            }
-            if (!emojiToAdd) {
-              emojiToAdd = await Emoji.create({
-                id: emoji.id,
-                name: emoji.name,
-                url: emoji.icon.url,
-                external: true
-              })
-            }
-            emojis.push(emojiToAdd)
-          }
-        }
-      } catch (error) {
-        logger.debug('Problem processing emojis')
-      }
-      try {
-        if (!remoteUser.banned && !remoteUserServerBaned) {
           for await (const mention of fediMentions) {
             let mentionedUser
             if (mention.href.indexOf(environment.frontendUrl) !== -1) {
@@ -159,7 +135,13 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         postToCreate.parentId = parent.id
         const newPost = await Post.create(postToCreate)
         await newPost.setParent(parent)
-        newPost.addEmojis(emojis)
+        try {
+          if (!remoteUser.banned && !remoteUserServerBaned) {
+            processEmojis(newPost, fediEmojis)
+          }
+        } catch (error) {
+          logger.debug('Problem processing emojis')
+        }
         newPost.addMedias(medias)
         await newPost.save()
         try {
@@ -177,7 +159,13 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         if (!remoteUser.banned && !remoteUserServerBaned) {
           await addTagsToPost(post.id, fediTags)
         }
-        post.addEmojis(emojis)
+        try {
+          if (!remoteUser.banned && !remoteUserServerBaned) {
+            processEmojis(post, fediEmojis)
+          }
+        } catch (error) {
+          logger.debug('Problem processing emojis')
+        }
         await processMentions(post, mentionedUsersIds)
 
         return post
@@ -236,6 +224,27 @@ async function processMentions(post: any, userIds: string[]) {
   )
 }
 
-// async function processEmojis(postId: string, emojis: fediverseTag[]) {}
+async function processEmojis(post: any, fediEmojis: any[]) {
+  const emojis: any[] = []
+  for await (const emoji of fediEmojis) {
+    let emojiToAdd = await Emoji.findByPk(emoji.id)
+    if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
+      emojiToAdd.name = emoji.name
+      emojiToAdd.updatedAt = new Date()
+      emojiToAdd.url = emoji.icon.url
+      await emojiToAdd.save()
+    }
+    if (!emojiToAdd) {
+      emojiToAdd = await Emoji.create({
+        id: emoji.id,
+        name: emoji.name,
+        url: emoji.icon.url,
+        external: true
+      })
+    }
+    emojis.push(emojiToAdd)
+  }
+  return post.addEmojis(emojis)
+}
 
 export { getPostThreadRecursive }

@@ -18,7 +18,6 @@ const deletedUser = environment.forceSync? undefined : User.findOne({
   }
 })
 
-let hostCacheUpdated: Date = new Date()
 const hostCache: Map<string, any> = new Map()
 
 // we only cache the uuids
@@ -28,11 +27,10 @@ function updateHostCache() {
   if (environment.forceSync) {
     return undefined;
   }
-  hostCacheUpdated = new Date()
   hostCache.clear()
   FederatedHost.findAll({}).then((hosts: any) => {
     hosts.forEach((host: any) => {
-      hostCache.set(host.displayName, host)
+      hostCache.set(host.displayName, host.id)
     })
   })
 }
@@ -72,18 +70,17 @@ async function getUserFromCache(remoteId: string) {
 }
 
 async function getHostFromCache(displayName: string): Promise<any> {
-  // cache hosts for 5 minutes only
-  if (new Date().getTime() - hostCacheUpdated.getTime() > 60 * 5 * 1000) {
-    updateHostCache()
-  }
-  let result = hostCache.get(displayName)
-  if (!result) {
+  const cacheResult = hostCache.get(displayName)
+  let result: any;
+  if (!cacheResult) {
     result = await FederatedHost.findOne({
       where: {
         displayName: displayName
       }
     })
-    hostCache.set(displayName, result)
+    hostCache.set(displayName, result.id)
+  } else {
+    result = await FederatedHost.findByPk(cacheResult)
   }
   return result
 }

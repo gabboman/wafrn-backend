@@ -345,9 +345,11 @@ export default function userRoutes(app: Application) {
             blockedId: blog.id
           }
         })
-        const serverBlockedQuery = ServerBlock.count({
-          userBlockerId: req.jwtData.userId,
-          blockedServerId: blog.federatedHostId
+        const serverBlockedQuery = await ServerBlock.count({
+          where: {
+            userBlockerId: req.jwtData.userId,
+            blockedServerId: blog.federatedHostId
+          }
         })
         await Promise.all([mutedQuery, blockedQuery, serverBlockedQuery])
         muted = (await mutedQuery) === 1
