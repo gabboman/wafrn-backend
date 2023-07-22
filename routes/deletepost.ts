@@ -38,7 +38,7 @@ export default function deletePost(app: Application) {
         })
         const children = await postToDelete.getDescendents()
         postToDelete.removeMedias(await postToDelete.getMedias())
-        postToDelete.removeTags(await postToDelete.getTags())
+        postToDelete.removePostTags()
         await UserLikesPostRelations.destroy({
           where: {
             postId: postToDelete.id

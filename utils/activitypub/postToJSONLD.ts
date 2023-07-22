@@ -48,7 +48,7 @@ async function postToJSONLD(post: any) {
   const fediMentions: fediverseTag[] = []
   const fediTags: fediverseTag[] = []
   let finalTags = '<br>'
-  for await (const tag of await post.getTags()) {
+  for await (const tag of await post.getPostTags()) {
     const externalTagName = tag.tagName.replaceAll(' ', '-').replaceAll('"', "'")
     const link = `${environment.frontendUrl}/dashboard/search/${encodeURIComponent(tag.tagName)}`
     finalTags = `${finalTags}  <a class="hashtag" data-tag="post" href="${link}" rel="tag ugc">#${externalTagName}</a>`
@@ -142,7 +142,7 @@ async function postToJSONLD(post: any) {
       */
     }
   }
-  if (post.content === '' && (await post.getTags()).length === 0) {
+  if (post.content === '' && (await post.getPostTags()).length === 0) {
     postAsJSONLD = {
       '@context': 'https://www.w3.org/ns/activitystreams',
       id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
