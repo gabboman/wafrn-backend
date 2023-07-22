@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Tag, User } from '../db'
+import { Post, PostTag, User } from '../db'
 import getPostBaseQuery from '../utils/getPostBaseQuery'
 import { sequelize } from '../db'
 
@@ -27,25 +27,33 @@ export default function searchRoutes(app: Application) {
     const promises: Array<Promise<any>> = []
 
     if (searchTerm) {
-      // we get the tag if exists then get posts from the tag
-      // same way ass dashboard
-      const tagSearch = await Tag.findOne({
-        where: {
-          tagName: searchTerm
-        }
-      })
 
-      if (tagSearch) {
-        posts = tagSearch.getPosts({
+      const page = Number(req?.query.page) || 0
+      const postIds = await PostTag.findAll({
+        where: {
+          tagName: {
+            [Op.like]: `%${searchTerm}%`
+          }
+        },
+        attributes: [
+          'postId'
+        ],
+        order: [['createdAt', 'DESC']],
+        limit: environment.postsPerPage,
+        offset: page * environment.postsPerPage
+      });
+        posts = Post.findAll({
           where: {
             // date the user has started scrolling
-            createdAt: { [Op.lt]: getStartScrollParam(req) }
+            createdAt: { [Op.lt]: getStartScrollParam(req) },
+            id: {
+              [Op.in]: postIds.map((elem: any) => elem.postId)
+            }
           },
           ...getPostBaseQuery(req)
         })
         responseWithNotes = getPosstGroupDetails(await posts)
         promises.push(responseWithNotes)
-      }
 
       users = User.findAll({
         limit: 20,

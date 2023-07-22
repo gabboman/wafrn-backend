@@ -229,23 +229,23 @@ const Post = sequelize.define(
   }
 )
 
-const Tag = sequelize.define(
-  'tags',
-  {
-    tagName: Sequelize.TEXT
-  },
-  {
-    indexes: [
-      {
-        // unique: true,
-        fields: [{
+const PostTag = sequelize.define('postTags', {
+  tagName: Sequelize.TEXT,
+}, {
+  indexes: [
+    {
+      fields: [
+        {
           attribute: 'tagName',
           length: 512
-        }]
-      }
+        },
+        {
+          attribute: 'postId'
+        }
     ]
-  }
-)
+    }
+  ]
+});
 
 const Emoji = sequelize.define('emojis', {
   id: {
@@ -439,6 +439,9 @@ PostReport.belongsTo(Post)
 Post.hasMany(PostReport)
 User.hasMany(PostReport)
 
+Post.hasMany(PostTag)
+PostTag.belongsTo(Post)
+
 UserReport.belongsTo(User, { foreignKey: 'ReporterId' })
 UserReport.belongsTo(User, { foreignKey: 'ReportedId' })
 
@@ -450,12 +453,6 @@ Post.belongsTo(User, {
 })
 Post.isHierarchy()
 Media.belongsTo(User)
-Tag.belongsToMany(Post, {
-  through: 'tagPostRelations'
-})
-Post.belongsToMany(Tag, {
-  through: 'tagPostRelations'
-})
 Media.belongsToMany(Post, {
   through: 'postMediaRelations'
 })
@@ -500,7 +497,7 @@ export {
   Post,
   PostReport,
   UserReport,
-  Tag,
+  PostTag,
   Follows,
   Media,
   Emoji,

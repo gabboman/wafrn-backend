@@ -7,7 +7,7 @@ import {
   Post,
   PostMentionsUserRelation,
   ServerBlock,
-  Tag,
+  PostTag,
   User,
   sequelize
 } from '../../db'
@@ -154,33 +154,6 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       } catch (error) {
         logger.info('problem processing mentions')
       }
-      try {
-        if (!remoteUser.banned && !remoteUserServerBaned) {
-          for await (const federatedTag of fediTags) {
-            // remove #
-            const tagToAdd = federatedTag.name.substring(1)
-            const existingTag = await Tag.findOne({
-              where: {
-                tagName: tagToAdd
-              }
-            })
-            if (existingTag) {
-              tagsToAdd.push(existingTag)
-            } else if (!existingTag) {
-              const newTag = await Tag.create({
-                tagName: tagToAdd
-              })
-              // we check that we dont add the same tag twice
-              const tmpTags: string[] = tagsToAdd.map((elem: any) => elem.tagName)
-              if (!tmpTags.includes(tagToAdd)) {
-                tagsToAdd.push(newTag)
-              }
-            }
-          }
-        }
-      } catch (error) {
-        logger.info('problem processing tags')
-      }
       if (postPetition.inReplyTo) {
         const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
         postToCreate.parentId = parent.id
@@ -189,13 +162,20 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         newPost.addEmojis(emojis)
         newPost.addMedias(medias)
         await newPost.save()
-        tagsToAdd.forEach(async (tag: any) => {
-          try {
-            await newPost.addTag(tag)
-          } catch (error) {
-            logger.debug('error procesing tag')
+        try {
+          if (!remoteUser.banned && !remoteUserServerBaned) {
+            PostTag.bulkCreate(
+              fediTags.map(elem => {
+                return {
+                  tagName: elem.name,
+                  postId: newPost.id
+                }
+              })
+            )
           }
-        })
+        } catch (error) {
+          logger.info('problem processing tags')
+        }
 
         for await (const mention of mentionedUsersIds) {
           const blocksExisting = await Blocks.count({

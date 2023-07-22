@@ -1,6 +1,6 @@
 import { Application, Request, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Blocks, Post, PostMentionsUserRelation, PostReport, ServerBlock, Tag, User } from '../db'
+import { Blocks, Post, PostMentionsUserRelation, PostReport, ServerBlock, PostTag, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import getPostBaseQuery from '../utils/getPostBaseQuery'
@@ -229,35 +229,18 @@ export default function postsRoutes(app: Application) {
       }
       success = !req.body.tags
       if (req.body.tags) {
-        const tagListString = req.body.tags.toLowerCase()
-        let tagList = tagListString.split(',')
+        const tagListString = req.body.tags;
+        let tagList: string[] = tagListString.split(',')
         tagList = tagList.map((s: string) => s.trim())
-        const existingTags = await Tag.findAll({
-          where: {
-            tagName: {
-              [Op.in]: tagList
+        await PostTag.bulkCreate(
+          tagList.map((tag) => {
+            return {
+              tagName: tag,
+              postId: post.id
             }
-          },
-          group: ['tagName']
-        })
-        const existingTagsString = existingTags.map((tag: any) => tag.tagName)
-        for (const tag of tagList) {
-          const existingTagIndex = existingTagsString.indexOf(tag)
-          if (existingTagIndex === -1) {
-            // new tag, so we create the tag and then relationship
-            const newTag = await Tag.create({
-              tagName: tag
-            })
-            // eslint-disable-next-line no-unused-vars
-            const newTagWithPost = await newTag.addPost(post)
-            await newTag.save()
-          } else {
-            // eslint-disable-next-line max-len
-            // existing tag! so we just get the index and associate to the post
-            await existingTags[existingTagIndex].addPost(post)
-            await existingTags[existingTagIndex].save()
-          }
-        }
+          })
+        )
+        
         success = true
       }
       res.send(post)

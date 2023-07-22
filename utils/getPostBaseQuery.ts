@@ -1,5 +1,5 @@
 import { Request } from 'express'
-import { Emoji, Media, Post, Tag, User, UserLikesPostRelations } from '../db'
+import { Emoji, Media, Post, PostTag, User, UserLikesPostRelations } from '../db'
 import { environment } from '../environment'
 
 const POSTS_PER_PAGE = environment.postsPerPage
@@ -22,7 +22,7 @@ export default function getPostBaseQuery(req?: Request) {
             attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external']
           },
           {
-            model: Tag,
+            model: PostTag,
             attributes: ['tagName']
           },
           {
@@ -49,7 +49,7 @@ export default function getPostBaseQuery(req?: Request) {
         attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external']
       },
       {
-        model: Tag,
+        model: PostTag,
         attributes: ['tagName']
       },
       {
