@@ -164,7 +164,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         await newPost.save()
         try {
           if (!remoteUser.banned && !remoteUserServerBaned) {
-            PostTag.bulkCreate(
+            await PostTag.bulkCreate(
               fediTags.map(elem => {
                 return {
                   tagName: elem.name,
