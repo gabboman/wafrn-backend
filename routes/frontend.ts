@@ -8,7 +8,7 @@ export default function frontend(app: Application) {
   function getIndexSeo(title: string, description: string, image: string) {
     const sanitizedTitle = title.replaceAll('"', "'")
     const sanitizedDescription = description.replaceAll('"', "'").substring(0, 500)
-    const imgUrl = image.toLowerCase().startsWith('htt')
+    const imgUrl = image.toLowerCase().startsWith('https')
       ? environment.externalCacheurl + encodeURIComponent(image)
       : environment.mediaUrl + image
     let indexWithSeo = fs.readFileSync(`${environment.frontedLocation}/index.html`).toString()
