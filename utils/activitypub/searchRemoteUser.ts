@@ -13,7 +13,8 @@ async function searchRemoteUser(searchTerm: string, user: any) {
     const domain = usernameAndDomain[2]
     const domainBlocked = await FederatedHost.findOne({
       where: {
-        displayName: domain
+        displayName: domain,
+        blocked: true
       }
     })
     if (domainBlocked) {
