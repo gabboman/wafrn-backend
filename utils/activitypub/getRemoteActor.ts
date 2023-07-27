@@ -64,7 +64,9 @@ async function getUserFromCache(remoteId: string) {
         remoteId: remoteId
       }
     });
-    userCache.set(remoteId, result.id)
+    if(result){
+      userCache.set(remoteId, result.id)
+    }
   }
   return result
 }
@@ -78,7 +80,13 @@ async function getHostFromCache(displayName: string): Promise<any> {
         displayName: displayName
       }
     })
-    hostCache.set(displayName, result.id)
+    if(result) {
+      hostCache.set(displayName, result.id)
+    } else {
+      result = {
+        blocked: false
+      }
+    }
   } else {
     result = await FederatedHost.findByPk(cacheResult)
   }
