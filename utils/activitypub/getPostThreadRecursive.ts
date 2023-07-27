@@ -49,7 +49,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
           postPetition.tag
             ?.filter((elem: fediverseTag) => elem.type === 'Hashtag')
             .map((elem: fediverseTag) => {
-              return { href: elem.href.toLocaleLowerCase(), type: elem.type, name: elem.name.toLowerCase() }
+              return { href: elem.href.toLocaleLowerCase(), type: elem.type, name: elem.name }
             })
         )
       ]
