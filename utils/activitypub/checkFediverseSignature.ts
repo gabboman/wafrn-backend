@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { User } from '../../db'
+import { FederatedHost, User } from '../../db'
 import { environment } from '../../environment'
 import { Op } from 'sequelize'
 import { getRemoteActor } from './getRemoteActor'
@@ -16,6 +16,9 @@ const adminUser = environment.forceSync
       }
     })
 
+const bannedHosts: string[] = []
+
+
 const actorsCache: Map<string, string> = new Map()
 if (!environment.forceSync) {
   User.findAll({
@@ -25,6 +28,16 @@ if (!environment.forceSync) {
   }).then((allUsers: any) => {
     allUsers.forEach((user: any) => {
       actorsCache.set(user.remoteId, user.publicKey)
+    })
+  })
+
+  FederatedHost.findAll({
+    where: {
+      blocked: true
+    }
+  }).then((bannedHosts: any[]) => {
+    bannedHosts.forEach((host: any) => {
+      bannedHosts.push(host.displayName)
     })
   })
 }
@@ -40,6 +53,10 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       // TODO do stuff here
       const sigHead = httpSignature.parseRequest(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
+      const hostUrl = new URL(remoteUserUrl).host;
+      if(bannedHosts.includes(hostUrl)) {
+        return res.sendStatus(403)
+      }
       success = true
       const cachedKey = actorsCache.get(remoteUserUrl)
       const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, await adminUser)).publicKey

@@ -130,7 +130,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
       })
       if (!federatedHost) {
         const federatedHostToCreate = {
-          displayName: url.host,
+          displayName: url.host.toLocaleLowerCase(),
           publicInbox: userPetition.endpoints?.sharedInbox
         }
         federatedHost = await FederatedHost.create(federatedHostToCreate)
