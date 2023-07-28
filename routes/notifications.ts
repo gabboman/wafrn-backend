@@ -130,7 +130,7 @@ export default function notificationRoutes(app: Application) {
           [Op.gt]: getStartScrollParam(req)
         },
         literal: Sequelize.literal(
-          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}" AND  posts.userId not in (select blockedId from blocks where blockerId = "${userId}")`
+          `posts.id NOT IN (SELECT postId from postMentionsUserRelations where userId = "${userId}") AND posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}" AND  posts.userId not in (select blockedId from blocks where blockerId = "${userId}")`
         )
       }
     })
