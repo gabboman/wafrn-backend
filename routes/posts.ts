@@ -1,6 +1,6 @@
 import { Application, Request, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Blocks, Post, PostMentionsUserRelation, PostReport, ServerBlock, PostTag, User } from '../db'
+import { Blocks, Post, PostMentionsUserRelation, PostReport, ServerBlock, PostTag, User, Follows } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import getPostBaseQuery from '../utils/getPostBaseQuery'
@@ -13,6 +13,7 @@ import { createPostLimiter } from '../utils/rateLimiters'
 import { environment } from '../environment'
 import { Queue } from 'bullmq'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
+import optionalAuthentication from '../utils/optionalAuthentication'
 
 const prepareSendPostQueue = new Queue('prepareSendPost', {
   connection: environment.bullmqConnection,
@@ -48,7 +49,7 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.get('/api/blog', async (req: Request, res: Response) => {
+  app.get('/api/blog', optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     const id = req.query.id
 
@@ -60,12 +61,24 @@ export default function postsRoutes(app: Application) {
       })
       const blogId = blog?.id
       if (blogId) {
+        const privacyArray = [0, 2];
+        if(req.jwtData?.userId === blogId || await Follows.findOne({
+          where: {
+            followedId: blogId,
+            followerId: req.jwtData?.userId,
+            accepted: true
+          }
+        })) {
+          privacyArray.push(1);
+        }
         const postsByBlog = await Post.findAll({
           where: {
             userId: blogId,
             // date the user has started scrolling
             createdAt: { [Op.lt]: getStartScrollParam(req) },
-            privacy: 0
+            privacy: {
+              [Op.in]: privacyArray
+            }
           },
           ...getPostBaseQuery(req)
         })

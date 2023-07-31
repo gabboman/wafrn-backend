@@ -79,24 +79,54 @@ app.get('/api/dashboard', authenticateToken, async (req: AuthorizedRequest, res:
 })
 
 app.get('/api/exploreLocal', optionalAuthentication, async (req: AuthorizedRequest, res) => {
-  const rawPosts = await Post.findAll({
-    ...getPostBaseQuery(req),
-    where: {
-      // date the user has started scrolling
-      createdAt: { [Op.lt]: getStartScrollParam(req) },
-      // TODO privacy depending on if we are following user. needs a day or two for this.
-      privacy: { [Op.in]: [0, 2] },
-      literal: sequelize.literal(
-        req.jwtData?.userId
-          ? `userId in (select id from users where url not like "@%" 
-      and id not in (SELECT mutedId from mutes where muterId = "${req.jwtData.userId}")
-      and id not in (select blockerId from blocks where blockedId ="${req.jwtData.userId}")
-      and id not in (select blockedId from blocks where blockerId ="${req.jwtData.userId}")
-      )`
-          : `userId in (select id from users where url not like "@%")`
-      )
-    }
-  })
+  let rawPosts;
+  if(req.jwtData) {
+    rawPosts = await Post.findAll({
+      ...getPostBaseQuery(req),
+      where: {
+        // date the user has started scrolling
+        createdAt: { [Op.lt]: getStartScrollParam(req) },
+        literal: sequelize.literal(
+        `userId in (select id from users where url not like "@%" 
+        and id not in (SELECT mutedId from mutes where muterId = "${req.jwtData.userId}")
+        and id not in (select blockerId from blocks where blockedId ="${req.jwtData.userId}")
+        and id not in (select blockedId from blocks where blockerId ="${req.jwtData.userId}")
+        )
+        AND (
+          (userId  = "${req.jwtData.userId}" AND privacy in (1,2,2))
+          OR
+          (
+            userId in (
+              select followedId FROM follows where followerId ="${req.jwtData.userId}" and accepted=TRUE
+            )
+            AND
+            privacy in (0,1,2)
+          ) 
+          OR
+          (
+            userId NOT IN (
+              select followedId FROM follows where followerId ="${req.jwtData.userId}" and accepted=TRUE
+            )
+            AND
+            privacy in (0,2)
+          )
+        )
+        `
+        )
+      }
+    })
+  } else {
+    // its a lot easier if we leave this as another query, the one with the user logged in is complex enough
+    rawPosts = await Post.findAll({
+      ...getPostBaseQuery(req),
+      where: {
+        createdAt: { [Op.lt]: getStartScrollParam(req) },
+        privacy: { [Op.in]: [0, 2] },
+        literal: sequelize.literal(`userId in (select id from users where url not like "@%")`)
+      }
+    })
+  }
+  
   const responseWithNotes = await getPosstGroupDetails(rawPosts)
   res.send(responseWithNotes)
 })
