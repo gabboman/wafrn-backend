@@ -62,7 +62,7 @@ export default function postsRoutes(app: Application) {
       const blogId = blog?.id
       if (blogId) {
         const privacyArray = [0, 2];
-        if(req.jwtData?.userId === blogId || await Follows.findOne({
+        if(req.jwtData?.userId === blogId || req.jwtData?.userId && await Follows.findOne({
           where: {
             followedId: blogId,
             followerId: req.jwtData?.userId,
