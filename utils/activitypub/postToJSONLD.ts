@@ -66,7 +66,7 @@ async function postToJSONLD(post: any) {
     processedContent = processedContent.replace(
       mention,
       `<span class="h-card"><a class="u-url mention" rel="ugc" href="${
-        user.remoteId ? user.remoteId : `${environment.frontendUrl}/fediverse/blog/${user.url}`
+        user.remoteId ? user.remoteId : `${environment.frontendUrl}/blog/${user.url}`
       }" >@<span>${user.url.startsWith('@') ? user.url.substring(1) : user.url}</span></a></span>`
     )
     fediMentions.push({
