@@ -13,7 +13,6 @@ import { sequelize } from '../db'
 
 import optimizeMedia from '../utils/optimizeMedia'
 import uploadHandler from '../utils/uploads'
-import * as ed from '@noble/ed25519'
 import { generateKeyPairSync } from 'crypto'
 import { environment } from '../environment'
 import { logger } from '../utils/logger'
