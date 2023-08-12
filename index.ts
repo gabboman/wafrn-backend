@@ -1,6 +1,6 @@
 import express, { Response } from 'express'
 import { Post, sequelize } from './db'
-import { Op } from 'sequelize'
+import { Op, Sequelize } from 'sequelize'
 
 import cors from 'cors'
 import bodyParser from 'body-parser'
@@ -136,7 +136,11 @@ app.get('/api/explore', authenticateToken, async (req: AuthorizedRequest, res) =
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      privacy: 0
+      privacy: 0,
+      content: {
+        [Op.notLike]: ''
+      },
+      literal: Sequelize.literal(`userId not in (SELECT id FROM users WHERE banned=true)`)
     },
     ...getPostBaseQuery(req)
   })
