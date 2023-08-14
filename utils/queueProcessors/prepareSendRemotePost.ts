@@ -64,17 +64,8 @@ async function prepareSendRemotePostWorker(job: Job) {
     }
   })
   switch (post.privacy) {
-    case 1: {
-      serversToSendThePost = await FederatedHost.findAll({
-        where: {
-          publicInbox: { [Op.ne]: null },
-          blocked: { [Op.ne]: true },
-          literal: sequelize.literal(
-            `id in (SELECT federatedHostId from users where users.id IN (SELECT followerId from follows where followedId = '${post.userId}') and federatedHostId is not NULL)`
-          )
-        }
-      })
-      break
+    case 2: {
+      break;
     }
     case 10: {
       serversToSendThePost = []
@@ -85,9 +76,9 @@ async function prepareSendRemotePostWorker(job: Job) {
       serversToSendThePost = await FederatedHost.findAll({
         where: {
           publicInbox: { [Op.ne]: null },
-          blocked: false,
+          blocked: { [Op.ne]: true },
           literal: sequelize.literal(
-            `federatedHosts.id NOT IN (select blockedServerId from serverBlocks where userBlockerId = "${localUser.id}")`
+            `id in (SELECT federatedHostId from users where users.id IN (SELECT followerId from follows where followedId = '${post.userId}') and federatedHostId is not NULL)`
           )
         }
       })
