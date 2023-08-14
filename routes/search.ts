@@ -48,6 +48,9 @@ export default function searchRoutes(app: Application) {
             createdAt: { [Op.lt]: getStartScrollParam(req) },
             id: {
               [Op.in]: postIds.map((elem: any) => elem.postId)
+            },
+            privacy: {
+              [Op.in]: [0,2]
             }
           },
           ...getPostBaseQuery(req)
