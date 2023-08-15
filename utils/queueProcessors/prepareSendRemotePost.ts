@@ -70,7 +70,7 @@ async function prepareSendRemotePostWorker(job: Job) {
     case 10: {
       serversToSendThePost = []
       usersToSendThePost = []
-      break
+      break;
     }
     default: {
       serversToSendThePost = await FederatedHost.findAll({

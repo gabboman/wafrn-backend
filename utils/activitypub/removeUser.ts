@@ -1,4 +1,5 @@
-import { Post, PostMentionsUserRelation, User } from '../../db'
+import { Op } from 'sequelize'
+import { Follows, Post, PostMentionsUserRelation, User } from '../../db'
 import { environment } from '../../environment'
 import { logger } from '../logger'
 
@@ -24,8 +25,18 @@ async function removeUser(userId: string) {
           }
         }
       )
-      await userToRemove.removeFollowers()
-      await userToRemove.removeFolloweds()
+      await Follows.destroy({
+        where: {
+          [Op.or]: [
+            {
+              followerId: userToRemove.id
+            },
+            {
+              followedId: userToRemove.id
+            }
+          ]
+        }
+      })
       await PostMentionsUserRelation.update(
         {
           userId: ownerOfDeletedPost.id
