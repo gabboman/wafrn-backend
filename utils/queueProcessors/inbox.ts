@@ -130,12 +130,11 @@ async function inboxWorker(job: Job) {
               }
             })
           }
-          remoteFollow.remoteFollowId = req.body.id
           remoteFollow.save()
           // we accept it
           const acceptResponse = await signAndAccept(req, remoteUser, user)
           logger.debug(`Remote user ${remoteUser.url} started following ${user.url}`)
-          break
+          break;
         }
         case 'Update': {
           const body = req.body.object
