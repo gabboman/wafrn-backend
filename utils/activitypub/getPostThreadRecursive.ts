@@ -16,7 +16,8 @@ import { logger } from '../logger'
 import { getRemoteActor } from './getRemoteActor'
 import { getPetitionSigned } from './getPetitionSigned'
 import { fediverseTag } from '../../interfaces/fediverse/tags'
-
+import { toHtml } from '@opera7133/mfmp'
+import * as mfm from 'mfm-js'
 async function getPostThreadRecursive(user: any, remotePostId: string, remotePostObject?: any) {
   if (remotePostId.startsWith(`${environment.frontendUrl}/fediverse/post/`)) {
     // we are looking at a local post
@@ -49,7 +50,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
           postPetition.tag
             ?.filter((elem: fediverseTag) => elem.type === 'Hashtag')
             .map((elem: fediverseTag) => {
-              return { href: elem.href.toLocaleLowerCase(), type: elem.type, name: elem.name }
+              return { href: elem.href, type: elem.type, name: elem.name }
             })
         )
       ]
@@ -69,7 +70,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       if (postPetition.to[0].toString().indexOf('followers') !== -1) {
         privacy = 1
       }
-
+      const postTextContent = postPetition.source?.mediaType === 'text/x.misskeymarkdown' ? toHtml(mfm.parse(postPetition.source.content)) : postPetition.content
       if (postPetition.attachment && postPetition.attachment.length > 0 && !remoteUser.banned) {
         for await (const remoteFile of postPetition.attachment) {
           const wafrnMedia = await Media.create({
@@ -86,7 +87,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         }
       }
       const postToCreate: any = {
-        content: '' + postPetition.content + mediasString,
+        content: '' + postTextContent + mediasString,
         content_warning: postPetition.sensitive
           ? postPetition.summary
           : remoteUser.NSFW
