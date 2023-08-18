@@ -28,6 +28,9 @@ import optionalAuthentication from '../utils/optionalAuthentication'
 import { getPetitionSigned } from '../utils/activitypub/getPetitionSigned'
 import { getPostThreadRecursive } from '../utils/activitypub/getPostThreadRecursive'
 
+const Cacher = require('cacher')
+const cacher = new Cacher()
+
 const prepareSendPostQueue = new Queue('prepareSendPost', {
   connection: environment.bullmqConnection,
   defaultJobOptions: {
@@ -41,7 +44,7 @@ const prepareSendPostQueue = new Queue('prepareSendPost', {
   }
 })
 export default function postsRoutes(app: Application) {
-  app.get('/api/singlePost/:id', async (req: Request, res: Response) => {
+  app.get('/api/singlePost/:id', cacher.cache('minutes', 5), async (req: Request, res: Response) => {
     let success = false
     if (req.params?.id) {
       const query: any = getPostBaseQuery(req)
