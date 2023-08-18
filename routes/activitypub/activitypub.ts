@@ -17,7 +17,7 @@ let userCacheRefreshed: Date = new Date()
 
 function updateLocalUserCache() {
   if (environment.forceSync) {
-    return undefined;
+    return undefined
   }
   userCacheRefreshed = new Date()
   userCache.clear()
@@ -41,7 +41,7 @@ updateLocalUserCache()
 // we get the user from the memory cache. if does not exist we try to find it
 async function getLocalUserByUrl(url: string): Promise<any> {
   const resultId = userCache.get(url.toLocaleLowerCase())
-  let result: any;
+  let result: any
   if (!resultId && !url.startsWith('@')) {
     result = await User.findOne({
       where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
@@ -91,7 +91,7 @@ function activityPubRoutes(app: Application) {
           const response = await postToJSONLD(post)
           res.send({
             ...response.object,
-            "@context": response["@context"]
+            '@context': response['@context']
           })
         } else {
           res.sendStatus(404)

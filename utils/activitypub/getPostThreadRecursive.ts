@@ -70,7 +70,10 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       if (postPetition.to[0].toString().indexOf('followers') !== -1) {
         privacy = 1
       }
-      const postTextContent = postPetition.source?.mediaType === 'text/x.misskeymarkdown' ? toHtml(mfm.parse(postPetition.source.content)) : postPetition.content
+      const postTextContent =
+        postPetition.source?.mediaType === 'text/x.misskeymarkdown'
+          ? toHtml(mfm.parse(postPetition.source.content))
+          : postPetition.content
       if (postPetition.attachment && postPetition.attachment.length > 0 && !remoteUser.banned) {
         for await (const remoteFile of postPetition.attachment) {
           const wafrnMedia = await Media.create({
@@ -185,14 +188,13 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
 
 async function addTagsToPost(postId: string, tags: fediverseTag[]) {
   return await PostTag.bulkCreate(
-    tags.map(elem => {
+    tags.map((elem) => {
       return {
         tagName: elem.name.replace('#', ''),
         postId: postId
       }
     })
   )
-
 }
 
 async function processMentions(post: any, userIds: string[]) {
@@ -204,24 +206,28 @@ async function processMentions(post: any, userIds: string[]) {
       blockedId: post.userId
     }
   })
-  const remoteUser = await User.findByPk(post.userId, {attributes: ['federatedHostId']});
+  const remoteUser = await User.findByPk(post.userId, { attributes: ['federatedHostId'] })
   const userServerBlocks = await ServerBlock.findAll({
     where: {
       userBlockerId: {
-        [Op.in]: userIds,
+        [Op.in]: userIds
       },
       blockedServerId: remoteUser.federatedHostId
     }
   })
-  const blockerIds: string[] = blocks.map((block: any) => block.blockerId).concat(userServerBlocks.map((elem: any) => elem.userBlockerId))
+  const blockerIds: string[] = blocks
+    .map((block: any) => block.blockerId)
+    .concat(userServerBlocks.map((elem: any) => elem.userBlockerId))
 
   return await PostMentionsUserRelation.bulkCreate(
-    userIds.filter(elem => !blockerIds.includes(elem)).map(elem => {
-      return {
-        postId: post.id,
-        userId: elem
-      }
-    })
+    userIds
+      .filter((elem) => !blockerIds.includes(elem))
+      .map((elem) => {
+        return {
+          postId: post.id,
+          userId: elem
+        }
+      })
   )
 }
 

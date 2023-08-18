@@ -110,38 +110,46 @@ const User = sequelize.define(
     },
     manuallyAcceptsFollows: {
       type: Sequelize.BOOLEAN,
-      defaultValue: false,
+      defaultValue: false
     }
   },
   {
     indexes: [
       {
         unique: true,
-        fields: [{
-          attribute: 'remoteId',
-          length: 512
-        }],
+        fields: [
+          {
+            attribute: 'remoteId',
+            length: 512
+          }
+        ]
       },
       {
         unique: false,
-        fields: [{
-          attribute: 'remoteInbox',
-          length: 512
-        }]
+        fields: [
+          {
+            attribute: 'remoteInbox',
+            length: 512
+          }
+        ]
       },
       {
         unique: true,
-        fields: [{
-          attribute: 'url',
-          length: 128
-        }]
+        fields: [
+          {
+            attribute: 'url',
+            length: 128
+          }
+        ]
       },
       {
         unique: true,
-        fields: [{
-          attribute: 'email',
-          length: 128
-        }]
+        fields: [
+          {
+            attribute: 'email',
+            length: 128
+          }
+        ]
       }
     ]
   }
@@ -174,26 +182,28 @@ const Follows = sequelize.define(
   }
 )
 
-const Blocks = sequelize.define('blocks', {
-  remoteBlockId: Sequelize.TEXT,
-  reason: Sequelize.TEXT
-},
-{
-  indexes: [
-    {
-      unique: false,
-      fields: ['blockerId']
-    },
-    {
-      unique: false,
-      fields: ['blockedId']
-    },
-    {
-      unique: true,
-      fields: ['blockedId', 'blockerId']
-    }
-  ]
-}
+const Blocks = sequelize.define(
+  'blocks',
+  {
+    remoteBlockId: Sequelize.TEXT,
+    reason: Sequelize.TEXT
+  },
+  {
+    indexes: [
+      {
+        unique: false,
+        fields: ['blockerId']
+      },
+      {
+        unique: false,
+        fields: ['blockedId']
+      },
+      {
+        unique: true,
+        fields: ['blockedId', 'blockerId']
+      }
+    ]
+  }
 )
 
 const Mutes = sequelize.define('mutes', {
@@ -220,10 +230,12 @@ const Post = sequelize.define(
     indexes: [
       {
         //unique: true,
-        fields: [{
-          attribute: 'remotePostId',
-          length: 512
-        }]
+        fields: [
+          {
+            attribute: 'remotePostId',
+            length: 512
+          }
+        ]
       },
       {
         unique: false,
@@ -237,23 +249,27 @@ const Post = sequelize.define(
   }
 )
 
-const PostTag = sequelize.define('postTags', {
-  tagName: Sequelize.TEXT,
-}, {
-  indexes: [
-    {
-      fields: [
-        {
-          attribute: 'tagName',
-          length: 512
-        },
-        {
-          attribute: 'postId'
-        }
+const PostTag = sequelize.define(
+  'postTags',
+  {
+    tagName: Sequelize.TEXT
+  },
+  {
+    indexes: [
+      {
+        fields: [
+          {
+            attribute: 'tagName',
+            length: 512
+          },
+          {
+            attribute: 'postId'
+          }
+        ]
+      }
     ]
-    }
-  ]
-});
+  }
+)
 
 const Emoji = sequelize.define('emojis', {
   id: {
@@ -307,57 +323,65 @@ const UserReport = sequelize.define('userReports', {
   description: Sequelize.TEXT
 })
 
-const PostMentionsUserRelation = sequelize.define('postMentionsUserRelations', {},
-{
-  indexes: [
-    {
-      // unique: true,
-      fields: [{
-        attribute: 'postId',
-        //length: 1024
-      }]
-    }
-  ]
-}
+const PostMentionsUserRelation = sequelize.define(
+  'postMentionsUserRelations',
+  {},
+  {
+    indexes: [
+      {
+        // unique: true,
+        fields: [
+          {
+            attribute: 'postId'
+            //length: 1024
+          }
+        ]
+      }
+    ]
+  }
 )
 
 PostMentionsUserRelation.removeAttribute('id')
 
-const UserLikesPostRelations = sequelize.define('userLikesPostRelations', {
-  userId: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    primaryKey: true,
-    references: {
-      model: 'users',
-      key: 'id'
+const UserLikesPostRelations = sequelize.define(
+  'userLikesPostRelations',
+  {
+    userId: {
+      type: Sequelize.UUID,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      unique: false
     },
-    unique: false
-  },
-  postId: {
-    type: Sequelize.UUID,
-    allowNull: false,
-    primaryKey: true,
-    references: {
-      model: 'posts',
-      key: 'id'
+    postId: {
+      type: Sequelize.UUID,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: 'posts',
+        key: 'id'
+      },
+      unique: false
     },
-    unique: false
-  },
-  remoteId: {
-    type: Sequelize.STRING,
-    allowNull: true
-  }
-},
-{
-  indexes: [
-    {
-      fields: [{
-        attribute: 'postId',
-      }]
+    remoteId: {
+      type: Sequelize.STRING,
+      allowNull: true
     }
-  ]
-}
+  },
+  {
+    indexes: [
+      {
+        fields: [
+          {
+            attribute: 'postId'
+          }
+        ]
+      }
+    ]
+  }
 )
 
 User.belongsToMany(User, {

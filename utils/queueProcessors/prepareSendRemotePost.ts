@@ -65,12 +65,12 @@ async function prepareSendRemotePostWorker(job: Job) {
   })
   switch (post.privacy) {
     case 2: {
-      break;
+      break
     }
     case 10: {
       serversToSendThePost = []
       usersToSendThePost = []
-      break;
+      break
     }
     default: {
       serversToSendThePost = await FederatedHost.findAll({
@@ -86,7 +86,7 @@ async function prepareSendRemotePostWorker(job: Job) {
   }
   const objectToSend = await postToJSONLD(post)
   const ldSignature = new LdSignature()
-  const bodySignature: any = await ldSignature.signRsaSignature2017(
+  const bodySignature = await ldSignature.signRsaSignature2017(
     objectToSend,
     localUser.privateKey,
     `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLocaleLowerCase()}`,

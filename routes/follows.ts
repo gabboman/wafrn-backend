@@ -44,7 +44,7 @@ export default function followsRoutes(app: Application) {
         await Follows.create({
           followerId: posterId,
           followedId: userFollowed.id,
-          accepted: userFollowed.url.startsWith('@') ? false : ! userFollowed.manuallyAcceptsFollows
+          accepted: userFollowed.url.startsWith('@') ? false : !userFollowed.manuallyAcceptsFollows
         })
         success = true
         if (userFollowed.remoteId) {
@@ -103,12 +103,12 @@ export default function followsRoutes(app: Application) {
         followerId: req.jwtData?.userId
       }
     })
-    const blockedUsers = getBlockedIds(req.jwtData?.userId as string);
+    const blockedUsers = getBlockedIds(req.jwtData?.userId as string)
 
     Promise.all([followedUsers, blockedUsers])
     res.send({
       followedUsers: (await followedUsers).map((elem: any) => elem.followedId).concat(req.jwtData?.userId),
-      blockedUsers: await  blockedUsers
+      blockedUsers: await blockedUsers
     })
   })
 }

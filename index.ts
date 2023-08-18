@@ -79,15 +79,15 @@ app.get('/api/dashboard', authenticateToken, async (req: AuthorizedRequest, res:
 })
 
 app.get('/api/exploreLocal', optionalAuthentication, async (req: AuthorizedRequest, res) => {
-  let rawPosts;
-  if(req.jwtData) {
+  let rawPosts
+  if (req.jwtData) {
     rawPosts = await Post.findAll({
       ...getPostBaseQuery(req),
       where: {
         // date the user has started scrolling
         createdAt: { [Op.lt]: getStartScrollParam(req) },
         literal: sequelize.literal(
-        `userId in (select id from users where url not like "@%" 
+          `userId in (select id from users where url not like "@%" 
         and id not in (SELECT mutedId from mutes where muterId = "${req.jwtData.userId}")
         and id not in (select blockerId from blocks where blockedId ="${req.jwtData.userId}")
         and id not in (select blockedId from blocks where blockerId ="${req.jwtData.userId}")
@@ -126,7 +126,7 @@ app.get('/api/exploreLocal', optionalAuthentication, async (req: AuthorizedReque
       }
     })
   }
-  
+
   const responseWithNotes = await getPosstGroupDetails(rawPosts)
   res.send(responseWithNotes)
 })
@@ -185,45 +185,42 @@ frontend(app)
 app.listen(PORT, environment.listenIp, () => {
   console.log('started app')
 
-  if(environment.workers.mainThread) {
-
+  if (environment.workers.mainThread) {
     workerInbox.on('completed', (job) => {
       // console.log(`${job.id} has completed!`)
     })
-  
+
     workerInbox.on('failed', (job, err) => {
       logger.warn(`${job?.id} has failed with ${err.message}`)
     })
-  
+
     workerPrepareSendPost.on('completed', (job) => {
       // console.log(`${job.id} has completed!`)
     })
-  
+
     workerPrepareSendPost.on('failed', (job, err) => {
       console.warn(`sending post ${job?.id} has failed with ${err.message}`)
     })
-  
+
     workerUpdateRemoteUsers.on('failed', (job, err) => {
       console.warn(`update user ${job?.id} has failed with ${err.message}`)
     })
-  
+
     workerUpdateRemoteUsers.on('completed', (job) => {
       //console.warn(`user ${job?.id} has been updated`)
     })
-  
+
     workerSendPostChunk.on('completed', (job) => {
       //console.log(`${job.id} has completed!`)
     })
-  
+
     workerSendPostChunk.on('failed', (job, err) => {
       console.warn(`sending post to some inboxes ${job?.id} has failed with ${err.message}`)
     })
-
   } else {
-    workerInbox.pause();
+    workerInbox.pause()
     workerPrepareSendPost.pause()
     workerSendPostChunk.pause()
     workerUpdateRemoteUsers.pause()
   }
-  
 })

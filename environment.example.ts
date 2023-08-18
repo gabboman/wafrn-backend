@@ -47,13 +47,17 @@ export const environment = {
     host: 'localhost',
     port: 6379
   },
-  // this will create a backendlog.log file on the folder superior to this one. 
+  // this will create a backendlog.log file on the folder superior to this one.
   pinoTransportOptions: {
     targets: [
-      { target: 'pino/file', level: 0, options: {
-        destination: '../backendlog.log'
-      } },
-    ],
+      {
+        target: 'pino/file',
+        level: 0,
+        options: {
+          destination: '../backendlog.log'
+        }
+      }
+    ]
   },
   // you can try with gmail but we actually use sendinblue for this. bear in mind that this might require some fiddling in your gmail account too
   // you might need to enable https://myaccount.google.com/lesssecureapps

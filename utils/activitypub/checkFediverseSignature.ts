@@ -18,7 +18,6 @@ const adminUser = environment.forceSync
 
 const bannedHosts: string[] = []
 
-
 const actorsCache: Map<string, string> = new Map()
 if (!environment.forceSync) {
   User.findAll({
@@ -53,8 +52,8 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       // TODO do stuff here
       const sigHead = httpSignature.parseRequest(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
-      const hostUrl = new URL(remoteUserUrl).host;
-      if(bannedHosts.includes(hostUrl)) {
+      const hostUrl = new URL(remoteUserUrl).host
+      if (bannedHosts.includes(hostUrl)) {
         return res.sendStatus(403)
       }
       success = true

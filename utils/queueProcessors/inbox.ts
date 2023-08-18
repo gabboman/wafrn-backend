@@ -47,25 +47,22 @@ async function inboxWorker(job: Job) {
     if (!remoteUser?.banned && !host?.blocked && blocksExisting + blocksServers === 0) {
       switch (req.body.type) {
         case 'Accept': {
-          if(req.body.object.type === 'Follow' && req.body.object.id.startsWith(environment.frontendUrl)) {
-            const followUrl = req.body.object.id;
+          if (req.body.object.type === 'Follow' && req.body.object.id.startsWith(environment.frontendUrl)) {
+            const followUrl = req.body.object.id
             const partToRemove = `${environment.frontendUrl}/fediverse/follows/`
-            const follows = followUrl.substring(partToRemove.length).split('/');
-            if(follows.length === 2) {
+            const follows = followUrl.substring(partToRemove.length).split('/')
+            if (follows.length === 2) {
               const followToUpdate = await Follows.findOne({
                 where: {
                   followerId: follows[0],
                   followedId: follows[1]
                 }
-              });
-              if(followToUpdate) {
-                followToUpdate.accepted = true;
+              })
+              if (followToUpdate) {
+                followToUpdate.accepted = true
                 await followToUpdate.save()
               }
             }
-            
-
-            
           }
           break
         }
@@ -134,7 +131,7 @@ async function inboxWorker(job: Job) {
           // we accept it
           const acceptResponse = await signAndAccept(req, remoteUser, user)
           logger.debug(`Remote user ${remoteUser.url} started following ${user.url}`)
-          break;
+          break
         }
         case 'Update': {
           const body = req.body.object

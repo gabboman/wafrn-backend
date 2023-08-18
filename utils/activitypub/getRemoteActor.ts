@@ -12,11 +12,13 @@ const updateUsersQueue = new Queue('UpdateUsers', {
   }
 })
 
-const deletedUser = environment.forceSync? undefined : User.findOne({
-  where: {
-    url: environment.deletedUser
-  }
-})
+const deletedUser = environment.forceSync
+  ? undefined
+  : User.findOne({
+      where: {
+        url: environment.deletedUser
+      }
+    })
 
 const hostCache: Map<string, any> = new Map()
 
@@ -25,7 +27,7 @@ const userCache: Map<string, string> = new Map()
 
 function updateHostCache() {
   if (environment.forceSync) {
-    return undefined;
+    return undefined
   }
   hostCache.clear()
   FederatedHost.findAll({}).then((hosts: any) => {
@@ -37,7 +39,7 @@ function updateHostCache() {
 
 function updateUserCache() {
   if (environment.forceSync) {
-    return undefined;
+    return undefined
   }
   userCache.clear()
   User.findAll().then((users: any) => {
@@ -48,23 +50,22 @@ function updateUserCache() {
 }
 
 async function getUserFromCache(remoteId: string) {
-  let result = undefined;
+  let result = undefined
   let userId = userCache.get(remoteId)
-  if(userId) {
+  if (userId) {
     result = await User.findByPk(userId)
-    if (result.id != userId ) {
-      console.log('findbypk did not returned the correct thing');
+    if (result.id != userId) {
+      console.log('findbypk did not returned the correct thing')
       userId = undefined
     }
-
   }
   if (!userId) {
     result = await User.findOne({
       where: {
         remoteId: remoteId
       }
-    });
-    if(result){
+    })
+    if (result) {
       userCache.set(remoteId, result.id)
     }
   }
@@ -73,14 +74,14 @@ async function getUserFromCache(remoteId: string) {
 
 async function getHostFromCache(displayName: string): Promise<any> {
   const cacheResult = hostCache.get(displayName)
-  let result: any;
+  let result: any
   if (!cacheResult) {
     result = await FederatedHost.findOne({
       where: {
         displayName: displayName
       }
     })
-    if(result) {
+    if (result) {
       hostCache.set(displayName, result.id)
     } else {
       result = {

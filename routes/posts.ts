@@ -1,6 +1,17 @@
 import { Application, Request, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Blocks, Post, PostMentionsUserRelation, PostReport, ServerBlock, PostTag, User, Follows } from '../db'
+import {
+  Blocks,
+  Post,
+  PostMentionsUserRelation,
+  PostReport,
+  ServerBlock,
+  PostTag,
+  User,
+  Follows,
+  UserLikesPostRelations,
+  Media
+} from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import getPostBaseQuery from '../utils/getPostBaseQuery'
@@ -61,15 +72,19 @@ export default function postsRoutes(app: Application) {
       })
       const blogId = blog?.id
       if (blogId) {
-        const privacyArray = [0, 2];
-        if(req.jwtData?.userId === blogId || req.jwtData?.userId && await Follows.findOne({
-          where: {
-            followedId: blogId,
-            followerId: req.jwtData?.userId,
-            accepted: true
-          }
-        })) {
-          privacyArray.push(1);
+        const privacyArray = [0, 2]
+        if (
+          req.jwtData?.userId === blogId ||
+          (req.jwtData?.userId &&
+            (await Follows.findOne({
+              where: {
+                followedId: blogId,
+                followerId: req.jwtData?.userId,
+                accepted: true
+              }
+            })))
+        ) {
+          privacyArray.push(1)
         }
         const postsByBlog = await Post.findAll({
           where: {
@@ -242,7 +257,7 @@ export default function postsRoutes(app: Application) {
       }
       success = !req.body.tags
       if (req.body.tags) {
-        const tagListString = req.body.tags;
+        const tagListString = req.body.tags
         let tagList: string[] = tagListString.split(',')
         tagList = tagList.map((s: string) => s.trim())
         await PostTag.bulkCreate(
@@ -253,7 +268,7 @@ export default function postsRoutes(app: Application) {
             }
           })
         )
-        
+
         success = true
       }
       res.send(post)
@@ -294,5 +309,44 @@ export default function postsRoutes(app: Application) {
         success: false
       })
     }
+  })
+
+  app.get('/api/getNotes', optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
+    const dbResponse = await Post.findByPk(req.query.postId, {
+      include: [
+        {
+          model: Post,
+          as: 'descendents',
+          where: {
+            privacy: {
+              [Op.in]: [0, 2]
+            }
+          },
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['avatar', 'url', 'description', 'id']
+            },
+            {
+              model: UserLikesPostRelations,
+              attributes: ['userId'],
+              include: [
+                {
+                  model: User,
+                  as: 'user',
+                  attributes: ['avatar', 'url', 'description', 'id']
+                }
+              ]
+            },
+            {
+              model: PostTag,
+              attributes: ['tagName']
+            }
+          ]
+        }
+      ]
+    })
+    return res.send(dbResponse)
   })
 }

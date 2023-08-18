@@ -27,7 +27,6 @@ export default function searchRoutes(app: Application) {
     const promises: Array<Promise<any>> = []
 
     if (searchTerm) {
-
       const page = Number(req?.query.page) || 0
       const postIds = await PostTag.findAll({
         where: {
@@ -35,28 +34,26 @@ export default function searchRoutes(app: Application) {
             [Op.like]: `%${searchTerm}%`
           }
         },
-        attributes: [
-          'postId'
-        ],
+        attributes: ['postId'],
         order: [['createdAt', 'DESC']],
         limit: environment.postsPerPage,
         offset: page * environment.postsPerPage
-      });
-        posts = Post.findAll({
-          where: {
-            // date the user has started scrolling
-            createdAt: { [Op.lt]: getStartScrollParam(req) },
-            id: {
-              [Op.in]: postIds.map((elem: any) => elem.postId)
-            },
-            privacy: {
-              [Op.in]: [0,2]
-            }
+      })
+      posts = Post.findAll({
+        where: {
+          // date the user has started scrolling
+          createdAt: { [Op.lt]: getStartScrollParam(req) },
+          id: {
+            [Op.in]: postIds.map((elem: any) => elem.postId)
           },
-          ...getPostBaseQuery(req)
-        })
-        responseWithNotes = getPosstGroupDetails(await posts)
-        promises.push(responseWithNotes)
+          privacy: {
+            [Op.in]: [0, 2]
+          }
+        },
+        ...getPostBaseQuery(req)
+      })
+      responseWithNotes = getPosstGroupDetails(await posts)
+      promises.push(responseWithNotes)
 
       users = User.findAll({
         limit: 20,
