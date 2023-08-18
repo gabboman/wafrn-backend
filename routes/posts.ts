@@ -44,7 +44,7 @@ const prepareSendPostQueue = new Queue('prepareSendPost', {
   }
 })
 export default function postsRoutes(app: Application) {
-  app.get('/api/singlePost/:id', cacher.cache('seconds', 15), async (req: Request, res: Response) => {
+  app.get('/api/singlePost/:id', async (req: Request, res: Response) => {
     let success = false
     if (req.params?.id) {
       const query: any = getPostBaseQuery(req)
