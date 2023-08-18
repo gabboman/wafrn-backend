@@ -88,7 +88,11 @@ function activityPubRoutes(app: Application) {
           res.set({
             'content-type': 'application/activity+json'
           })
-          res.send(await postToJSONLD(post))
+          const response = await postToJSONLD(post)
+          res.send({
+            ...response.object,
+            "@context": response["@context"]
+          })
         } else {
           res.sendStatus(404)
         }
