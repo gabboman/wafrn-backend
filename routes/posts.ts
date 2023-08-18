@@ -42,15 +42,50 @@ export default function postsRoutes(app: Application) {
   app.get('/api/singlePost/:id', async (req: Request, res: Response) => {
     let success = false
     if (req.params?.id) {
+      const query: any = getPostBaseQuery(req)
+      query.include.push({
+        model: Post,
+        as: 'descendents',
+        required: false,
+        order: [['createdAt']],
+        where: {
+          privacy: {
+            [Op.in]: [0, 2]
+          }
+        },
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['avatar', 'url', 'description', 'id']
+          },
+          {
+            model: UserLikesPostRelations,
+            attributes: ['userId'],
+            include: [
+              {
+                model: User,
+                as: 'user',
+                attributes: ['avatar', 'url', 'description', 'id']
+              }
+            ]
+          },
+          {
+            model: PostTag,
+            attributes: ['tagName']
+          }
+        ]
+      })
       const post = await Post.findOne({
-        ...getPostBaseQuery(req),
+        ...query,
         where: {
           id: req.params.id,
           privacy: { [Op.ne]: 10 }
         }
       })
       if (post) {
-        res.send((await getPosstGroupDetails([post]))[0])
+        const postResponse = (await getPosstGroupDetails([post]))[0]
+        res.send(postResponse)
         success = true
       }
     }
@@ -309,44 +344,5 @@ export default function postsRoutes(app: Application) {
         success: false
       })
     }
-  })
-
-  app.get('/api/getNotes', optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
-    const dbResponse = await Post.findByPk(req.query.postId, {
-      include: [
-        {
-          model: Post,
-          as: 'descendents',
-          where: {
-            privacy: {
-              [Op.in]: [0, 2]
-            }
-          },
-          include: [
-            {
-              model: User,
-              as: 'user',
-              attributes: ['avatar', 'url', 'description', 'id']
-            },
-            {
-              model: UserLikesPostRelations,
-              attributes: ['userId'],
-              include: [
-                {
-                  model: User,
-                  as: 'user',
-                  attributes: ['avatar', 'url', 'description', 'id']
-                }
-              ]
-            },
-            {
-              model: PostTag,
-              attributes: ['tagName']
-            }
-          ]
-        }
-      ]
-    })
-    return res.send(dbResponse)
   })
 }
