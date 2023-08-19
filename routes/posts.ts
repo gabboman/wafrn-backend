@@ -239,7 +239,7 @@ export default function postsRoutes(app: Application) {
         post.addMedias(mediaToAdd)
       }
 
-      if (mentionsInPost) {
+      if (mentionsInPost && mentionsInPost.length > 0) {
         const mentionsToAdd: string[] = [];
         for (let index = 0 ; index < mentionsInPost.length; index ++) {
           const elem = mentionsInPost[index]
