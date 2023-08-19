@@ -27,9 +27,8 @@ import AuthorizedRequest from '../interfaces/authorizedRequest'
 import optionalAuthentication from '../utils/optionalAuthentication'
 import { getPetitionSigned } from '../utils/activitypub/getPetitionSigned'
 import { getPostThreadRecursive } from '../utils/activitypub/getPostThreadRecursive'
-
-const Cacher = require('cacher')
-const cacher = new Cacher()
+import * as htmlparser2 from "htmlparser2";
+const cheerio = require('cheerio');
 
 const prepareSendPostQueue = new Queue('prepareSendPost', {
   connection: environment.bullmqConnection,
@@ -212,21 +211,19 @@ export default function postsRoutes(app: Application) {
         parentId: req.body.parent
       })
 
+      // post content as html
+      const parsedAsHTML = cheerio.load(req.body.content);
+      
       // detect media in posts using regexes
-
       // eslint-disable-next-line max-len
       const wafrnMediaRegex =
         /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
 
       // eslint-disable-next-line max-len
-      const mentionRegex =
-        /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
-
-      // eslint-disable-next-line max-len
       const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/
 
       const mediaInPost = req.body.content.match(wafrnMediaRegex)
-      const mentionsInPost = req.body.content.match(mentionRegex)
+      const mentionsInPost = parsedAsHTML('span.mention')
       if (mediaInPost) {
         const mediaToAdd: string[] = []
         mediaInPost.forEach((element: string) => {
@@ -243,18 +240,15 @@ export default function postsRoutes(app: Application) {
       }
 
       if (mentionsInPost) {
-        const mentionsToAdd: string[] = []
-        mentionsInPost.forEach((elem: string) => {
-          const mentionedUserUUID = elem.match(uuidRegex)
-
+        const mentionsToAdd: string[] = [];
+        for (let index = 0 ; index < mentionsInPost.length; index ++) {
+          const elem = mentionsInPost[index]
           if (
-            mentionedUserUUID != null &&
-            mentionedUserUUID[0] !== null &&
-            !mentionsToAdd.includes(mentionedUserUUID[0])
+            elem.attribs['data-id']
           ) {
-            mentionsToAdd.push(mentionedUserUUID[0])
+            mentionsToAdd.push(elem.attribs['data-id'])
           }
-        })
+        }
         const blocksExisting = await Blocks.count({
           where: {
             [Op.or]: [

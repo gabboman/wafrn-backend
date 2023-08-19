@@ -32,7 +32,7 @@ export default function getPostBaseQuery(req?: Request) {
           {
             model: User,
             as: 'mentionPost',
-            attributes: ['url', 'id', 'avatar']
+            attributes: ['url', 'id', 'avatar', 'remoteId']
           },
           {
             model: Emoji
@@ -55,7 +55,7 @@ export default function getPostBaseQuery(req?: Request) {
       {
         model: User,
         as: 'mentionPost',
-        attributes: ['url', 'id', 'avatar']
+        attributes: ['url', 'id', 'avatar', 'remoteId']
       },
       {
         model: UserLikesPostRelations,
