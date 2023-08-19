@@ -34,8 +34,8 @@ if (!environment.forceSync) {
     where: {
       blocked: true
     }
-  }).then((bannedHosts: any[]) => {
-    bannedHosts.forEach((host: any) => {
+  }).then((queryBanedHosts: any[]) => {
+    queryBanedHosts.forEach((host: any) => {
       bannedHosts.push(host.displayName)
     })
   })
@@ -54,7 +54,7 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       const hostUrl = new URL(remoteUserUrl).host
       if (bannedHosts.includes(hostUrl)) {
-        return res.sendStatus(403)
+        return res.sendStatus(401)
       }
       success = true
       const cachedKey = actorsCache.get(remoteUserUrl)
@@ -74,7 +74,7 @@ export default async function checkFediverseSignature(req: Request, res: Respons
     }
   }
   if (!success) {
-    return res.sendStatus(403)
+    return res.sendStatus(401)
   } else {
     next()
   }
