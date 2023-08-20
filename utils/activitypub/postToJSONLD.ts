@@ -38,13 +38,12 @@ async function postToJSONLD(post: any) {
   let processedContent = post.content
   const wafrnMediaRegex =
     /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
-  const mentionRegex =
-    /\[mentionuserid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
+
   const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/
 
   // we remove the wafrnmedia from the post for the outside world, as they get this on the attachments
-  processedContent = processedContent.replace(wafrnMediaRegex, '')
-  const mentions = processedContent.matchAll(mentionRegex)
+  processedContent = processedContent.replaceAll(wafrnMediaRegex, '')
+  const mentions: string[] = (await post.getMentionPost()).map((elem: any) => elem.id);
   const fediMentions: fediverseTag[] = []
   const fediTags: fediverseTag[] = []
   let finalTags = '<br>'
@@ -58,17 +57,11 @@ async function postToJSONLD(post: any) {
       href: link
     })
   }
-  for await (const mention of mentions) {
-    const userId = mention[0].match(uuidRegex)[0]
+  for await (const userId of mentions) {
     const user =
       (await User.findOne({ where: { id: userId } })) ||
       (await User.findOne({ where: { url: environment.deletedUser } }))
-    processedContent = processedContent.replace(
-      mention,
-      `<span class="h-card"><a class="u-url mention" rel="ugc" href="${
-        user.remoteId ? user.remoteId : `${environment.frontendUrl}/blog/${user.url}`
-      }" >@<span>${user.url.startsWith('@') ? user.url.substring(1) : user.url}</span></a></span>`
-    )
+
     fediMentions.push({
       type: 'Mention',
       name: user.url.startsWith('@') ? user.url.substring(1) : user.url,

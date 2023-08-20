@@ -314,10 +314,6 @@ function activityPubRoutes(app: Application) {
     checkFediverseSignature,
     async (req: Request, res: Response) => {
       const urlToSearch = req.params?.url ? req.params.url : environment.adminUser
-      if (urlToSearch === environment.adminUser && req.body.type == 'Follow') {
-        res.sendStatus(200)
-        return ''
-      }
       const url = urlToSearch.toLowerCase()
       const user = await getLocalUserByUrl(url)
       if (user) {
