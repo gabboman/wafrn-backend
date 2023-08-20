@@ -27,8 +27,8 @@ import AuthorizedRequest from '../interfaces/authorizedRequest'
 import optionalAuthentication from '../utils/optionalAuthentication'
 import { getPetitionSigned } from '../utils/activitypub/getPetitionSigned'
 import { getPostThreadRecursive } from '../utils/activitypub/getPostThreadRecursive'
-import * as htmlparser2 from "htmlparser2";
-const cheerio = require('cheerio');
+import * as htmlparser2 from 'htmlparser2'
+const cheerio = require('cheerio')
 
 const prepareSendPostQueue = new Queue('prepareSendPost', {
   connection: environment.bullmqConnection,
@@ -212,8 +212,8 @@ export default function postsRoutes(app: Application) {
       })
 
       // post content as html
-      const parsedAsHTML = cheerio.load(req.body.content);
-      
+      const parsedAsHTML = cheerio.load(req.body.content)
+
       // detect media in posts using regexes
       // eslint-disable-next-line max-len
       const wafrnMediaRegex =
@@ -240,12 +240,10 @@ export default function postsRoutes(app: Application) {
       }
 
       if (mentionsInPost && mentionsInPost.length > 0) {
-        const mentionsToAdd: string[] = [];
-        for (let index = 0 ; index < mentionsInPost.length; index ++) {
+        const mentionsToAdd: string[] = []
+        for (let index = 0; index < mentionsInPost.length; index++) {
           const elem = mentionsInPost[index]
-          if (
-            elem.attribs['data-id']
-          ) {
+          if (elem.attribs['data-id']) {
             mentionsToAdd.push(elem.attribs['data-id'])
           }
         }
@@ -347,32 +345,31 @@ export default function postsRoutes(app: Application) {
 
   app.get('/api/loadRemoteResponses', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     try {
-      const userId = req.jwtData?.userId;
-      const postToGetRepliesFromId = req.query.id;
+      const userId = req.jwtData?.userId
+      const postToGetRepliesFromId = req.query.id
       let remotePost = Post.findByPk(postToGetRepliesFromId)
-      let user = User.findByPk(userId);
+      let user = User.findByPk(userId)
       await Promise.all([user, remotePost])
-      user = await user;
-      remotePost = await remotePost;
-      const postPetition = await getPetitionSigned(user, remotePost.remotePostId);
-      if(postPetition) {
-        if(postPetition.inReplyTo && remotePost.hierarchyLevel === 1) {
+      user = await user
+      remotePost = await remotePost
+      const postPetition = await getPetitionSigned(user, remotePost.remotePostId)
+      if (postPetition) {
+        if (postPetition.inReplyTo && remotePost.hierarchyLevel === 1) {
           const lostParent = await getPostThreadRecursive(user, postPetition.inReplyTo)
           await remotePost.setParent(lostParent)
           console.log(lostParent)
         }
         // next replies to process
         let next = postPetition.replies.first
-        while(next) {
-          const petitions = next.items.map((elem: string) => getPostThreadRecursive(user, elem));
-          await Promise.allSettled(petitions);
-          next =next.next ?  await getPetitionSigned(user, next.next) : undefined
+        while (next) {
+          const petitions = next.items.map((elem: string) => getPostThreadRecursive(user, elem))
+          await Promise.allSettled(petitions)
+          next = next.next ? await getPetitionSigned(user, next.next) : undefined
         }
       }
     } catch (error) {
-      logger.debug({message: 'error getting external responses', error: error})
+      logger.debug({ message: 'error getting external responses', error: error })
     }
-    res.send({});
-
+    res.send({})
   })
 }

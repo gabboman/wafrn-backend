@@ -43,7 +43,7 @@ async function postToJSONLD(post: any) {
 
   // we remove the wafrnmedia from the post for the outside world, as they get this on the attachments
   processedContent = processedContent.replaceAll(wafrnMediaRegex, '')
-  const mentions: string[] = (await post.getMentionPost()).map((elem: any) => elem.id);
+  const mentions: string[] = (await post.getMentionPost()).map((elem: any) => elem.id)
   const fediMentions: fediverseTag[] = []
   const fediTags: fediverseTag[] = []
   let finalTags = '<br>'
