@@ -12,6 +12,7 @@ import { authenticateToken } from '../utils/authenticateToken'
 import { searchRemoteUser } from '../utils/activitypub/searchRemoteUser'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { environment } from '../environment'
+import { getPostThreadRecursive } from '../utils/activitypub/getPostThreadRecursive'
 
 export default function searchRoutes(app: Application) {
   app.get('/api/search/', optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
@@ -23,6 +24,7 @@ export default function searchRoutes(app: Application) {
     let users: any = []
     let posts: any = []
     let remoteUsers: any[] = []
+    let remotePosts: any[] = []
     let responseWithNotes: any = []
     const promises: Array<Promise<any>> = []
 
@@ -74,13 +76,26 @@ export default function searchRoutes(app: Application) {
       promises.push(users)
       // remote user search time
       if (posterId) {
-        remoteUsers = await searchRemoteUser(searchTerm, await User.findOne({ where: { id: posterId } }))
+        const usr = await User.findOne({ where: { id: posterId } })
+        remoteUsers = await searchRemoteUser(searchTerm, usr)
+        const remotePost = await getPostThreadRecursive(usr, searchTerm)
+        if(remotePost) {
+          remotePosts.push(await Post.findOne(
+            {
+              ...getPostBaseQuery(req),
+              where: {
+                id: remotePost.id
+              }
+            }
+          ))
+        }
       }
     }
+    
     await Promise.all(promises)
     res.send({
       users: (await users).concat(remoteUsers),
-      posts: await responseWithNotes
+      posts: remotePosts.concat(await responseWithNotes)
     })
   })
 
