@@ -14,7 +14,7 @@ export default function mediaRoutes(app: Application) {
   app.post(
     '/api/uploadMedia',
     authenticateToken,
-    uploadHandler.array('image'),
+    uploadHandler().array('image'),
     async (req: AuthorizedRequest, res: Response) => {
       let result = []
       const picturesPromise = [] as Array<Promise<any>>

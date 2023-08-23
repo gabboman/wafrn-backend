@@ -24,7 +24,7 @@ import optionalAuthentication from '../utils/optionalAuthentication'
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 
 export default function userRoutes(app: Application) {
-  app.post('/api/register', createAccountLimiter, uploadHandler.single('avatar'), async (req, res) => {
+  app.post('/api/register', createAccountLimiter, uploadHandler().single('avatar'), async (req, res) => {
     let success = false
     try {
       if (
@@ -144,7 +144,7 @@ export default function userRoutes(app: Application) {
   app.post(
     '/api/editProfile',
     authenticateToken,
-    uploadHandler.single('avatar'),
+    uploadHandler().single('avatar'),
     async (req: AuthorizedRequest, res: Response) => {
       let success = false
       try {

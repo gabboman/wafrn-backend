@@ -34,6 +34,7 @@ import blockUserServerRoutes from './routes/blockUserServer'
 import optionalAuthentication from './utils/optionalAuthentication'
 import { workerInbox, workerUpdateRemoteUsers, workerSendPostChunk, workerPrepareSendPost } from './utils/workers'
 import { logger } from './utils/logger'
+import listRoutes from './routes/lists'
 
 const swaggerJSON = require('./swagger.json')
 
@@ -180,6 +181,7 @@ likeRoutes(app)
 adminRoutes(app)
 muteRoutes(app)
 blockUserServerRoutes(app)
+listRoutes(app)
 frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {

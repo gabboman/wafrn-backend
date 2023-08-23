@@ -13,18 +13,23 @@ const imageStorage = multer.diskStorage({
   }
 })
 
-const uploadHandler = multer({
-  storage: imageStorage,
-  limits: {
-    fileSize: environment.uploadLimit * 1024 * 1024 // 15 MB.
-  },
-  fileFilter(req, file, cb) {
-    const name = file.originalname.toLowerCase()
-    const isFileAllowed = !(
-      name.match(/\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv|aac|mp3|wav|ogg|oga|m4a)$/) == null
-    )
-    cb(null, isFileAllowed)
-  }
-})
+
+
+function uploadHandler(extensionsRegex?: RegExp) {
+  return multer({
+    storage: imageStorage,
+    limits: {
+      fileSize: environment.uploadLimit * 1024 * 1024 // 15 MB.
+    },
+    fileFilter(req, file, cb) {
+      const name = file.originalname.toLowerCase()
+      const isFileAllowed = !(
+        name.match(extensionsRegex ? extensionsRegex : /\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv|aac|mp3|wav|ogg|oga|m4a)$/) == null
+      )
+      cb(null, isFileAllowed)
+    }
+  })
+}
+
 
 export default uploadHandler
