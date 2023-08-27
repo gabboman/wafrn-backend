@@ -70,27 +70,33 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       if (postPetition.to[0].toString().indexOf('followers') !== -1) {
         privacy = 1
       }
-      const postTextContent =
-        postPetition.source?.mediaType === 'text/x.misskeymarkdown'
+      let postTextContent = "" + postPetition.source?.mediaType === 'text/x.misskeymarkdown'
           ? toHtml(mfm.parse(postPetition.source.content))
-          : postPetition.content
+          : postPetition.content;
       if (postPetition.attachment && postPetition.attachment.length > 0 && !remoteUser.banned) {
         for await (const remoteFile of postPetition.attachment) {
-          const wafrnMedia = await Media.create({
-            url: remoteFile.url,
-            NSFW: postPetition?.sensitive,
-            adultContent: !!postPetition?.sensitive,
-            userId: remoteUser.id,
-            description: remoteFile.name,
-            ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
-            external: true
-          })
-          medias.push(wafrnMedia)
-          mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
+          if(remoteFile.type !== 'Link') {
+            const wafrnMedia = await Media.create({
+              url: remoteFile.url,
+              NSFW: postPetition?.sensitive,
+              adultContent: !!postPetition?.sensitive,
+              userId: remoteUser.id,
+              description: remoteFile.name,
+              ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
+              external: true
+            })
+            medias.push(wafrnMedia)
+            mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
+          } else {
+            mediasString = `${mediasString} <a href="${remoteFile.href}" >${remoteFile.href}</a>`
+          }
         }
       }
+
+      const lemmyName = postPetition.name ? postPetition.name : '';
+      postTextContent = postTextContent ? postTextContent : `<p>${lemmyName}</p>`
       const postToCreate: any = {
-        content: '' + postTextContent + mediasString,
+        content: '' + postTextContent  + mediasString,
         content_warning: postPetition.sensitive
           ? postPetition.summary
           : remoteUser.NSFW
@@ -233,24 +239,27 @@ async function processMentions(post: any, userIds: string[]) {
 
 async function processEmojis(post: any, fediEmojis: any[]) {
   const emojis: any[] = []
-  for await (const emoji of fediEmojis) {
-    let emojiToAdd = await Emoji.findByPk(emoji.id)
-    if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
-      emojiToAdd.name = emoji.name
-      emojiToAdd.updatedAt = new Date()
-      emojiToAdd.url = emoji.icon.url
-      await emojiToAdd.save()
+  if(fediEmojis) {
+    for await (const emoji of fediEmojis) {
+      let emojiToAdd = await Emoji.findByPk(emoji.id)
+      if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
+        emojiToAdd.name = emoji.name
+        emojiToAdd.updatedAt = new Date()
+        emojiToAdd.url = emoji.icon.url
+        await emojiToAdd.save()
+      }
+      if (!emojiToAdd) {
+        emojiToAdd = await Emoji.create({
+          id: emoji.id,
+          name: emoji.name,
+          url: emoji.icon.url,
+          external: true
+        })
+      }
+      emojis.push(emojiToAdd)
     }
-    if (!emojiToAdd) {
-      emojiToAdd = await Emoji.create({
-        id: emoji.id,
-        name: emoji.name,
-        url: emoji.icon.url,
-        external: true
-      })
-    }
-    emojis.push(emojiToAdd)
   }
+  
   return post.addEmojis(emojis)
 }
 
