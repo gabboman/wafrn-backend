@@ -15,7 +15,7 @@ export default function getPostBaseQuery(req?: Request) {
           {
             model: User,
             as: 'user',
-            attributes: ['avatar', 'url', 'description', 'id']
+            attributes: ['avatar', 'remoteId', 'url', 'description', 'id']
           },
           {
             model: Media,
@@ -42,7 +42,7 @@ export default function getPostBaseQuery(req?: Request) {
       {
         model: User,
         as: 'user',
-        attributes: ['avatar', 'url', 'description', 'id']
+        attributes: ['avatar', 'url', 'description', 'id', 'remoteId']
       },
       {
         model: Media,
