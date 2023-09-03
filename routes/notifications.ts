@@ -12,6 +12,13 @@ export default function notificationRoutes(app: Application) {
   app.get('/api/notificationsScroll', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const page = Number(req?.query.page) || 0
     const userId = req.jwtData?.userId
+    if(page === 0 ) {
+      // we update the lasttimenotificationscheck
+      User.findByPk(userId).then(async (user: any) => {
+        user.lastTimeNotificationsCheck = new Date();
+        await user.save();
+      })      
+    }
     // const blockedUsers = await getBlockedIds(userId)
     const perPostReblogs = await Post.findAll({
       where: {
@@ -124,10 +131,11 @@ export default function notificationRoutes(app: Application) {
   app.get('/api/notificationsCount', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const userId = req.jwtData?.userId
     //const blockedUsers = await getBlockedIds(userId)
+    const startCountDate = (await User.findByPk(userId)).lastTimeNotificationsCheck
     const perPostReblogs = await Post.count({
       where: {
         createdAt: {
-          [Op.gt]: getStartScrollParam(req)
+          [Op.gt]: startCountDate
         },
         literal: Sequelize.literal(
           `posts.id NOT IN (SELECT postId from postMentionsUserRelations where userId = "${userId}") AND posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}" AND  posts.userId not in (select blockedId from blocks where blockerId = "${userId}")`
@@ -138,7 +146,7 @@ export default function notificationRoutes(app: Application) {
       where: {
         literal: sequelize.literal(`followerId not in (select blockedId from blocks where blockerId = "${userId}")`),
         createdAt: {
-          [Op.gt]: getStartScrollParam(req)
+          [Op.gt]: startCountDate
         },
         followedId: userId
       }
@@ -146,7 +154,7 @@ export default function notificationRoutes(app: Application) {
     const newMentions = PostMentionsUserRelation.count({
       where: {
         createdAt: {
-          [Op.gt]: getStartScrollParam(req)
+          [Op.gt]: startCountDate
         },
         userId
       },
@@ -156,13 +164,15 @@ export default function notificationRoutes(app: Application) {
     const newLikes = UserLikesPostRelations.count({
       where: {
         createdAt: {
-          [Op.gt]: getStartScrollParam(req)
+          [Op.gt]: startCountDate
         },
         literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}") AND
         userId not in (select blockedId from blocks where blockerId = "${userId}")`)
       },
       attributes: ['postId']
     })
+
+    await Promise.all([newFollows, perPostReblogs, newMentions, newLikes])
 
     res.send({
       notifications: (await newFollows) + (await perPostReblogs) + (await newMentions) + (await newLikes)
