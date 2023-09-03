@@ -20,6 +20,7 @@ import { createAccountLimiter, loginRateLimiter } from '../utils/rateLimiters'
 import fs from 'fs/promises'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import optionalAuthentication from '../utils/optionalAuthentication'
+import checkIpBlocked from '../utils/checkIpBlocked'
 
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 
@@ -314,7 +315,7 @@ export default function userRoutes(app: Application) {
     }
   })
 
-  app.get('/api/user', optionalAuthentication, async (req: AuthorizedRequest, res) => {
+  app.get('/api/user', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res) => {
     let success = false
     if (req.query?.id) {
       const blogId: string = (req.query.id || '').toString().toLowerCase().trim()
