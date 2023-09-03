@@ -70,5 +70,7 @@ export const environment = {
       pass: 'password',
       from: 'from_mail'
     }
-  }
+  },
+  // if someone is trying to scrap your place you can send a funny message in some petitions (attacks to the frontend)
+  blockedIps: []
 }

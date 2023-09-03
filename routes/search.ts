@@ -13,9 +13,10 @@ import { searchRemoteUser } from '../utils/activitypub/searchRemoteUser'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { environment } from '../environment'
 import { getPostThreadRecursive } from '../utils/activitypub/getPostThreadRecursive'
+import checkIpBlocked from '../utils/checkIpBlocked'
 
 export default function searchRoutes(app: Application) {
-  app.get('/api/search/', optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
+  app.get('/api/search/', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
     const posterId = req.jwtData?.userId
     // const success = false;
     // eslint-disable-next-line max-len

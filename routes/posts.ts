@@ -28,6 +28,7 @@ import optionalAuthentication from '../utils/optionalAuthentication'
 import { getPetitionSigned } from '../utils/activitypub/getPetitionSigned'
 import { getPostThreadRecursive } from '../utils/activitypub/getPostThreadRecursive'
 import * as htmlparser2 from 'htmlparser2'
+import checkIpBlocked from '../utils/checkIpBlocked'
 const cheerio = require('cheerio')
 
 const prepareSendPostQueue = new Queue('prepareSendPost', {
@@ -43,7 +44,7 @@ const prepareSendPostQueue = new Queue('prepareSendPost', {
   }
 })
 export default function postsRoutes(app: Application) {
-  app.get('/api/singlePost/:id', async (req: Request, res: Response) => {
+  app.get('/api/singlePost/:id', checkIpBlocked, async (req: Request, res: Response) => {
     let success = false
     if (req.params?.id) {
       const query: any = getPostBaseQuery(req)
@@ -99,7 +100,7 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.get('/api/blog', optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
+  app.get('/api/blog', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     const id = req.query.id
 
