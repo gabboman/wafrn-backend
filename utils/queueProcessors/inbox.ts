@@ -7,6 +7,7 @@ import { environment } from '../../environment'
 import { removeUser } from '../activitypub/removeUser'
 import { getPostThreadRecursive } from '../activitypub/getPostThreadRecursive'
 import { Op, Sequelize } from 'sequelize'
+import { loadPoll } from '../activitypub/loadPollFromPost'
 
 async function inboxWorker(job: Job) {
   try {
@@ -96,11 +97,20 @@ async function inboxWorker(job: Job) {
         case 'Create': {
           // Create new post
           const postRecived = body.object
-          if (postRecived.type === 'Note' || postRecived.type === 'ChatMessage') {
-            await getPostThreadRecursive(user, postRecived.id, postRecived)
-            await signAndAccept({ body: body }, remoteUser, user)
-          } else {
-            logger.info(`post type not implemented: ${postRecived.type}`)
+          switch (postRecived.type) {
+            case 'Note':
+            case 'ChatMessage':
+            case 'Question': {
+              const postCreated = await getPostThreadRecursive(user, postRecived.id, postRecived)
+              await signAndAccept({ body: body }, remoteUser, user);
+              if(postRecived.type === 'Question' && postCreated ) {
+                await loadPoll(postCreated, postRecived, user)
+              }
+              break;
+            }
+            default:
+              logger.info(`post type not implemented: ${postRecived.type}`)
+
           }
           break
         }

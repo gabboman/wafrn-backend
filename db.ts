@@ -71,7 +71,7 @@ const User = sequelize.define(
     },
     description: Sequelize.TEXT,
     url: {
-      type: Sequelize.STRING,
+      type: Sequelize.TEXT,
       unique: true
     },
     NSFW: Sequelize.BOOLEAN,
@@ -383,6 +383,26 @@ const UserLikesPostRelations = sequelize.define(
     ]
   }
 )
+
+const QuestionPoll = sequelize.define('questionPoll', {
+  endDate: Sequelize.DATE
+})
+
+const QuestionPollQuestion = sequelize.define('questionPollQuestion', {
+  questionText: Sequelize.TEXT
+})
+
+const QuestionPollAnswer =sequelize.define('questionPollAnswer', {
+    remoteId: Sequelize.TEXT,
+})
+
+Post.hasOne(QuestionPoll);
+QuestionPoll.belongsTo(Post);
+QuestionPoll.hasMany(QuestionPollQuestion);
+QuestionPollQuestion.belongsTo(QuestionPoll);
+QuestionPollQuestion.hasMany(QuestionPollAnswer);
+QuestionPollAnswer.belongsTo(QuestionPollQuestion);
+
 
 User.belongsToMany(User, {
   through: Follows,
