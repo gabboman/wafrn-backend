@@ -1,6 +1,6 @@
 import { Job } from 'bullmq'
 import { logger } from '../logger'
-import { Blocks, FederatedHost, Follows, Media, Post, ServerBlock, User, UserLikesPostRelations } from '../../db'
+import { Blocks, FederatedHost, Follows, Media, Post, ServerBlock, User, UserLikesPostRelations, sequelize } from '../../db'
 import { getRemoteActor } from '../activitypub/getRemoteActor'
 import { signAndAccept } from '../activitypub/signAndAccept'
 import { environment } from '../../environment'
@@ -116,30 +116,41 @@ async function inboxWorker(job: Job) {
         }
         case 'Follow': {
           // Follow user
+          let userToBeFollowed: any;
+          if(req.body.object.startsWith(environment.frontendUrl)) {
+            const userUrl = req.body.object.split(environment.frontendUrl)[1].toLowerCase();
+            userToBeFollowed = await User.findOne({
+              where: {
+                url:  sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userUrl),
+              }
+            })
+          } else {
+            userToBeFollowed = await getRemoteActor(req.body.object, user)
+          }
           let remoteFollow = await Follows.findOne({
             where: {
               followedId: remoteUser.id,
-              followerId: user.id
+              followerId: userToBeFollowed.id
             }
           })
           if (!remoteFollow) {
             await Follows.create({
               followerId: remoteUser.id,
-              followedId: user.id,
+              followedId: userToBeFollowed.id,
               remoteFollowId: req.body.id,
-              accepted: !user.manuallyAcceptsFollows
+              accepted: !userToBeFollowed.manuallyAcceptsFollows
             })
             await user.addFollower(remoteUser)
             remoteFollow = await Follows.findOne({
               where: {
                 followerId: remoteUser.id,
-                followedId: user.id
+                followedId: userToBeFollowed.id
               }
             })
           }
           remoteFollow.save()
           // we accept it
-          const acceptResponse = await signAndAccept(req, remoteUser, user)
+          const acceptResponse = await signAndAccept(req, remoteUser, userToBeFollowed)
           logger.debug(`Remote user ${remoteUser.url} started following ${user.url}`)
           break
         }
