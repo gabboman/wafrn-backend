@@ -68,7 +68,10 @@ export default function notificationRoutes(app: Application) {
         avatar: elem.followed.avatar
       }
     })
-    // TODO FIX
+    // TODO use the new function instead.
+    /*
+    We remove this block and instead we generate the object by checking if the posts have content or not
+    */
     const newMentions = await Post.findAll({
       where: {
         literal: sequelize.literal(
@@ -129,20 +132,13 @@ export default function notificationRoutes(app: Application) {
   })
 
   app.get('/api/notificationsCount', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-    const userId = req.jwtData?.userId
+    const userId = req.jwtData?.userId ? req.jwtData?.userId : ''
     //const blockedUsers = await getBlockedIds(userId)
     const startCountDate = (await User.findByPk(userId)).lastTimeNotificationsCheck
-    const perPostReblogs = await Post.count({
-      where: {
-        createdAt: {
-          [Op.gt]: startCountDate
-        },
-        literal: Sequelize.literal(
-          `posts.id NOT IN (SELECT postId from postMentionsUserRelations where userId = "${userId}") AND posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}" AND  posts.userId not in (select blockedId from blocks where blockerId = "${userId}")`
-        )
-      }
-    })
-    const newFollows = await Follows.count({
+    
+    const postNotifications = Post.count(getQueryReblogsMentions(userId, startCountDate))
+
+    const newFollows = Follows.count({
       where: {
         literal: sequelize.literal(`followerId not in (select blockedId from blocks where blockerId = "${userId}")`),
         createdAt: {
@@ -150,15 +146,6 @@ export default function notificationRoutes(app: Application) {
         },
         followedId: userId
       }
-    })
-    const newMentions = PostMentionsUserRelation.count({
-      where: {
-        createdAt: {
-          [Op.gt]: startCountDate
-        },
-        userId
-      },
-      attributes: ['postId']
     })
 
     const newLikes = UserLikesPostRelations.count({
@@ -168,14 +155,37 @@ export default function notificationRoutes(app: Application) {
         },
         literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}") AND
         userId not in (select blockedId from blocks where blockerId = "${userId}")`)
-      },
-      attributes: ['postId']
+      }
     })
 
-    await Promise.all([newFollows, perPostReblogs, newMentions, newLikes])
+    await Promise.all([newFollows, postNotifications, newLikes])
 
     res.send({
-      notifications: (await newFollows) + (await perPostReblogs) + (await newMentions) + (await newLikes)
+      notifications: (await newFollows) + (await postNotifications) + (await newLikes)
     })
   })
+
+
+  function getQueryReblogsMentions(userId: string, date: Date) {
+    return {
+      where: {
+        createdAt: {
+          [Op.gt]: date
+        },
+        userId: {
+          [Op.notIn]: sequelize.literal(`(select blockedId from blocks where blockerId = "${userId}")`)
+        },
+        [Op.or]: [
+          {
+            literal: Sequelize.literal(
+              `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}"`
+            )
+          },
+          {
+            literal: Sequelize.literal(`posts.id in (select postId from postMentionsUserRelations where userId = "${userId}")`)
+          }
+        ]
+      }
+    }
+  }
 }
