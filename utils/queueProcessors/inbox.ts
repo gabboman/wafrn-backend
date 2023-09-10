@@ -118,7 +118,7 @@ async function inboxWorker(job: Job) {
           // Follow user
           let userToBeFollowed: any;
           if(req.body.object.startsWith(environment.frontendUrl)) {
-            const userUrl = req.body.object.split(environment.frontendUrl)[1].toLowerCase();
+            const userUrl = req.body.object.split(environment.frontendUrl + '/fediverse/blog/')[1].toLowerCase();
             userToBeFollowed = await User.findOne({
               where: {
                 url:  sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userUrl),
@@ -150,7 +150,7 @@ async function inboxWorker(job: Job) {
           }
           remoteFollow.save()
           // we accept it
-          const acceptResponse = await signAndAccept(req, remoteUser, userToBeFollowed)
+          const acceptResponse = await signAndAccept(req, remoteUser, user)
           logger.debug(`Remote user ${remoteUser.url} started following ${user.url}`)
           break
         }
@@ -207,11 +207,22 @@ async function inboxWorker(job: Job) {
           const body = req.body
           switch (body.object.type) {
             case 'Follow': {
+              let userToBeUnfollowed: any;
+          if(req.body.object.startsWith(environment.frontendUrl)) {
+            const userUrl = req.body.object.split(environment.frontendUrl + '/fediverse/blog/')[1].toLowerCase();
+            userToBeUnfollowed = await User.findOne({
+              where: {
+                url:  sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userUrl),
+              }
+            })
+          } else {
+            userToBeUnfollowed = await getRemoteActor(req.body.object, user)
+          }
               const remoteFollow = await Follows.findOne({
                 where: {
                   // I think i was doing something wrong here. Changed so when remote unfollow does not cause you to unfollow them instead lol
                   followerId: remoteUser.id,
-                  followedId: user.id,
+                  followedId: userToBeUnfollowed.id,
                   remoteFollowId: body.object.id
                 }
               })
