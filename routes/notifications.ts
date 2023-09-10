@@ -178,7 +178,7 @@ export default function notificationRoutes(app: Application) {
         [Op.or]: [
           {
             literal: Sequelize.literal(
-              `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}"`
+              `posts.id IN (select id from posts where parentId in (select id from posts where userId = "${userId}")) AND posts.userId NOT LIKE "${userId}"`
             )
           },
           {
