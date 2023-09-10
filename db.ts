@@ -65,14 +65,13 @@ const User = sequelize.define(
       primaryKey: true
     },
     email: {
-      type: Sequelize.STRING,
+      type: Sequelize.STRING(768),
       allowNull: true
       //unique: true
     },
     description: Sequelize.TEXT,
     url: {
       type: Sequelize.TEXT,
-      unique: true
     },
     NSFW: Sequelize.BOOLEAN,
     avatar: Sequelize.STRING,
@@ -120,7 +119,7 @@ const User = sequelize.define(
         fields: [
           {
             attribute: 'remoteId',
-            length: 512
+            length: 768
           }
         ]
       },
@@ -138,7 +137,7 @@ const User = sequelize.define(
         fields: [
           {
             attribute: 'url',
-            length: 128
+            length: 768
           }
         ]
       },
@@ -147,7 +146,7 @@ const User = sequelize.define(
         fields: [
           {
             attribute: 'email',
-            length: 128
+            length: 768
           }
         ]
       }
@@ -341,7 +340,7 @@ const PostMentionsUserRelation = sequelize.define(
   }
 )
 
-PostMentionsUserRelation.removeAttribute('id')
+//PostMentionsUserRelation.removeAttribute('id')
 
 const UserLikesPostRelations = sequelize.define(
   'userLikesPostRelations',
@@ -367,8 +366,8 @@ const UserLikesPostRelations = sequelize.define(
       unique: false
     },
     remoteId: {
-      type: Sequelize.STRING,
-      allowNull: true
+      type: Sequelize.TEXT,
+      allowNull: true,
     }
   },
   {
@@ -377,6 +376,14 @@ const UserLikesPostRelations = sequelize.define(
         fields: [
           {
             attribute: 'postId'
+          }
+        ]
+      }, {
+        unique: true,
+        fields: [
+          {
+            attribute: 'remoteId',
+            length: 768
           }
         ]
       }
