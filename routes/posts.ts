@@ -244,7 +244,7 @@ export default function postsRoutes(app: Application) {
         const mentionsToAdd: string[] = []
         for (let index = 0; index < mentionsInPost.length; index++) {
           const elem = mentionsInPost[index]
-          if (elem.attribs['data-id']) {
+          if (elem.attribs['data-id'] && !mentionsToAdd.includes(elem.attribs['data-id'])) {
             mentionsToAdd.push(elem.attribs['data-id'])
           }
         }
