@@ -18,16 +18,7 @@ const adminUser = environment.forceSync
 
 const redis = new Redis(environment.redisioConnection);
 if (!environment.forceSync) {
-  User.findAll({
-    where: {
-      remoteId: { [Op.ne]: null }
-    }
-  }).then((allUsers: any) => {
-    allUsers.forEach((user: any) => {
-      redis.set("key/" + user.remoteId, user.publicKey)
-    })
-  })
-
+  
   FederatedHost.findAll({
     where: {
       blocked: true
