@@ -25,7 +25,7 @@ export default function searchRoutes(app: Application) {
     let users: any = []
     let posts: any = []
     let remoteUsers: any[] = []
-    let remotePosts: any[] = []
+    const remotePosts: any[] = []
     let responseWithNotes: any = []
     const promises: Array<Promise<any>> = []
 

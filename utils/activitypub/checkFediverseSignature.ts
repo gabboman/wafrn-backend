@@ -8,6 +8,7 @@ import crypto from 'crypto'
 const httpSignature = require('@peertube/http-signature')
 import Redis from 'ioredis'
 import { Op } from 'sequelize'
+import { redisCache } from '../redis'
 const adminUser = environment.forceSync
   ? null
   : User.findOne({
@@ -16,7 +17,6 @@ const adminUser = environment.forceSync
       }
     })
 
-const redis = new Redis(environment.redisioConnection)
 
 export default async function checkFediverseSignature(req: Request, res: Response, next: NextFunction) {
   let success = false
@@ -30,7 +30,7 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       const sigHead = httpSignature.parseRequest(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       const hostUrl = new URL(remoteUserUrl).host
-      let bannedHostInCache = await redis.get('server:' + hostUrl)
+      let bannedHostInCache = await redisCache.get('server:' + hostUrl)
       if (bannedHostInCache === null || bannedHostInCache === undefined) {
         const newResult = await FederatedHost.findOne({
           where: {
@@ -40,16 +40,16 @@ export default async function checkFediverseSignature(req: Request, res: Respons
           }
         })
         bannedHostInCache = newResult?.blocked.toString().toLowerCase()
-        redis.set('server:' + hostUrl, bannedHostInCache ? bannedHostInCache : 'false')
+        redisCache.set('server:' + hostUrl, bannedHostInCache ? bannedHostInCache : 'false')
       }
       if (bannedHostInCache === 'true') {
         return res.sendStatus(401)
       }
       success = true
-      const cachedKey = await redis.get('key:' + remoteUserUrl)
+      const cachedKey = await redisCache.get('key:' + remoteUserUrl)
       const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, await adminUser)).publicKey
       if (!cachedKey) {
-        redis.set('key:' + remoteUserUrl, remoteKey)
+        redisCache.set('key:' + remoteUserUrl, remoteKey)
       }
       //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
       const verifier = crypto.createVerify('RSA-SHA256')

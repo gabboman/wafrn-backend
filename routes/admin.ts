@@ -3,10 +3,8 @@ import { adminToken, authenticateToken } from '../utils/authenticateToken'
 import { Blocks, FederatedHost, Post, PostReport, ServerBlock, User, sequelize } from '../db'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { server } from '../interfaces/server'
-import { Op, Sequelize } from 'sequelize'
-import Redis from 'ioredis'
-import { environment } from '../environment'
-const redis = new Redis(environment.redisioConnection)
+import { Op } from 'sequelize'
+import { redisCache } from '../utils/redis'
 
 export default function adminRoutes(app: Application) {
   app.get('/api/admin/server-list', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
@@ -34,10 +32,10 @@ export default function adminRoutes(app: Application) {
           promises.push(elemToUpdate.save())
           if (elemToUpdate.blocked) {
             // we add it to the blocked cache
-            redis.set('server:' + elemToUpdate.displayName, 'true')
+            redisCache.set('server:' + elemToUpdate.displayName, 'true')
           } else {
             // we remove it from the blocked cache
-            redis.set('server:' + elemToUpdate.displayName, 'false')
+            redisCache.set('server:' + elemToUpdate.displayName, 'false')
           }
           if (newValue.blocked) {
             promises.push(
