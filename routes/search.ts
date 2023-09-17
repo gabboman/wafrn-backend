@@ -81,14 +81,15 @@ export default function searchRoutes(app: Application) {
         remoteUsers = await searchRemoteUser(searchTerm, usr)
         const remotePost = await getPostThreadRecursive(usr, searchTerm)
         if(remotePost) {
-          remotePosts.push(await Post.findOne(
+          const remotePostResult = await Post.findOne(
             {
               ...getPostBaseQuery(req),
               where: {
                 id: remotePost.id
               }
             }
-          ))
+          )
+          remotePosts.push({...remotePostResult?.dataValues, notes: '???'})
         }
       }
     }
