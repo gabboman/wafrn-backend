@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express'
-import { FederatedHost, User } from '../../db'
+import { FederatedHost, User, sequelize } from '../../db'
 import { environment } from '../../environment'
-import { Op } from 'sequelize'
 import { getRemoteActor } from './getRemoteActor'
-import { LdSignature } from './rsa2017'
 import { logger } from '../logger'
 import crypto from 'crypto'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const httpSignature = require('@peertube/http-signature')
 import Redis from "ioredis"
+import { Op } from 'sequelize'
 const adminUser = environment.forceSync
   ? null
   : User.findOne({
@@ -17,18 +17,6 @@ const adminUser = environment.forceSync
     })
 
 const redis = new Redis(environment.redisioConnection);
-if (!environment.forceSync) {
-  
-  FederatedHost.findAll({
-    where: {
-      blocked: true
-    }
-  }).then((queryBanedHosts: any[]) => {
-    queryBanedHosts.forEach((host: any) => {
-      redis.set("server/" + host.displayName, "true")
-    })
-  })
-}
 
 export default async function checkFediverseSignature(req: Request, res: Response, next: NextFunction) {
   let success = false
@@ -42,15 +30,25 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       const sigHead = httpSignature.parseRequest(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       const hostUrl = new URL(remoteUserUrl).host
-      const bannedHostInCache = await redis.get("server/" + hostUrl)
-      if (bannedHostInCache) {
+      let bannedHostInCache = await redis.get("server:" + hostUrl);
+      if(bannedHostInCache === null || bannedHostInCache === undefined ) {
+        const newResult = await FederatedHost.findOne({
+          where: {
+            [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('displayName')), 'LIKE', `${hostUrl.toLowerCase()}`)]
+
+          }
+        });
+        bannedHostInCache = newResult?.blocked.toString().toLowerCase();
+        redis.set("server:" + hostUrl, bannedHostInCache? bannedHostInCache : "false")
+      }
+      if (bannedHostInCache === "true") {
         return res.sendStatus(401)
       }
       success = true
-      const cachedKey = await redis.get("key/" +remoteUserUrl)
+      const cachedKey = await redis.get("key:" +remoteUserUrl)
       const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, await adminUser)).publicKey;
       if (!cachedKey) {
-        redis.set("key/" + remoteUserUrl, remoteKey)
+        redis.set("key:" + remoteUserUrl, remoteKey)
       }
       //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
       const verifier = crypto.createVerify('RSA-SHA256')

@@ -34,10 +34,10 @@ export default function adminRoutes(app: Application) {
           promises.push(elemToUpdate.save());
           if(elemToUpdate.blocked) {
             // we add it to the blocked cache
-            redis.set("server/" + elemToUpdate.displayName, "true")
+            redis.set("server:" + elemToUpdate.displayName, "true")
           } else {
             // we remove it from the blocked cache
-            redis.del("server/"+ elemToUpdate.displayName)
+            redis.set("server:"+ elemToUpdate.displayName, "false")
           }
           if (newValue.blocked) {
             promises.push(
