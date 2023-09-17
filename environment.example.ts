@@ -47,6 +47,12 @@ export const environment = {
     host: 'localhost',
     port: 6379
   },
+  // I recomend using a different internal redis db than the bullmq one for caching stuff
+  redisioConnection: {
+    host: 'localhost',
+    port: 6379,
+    db: 2
+  },
   // this will create a backendlog.log file on the folder superior to this one.
   pinoTransportOptions: {
     targets: [

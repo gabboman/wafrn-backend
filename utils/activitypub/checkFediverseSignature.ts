@@ -7,7 +7,7 @@ import { LdSignature } from './rsa2017'
 import { logger } from '../logger'
 import crypto from 'crypto'
 const httpSignature = require('@peertube/http-signature')
-
+import Redis from "ioredis"
 const adminUser = environment.forceSync
   ? null
   : User.findOne({
@@ -16,9 +16,7 @@ const adminUser = environment.forceSync
       }
     })
 
-const bannedHosts: string[] = []
-
-const actorsCache: Map<string, string> = new Map()
+const redis = new Redis(environment.redisioConnection);
 if (!environment.forceSync) {
   User.findAll({
     where: {
@@ -26,7 +24,7 @@ if (!environment.forceSync) {
     }
   }).then((allUsers: any) => {
     allUsers.forEach((user: any) => {
-      actorsCache.set(user.remoteId, user.publicKey)
+      redis.set("key/" + user.remoteId, user.publicKey)
     })
   })
 
@@ -36,7 +34,7 @@ if (!environment.forceSync) {
     }
   }).then((queryBanedHosts: any[]) => {
     queryBanedHosts.forEach((host: any) => {
-      bannedHosts.push(host.displayName)
+      redis.set("server/" + host.displayName, "true")
     })
   })
 }
@@ -53,12 +51,16 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       const sigHead = httpSignature.parseRequest(req)
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       const hostUrl = new URL(remoteUserUrl).host
-      if (bannedHosts.includes(hostUrl)) {
+      const bannedHostInCache = await redis.get("server/" + hostUrl)
+      if (bannedHostInCache) {
         return res.sendStatus(401)
       }
       success = true
-      const cachedKey = actorsCache.get(remoteUserUrl)
-      const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, await adminUser)).publicKey
+      const cachedKey = await redis.get("key/" +remoteUserUrl)
+      const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, await adminUser)).publicKey;
+      if (!cachedKey) {
+        redis.set("key/" + remoteUserUrl, remoteKey)
+      }
       //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
       const verifier = crypto.createVerify('RSA-SHA256')
       verifier.update(sigHead.signingString, 'ascii')
