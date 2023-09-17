@@ -71,7 +71,7 @@ const User = sequelize.define(
     },
     description: Sequelize.TEXT,
     url: {
-      type: Sequelize.TEXT,
+      type: Sequelize.TEXT
     },
     NSFW: Sequelize.BOOLEAN,
     avatar: Sequelize.STRING,
@@ -367,7 +367,7 @@ const UserLikesPostRelations = sequelize.define(
     },
     remoteId: {
       type: Sequelize.TEXT,
-      allowNull: true,
+      allowNull: true
     }
   },
   {
@@ -378,7 +378,8 @@ const UserLikesPostRelations = sequelize.define(
             attribute: 'postId'
           }
         ]
-      }, {
+      },
+      {
         unique: true,
         fields: [
           {
@@ -399,17 +400,16 @@ const QuestionPollQuestion = sequelize.define('questionPollQuestion', {
   questionText: Sequelize.TEXT
 })
 
-const QuestionPollAnswer =sequelize.define('questionPollAnswer', {
-    remoteId: Sequelize.TEXT,
+const QuestionPollAnswer = sequelize.define('questionPollAnswer', {
+  remoteId: Sequelize.TEXT
 })
 
-Post.hasOne(QuestionPoll);
-QuestionPoll.belongsTo(Post);
-QuestionPoll.hasMany(QuestionPollQuestion);
-QuestionPollQuestion.belongsTo(QuestionPoll);
-QuestionPollQuestion.hasMany(QuestionPollAnswer);
-QuestionPollAnswer.belongsTo(QuestionPollQuestion);
-
+Post.hasOne(QuestionPoll)
+QuestionPoll.belongsTo(Post)
+QuestionPoll.hasMany(QuestionPollQuestion)
+QuestionPollQuestion.belongsTo(QuestionPoll)
+QuestionPollQuestion.hasMany(QuestionPollAnswer)
+QuestionPollAnswer.belongsTo(QuestionPollQuestion)
 
 User.belongsToMany(User, {
   through: Follows,

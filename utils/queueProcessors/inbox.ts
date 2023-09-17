@@ -1,6 +1,16 @@
 import { Job } from 'bullmq'
 import { logger } from '../logger'
-import { Blocks, FederatedHost, Follows, Media, Post, ServerBlock, User, UserLikesPostRelations, sequelize } from '../../db'
+import {
+  Blocks,
+  FederatedHost,
+  Follows,
+  Media,
+  Post,
+  ServerBlock,
+  User,
+  UserLikesPostRelations,
+  sequelize
+} from '../../db'
 import { getRemoteActor } from '../activitypub/getRemoteActor'
 import { signAndAccept } from '../activitypub/signAndAccept'
 import { environment } from '../../environment'
@@ -102,26 +112,25 @@ async function inboxWorker(job: Job) {
             case 'ChatMessage':
             case 'Question': {
               const postCreated = await getPostThreadRecursive(user, postRecived.id, postRecived)
-              await signAndAccept({ body: body }, remoteUser, user);
-              if(postRecived.type === 'Question' && postCreated ) {
+              await signAndAccept({ body: body }, remoteUser, user)
+              if (postRecived.type === 'Question' && postCreated) {
                 await loadPoll(postCreated, postRecived, user)
               }
-              break;
+              break
             }
             default:
               logger.info(`post type not implemented: ${postRecived.type}`)
-
           }
           break
         }
         case 'Follow': {
           // Follow user
-          let userToBeFollowed: any;
-          if(req.body.object.startsWith(environment.frontendUrl)) {
-            const userUrl = req.body.object.split(environment.frontendUrl + '/fediverse/blog/')[1].toLowerCase();
+          let userToBeFollowed: any
+          if (req.body.object.startsWith(environment.frontendUrl)) {
+            const userUrl = req.body.object.split(environment.frontendUrl + '/fediverse/blog/')[1].toLowerCase()
             userToBeFollowed = await User.findOne({
               where: {
-                url:  sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userUrl),
+                url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userUrl)
               }
             })
           } else {
@@ -207,17 +216,17 @@ async function inboxWorker(job: Job) {
           const body = req.body
           switch (body.object.type) {
             case 'Follow': {
-              let userToBeUnfollowed: any;
-          if(req.body.object.startsWith(environment.frontendUrl)) {
-            const userUrl = req.body.object.split(environment.frontendUrl + '/fediverse/blog/')[1].toLowerCase();
-            userToBeUnfollowed = await User.findOne({
-              where: {
-                url:  sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userUrl),
+              let userToBeUnfollowed: any
+              if (req.body.object.startsWith(environment.frontendUrl)) {
+                const userUrl = req.body.object.split(environment.frontendUrl + '/fediverse/blog/')[1].toLowerCase()
+                userToBeUnfollowed = await User.findOne({
+                  where: {
+                    url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userUrl)
+                  }
+                })
+              } else {
+                userToBeUnfollowed = await getRemoteActor(req.body.object, user)
               }
-            })
-          } else {
-            userToBeUnfollowed = await getRemoteActor(req.body.object, user)
-          }
               const remoteFollow = await Follows.findOne({
                 where: {
                   // I think i was doing something wrong here. Changed so when remote unfollow does not cause you to unfollow them instead lol

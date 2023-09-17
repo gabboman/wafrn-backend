@@ -70,12 +70,13 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       if (postPetition.to[0].toString().indexOf('followers') !== -1) {
         privacy = 1
       }
-      let postTextContent = "" + postPetition.source?.mediaType === 'text/x.misskeymarkdown'
+      let postTextContent =
+        '' + postPetition.source?.mediaType === 'text/x.misskeymarkdown'
           ? toHtml(mfm.parse(postPetition.source.content))
-          : postPetition.content;
+          : postPetition.content
       if (postPetition.attachment && postPetition.attachment.length > 0 && !remoteUser.banned) {
         for await (const remoteFile of postPetition.attachment) {
-          if(remoteFile.type !== 'Link') {
+          if (remoteFile.type !== 'Link') {
             const wafrnMedia = await Media.create({
               url: remoteFile.url,
               NSFW: postPetition?.sensitive,
@@ -93,10 +94,10 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         }
       }
 
-      const lemmyName = postPetition.name ? postPetition.name : '';
+      const lemmyName = postPetition.name ? postPetition.name : ''
       postTextContent = postTextContent ? postTextContent : `<p>${lemmyName}</p>`
       const postToCreate: any = {
-        content: '' + postTextContent  + mediasString,
+        content: '' + postTextContent + mediasString,
         content_warning: postPetition.sensitive
           ? postPetition.summary
           : remoteUser.NSFW
@@ -239,7 +240,7 @@ async function processMentions(post: any, userIds: string[]) {
 
 async function processEmojis(post: any, fediEmojis: any[]) {
   const emojis: any[] = []
-  if(fediEmojis) {
+  if (fediEmojis) {
     for await (const emoji of fediEmojis) {
       let emojiToAdd = await Emoji.findByPk(emoji.id)
       if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
@@ -259,7 +260,7 @@ async function processEmojis(post: any, fediEmojis: any[]) {
       emojis.push(emojiToAdd)
     }
   }
-  
+
   return post.addEmojis(emojis)
 }
 

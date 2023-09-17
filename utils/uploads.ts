@@ -13,8 +13,6 @@ const imageStorage = multer.diskStorage({
   }
 })
 
-
-
 function uploadHandler(extensionsRegex?: RegExp) {
   return multer({
     storage: imageStorage,
@@ -24,12 +22,13 @@ function uploadHandler(extensionsRegex?: RegExp) {
     fileFilter(req, file, cb) {
       const name = file.originalname.toLowerCase()
       const isFileAllowed = !(
-        name.match(extensionsRegex ? extensionsRegex : /\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv|aac|mp3|wav|ogg|oga|m4a)$/) == null
+        name.match(
+          extensionsRegex ? extensionsRegex : /\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv|aac|mp3|wav|ogg|oga|m4a)$/
+        ) == null
       )
       cb(null, isFileAllowed)
     }
   })
 }
-
 
 export default uploadHandler

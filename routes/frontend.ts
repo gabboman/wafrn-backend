@@ -71,7 +71,10 @@ export default function frontend(app: Application) {
   app.get('*.*', express.static(environment.frontedLocation, { maxAge: '1s' }))
 
   // serve default angular application
-  app.get(['/', '/blog/*', '/dashboard/*', '/post/*', '/login', '/register', '/privacy', '/admin/*', '/profile/*'], function (req, res) {
-    res.status(200).sendFile('/', { root: environment.frontedLocation })
-  })
+  app.get(
+    ['/', '/blog/*', '/dashboard/*', '/post/*', '/login', '/register', '/privacy', '/admin/*', '/profile/*'],
+    function (req, res) {
+      res.status(200).sendFile('/', { root: environment.frontedLocation })
+    }
+  )
 }

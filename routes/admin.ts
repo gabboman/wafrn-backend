@@ -4,9 +4,9 @@ import { Blocks, FederatedHost, Post, PostReport, ServerBlock, User, sequelize }
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { server } from '../interfaces/server'
 import { Op, Sequelize } from 'sequelize'
-import Redis from "ioredis"
+import Redis from 'ioredis'
 import { environment } from '../environment'
-const redis = new Redis(environment.redisioConnection);
+const redis = new Redis(environment.redisioConnection)
 
 export default function adminRoutes(app: Application) {
   app.get('/api/admin/server-list', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
@@ -29,15 +29,15 @@ export default function adminRoutes(app: Application) {
       dbElements.forEach(async (elemToUpdate: any) => {
         const newValue = petitionBody.find((elem) => elem.id === elemToUpdate.id)
         if (newValue) {
-          elemToUpdate.blocked = newValue.blocked;
-          elemToUpdate.detail = newValue.detail;
-          promises.push(elemToUpdate.save());
-          if(elemToUpdate.blocked) {
+          elemToUpdate.blocked = newValue.blocked
+          elemToUpdate.detail = newValue.detail
+          promises.push(elemToUpdate.save())
+          if (elemToUpdate.blocked) {
             // we add it to the blocked cache
-            redis.set("server:" + elemToUpdate.displayName, "true")
+            redis.set('server:' + elemToUpdate.displayName, 'true')
           } else {
             // we remove it from the blocked cache
-            redis.set("server:"+ elemToUpdate.displayName, "false")
+            redis.set('server:' + elemToUpdate.displayName, 'false')
           }
           if (newValue.blocked) {
             promises.push(

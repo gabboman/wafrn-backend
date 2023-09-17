@@ -1,65 +1,64 @@
-import { Op } from "sequelize";
-import { Blocks, Follows, User } from "../db";
-import { logger } from "./logger";
-import { Response } from "express";
-import { remoteFollow } from "./activitypub/remoteFollow";
+import { Op } from 'sequelize'
+import { Blocks, Follows, User } from '../db'
+import { logger } from './logger'
+import { Response } from 'express'
+import { remoteFollow } from './activitypub/remoteFollow'
 
-async function follow(followerId: string, followedId: string, petition?: Response ): Promise<boolean> {
-    let res = false;
-    try {
-        const userFollowed = await User.findOne({
-            where: {
-              id: followedId
-            }
-          })
-          const blocksExisting = await Blocks.count({
-            where: {
-              [Op.or]: [
-                {
-                  blockerId: followerId,
-                  blockedId: { [Op.in]: [followedId] }
-                },
-                {
-                  blockedId: followerId,
-                  blockerId: { [Op.in]: [followedId] }
-                }
-              ]
-            }
-          })
-          if (blocksExisting > 0) {
-            if(petition) {
-              petition.sendStatus(500)
-              petition.send({
-                error: true,
-                message: 'You can not follow someone who you have blocked, nor who has blocked you'
-              })
-            }
-            res = false;
-            return res;
+async function follow(followerId: string, followedId: string, petition?: Response): Promise<boolean> {
+  let res = false
+  try {
+    const userFollowed = await User.findOne({
+      where: {
+        id: followedId
+      }
+    })
+    const blocksExisting = await Blocks.count({
+      where: {
+        [Op.or]: [
+          {
+            blockerId: followerId,
+            blockedId: { [Op.in]: [followedId] }
+          },
+          {
+            blockedId: followerId,
+            blockerId: { [Op.in]: [followedId] }
           }
-          const follow = await Follows.create({
-            followerId: followerId,
-            followedId: userFollowed.id,
-            accepted: userFollowed.url.startsWith('@') ? false : !userFollowed.manuallyAcceptsFollows
-          })
-          res = true
-          if (userFollowed.remoteId) {
-            const localUser = await User.findOne({ where: { id: followerId } })
-            const followPetition = await remoteFollow(localUser, userFollowed).catch((error) => {
-              logger.info('error following remote user');
-              res = false;
-            });
-            res = followPetition != undefined;
-            if(!res) {
-              await follow.destroy();
-            }
-          }
-    } catch (error) {
-        logger.error(error);
-        res = false;
+        ]
+      }
+    })
+    if (blocksExisting > 0) {
+      if (petition) {
+        petition.sendStatus(500)
+        petition.send({
+          error: true,
+          message: 'You can not follow someone who you have blocked, nor who has blocked you'
+        })
+      }
+      res = false
+      return res
     }
-    return res;
+    const follow = await Follows.create({
+      followerId: followerId,
+      followedId: userFollowed.id,
+      accepted: userFollowed.url.startsWith('@') ? false : !userFollowed.manuallyAcceptsFollows
+    })
+    res = true
+    if (userFollowed.remoteId) {
+      const localUser = await User.findOne({ where: { id: followerId } })
+      const followPetition = await remoteFollow(localUser, userFollowed).catch((error) => {
+        logger.info('error following remote user')
+        res = false
+      })
+      res = followPetition != undefined
+      if (!res) {
+        await follow.destroy()
+      }
+    }
+  } catch (error) {
+    logger.error(error)
+    res = false
+  }
+  return res
 }
 
-
-export {follow}
+export { follow }

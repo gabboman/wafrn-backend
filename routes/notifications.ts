@@ -12,12 +12,12 @@ export default function notificationRoutes(app: Application) {
   app.get('/api/notificationsScroll', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const page = Number(req?.query.page) || 0
     const userId = req.jwtData?.userId
-    if(page === 0 ) {
+    if (page === 0) {
       // we update the lasttimenotificationscheck
       User.findByPk(userId).then(async (user: any) => {
-        user.lastTimeNotificationsCheck = new Date();
-        await user.save();
-      })      
+        user.lastTimeNotificationsCheck = new Date()
+        await user.save()
+      })
     }
     // const blockedUsers = await getBlockedIds(userId)
     const perPostReblogs = await Post.findAll({
@@ -135,7 +135,7 @@ export default function notificationRoutes(app: Application) {
     const userId = req.jwtData?.userId ? req.jwtData?.userId : ''
     //const blockedUsers = await getBlockedIds(userId)
     const startCountDate = (await User.findByPk(userId)).lastTimeNotificationsCheck
-    
+
     const postNotifications = Post.count(getQueryReblogsMentions(userId, startCountDate))
 
     const newFollows = Follows.count({
@@ -165,7 +165,6 @@ export default function notificationRoutes(app: Application) {
     })
   })
 
-
   function getQueryReblogsMentions(userId: string, date: Date) {
     return {
       where: {
@@ -182,7 +181,9 @@ export default function notificationRoutes(app: Application) {
             )
           },
           {
-            literal: Sequelize.literal(`posts.id in (select postId from postMentionsUserRelations where userId = "${userId}")`)
+            literal: Sequelize.literal(
+              `posts.id in (select postId from postMentionsUserRelations where userId = "${userId}")`
+            )
           }
         ]
       }

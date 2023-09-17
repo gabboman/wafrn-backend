@@ -80,20 +80,18 @@ export default function searchRoutes(app: Application) {
         const usr = await User.findOne({ where: { id: posterId } })
         remoteUsers = await searchRemoteUser(searchTerm, usr)
         const remotePost = await getPostThreadRecursive(usr, searchTerm)
-        if(remotePost) {
-          const remotePostResult = await Post.findOne(
-            {
-              ...getPostBaseQuery(req),
-              where: {
-                id: remotePost.id
-              }
+        if (remotePost) {
+          const remotePostResult = await Post.findOne({
+            ...getPostBaseQuery(req),
+            where: {
+              id: remotePost.id
             }
-          )
-          remotePosts.push({...remotePostResult?.dataValues, notes: '???'})
+          })
+          remotePosts.push({ ...remotePostResult?.dataValues, notes: '???' })
         }
       }
     }
-    
+
     await Promise.all(promises)
     res.send({
       users: (await users).concat(remoteUsers),
