@@ -18,6 +18,8 @@ import { removeUser } from '../activitypub/removeUser'
 import { getPostThreadRecursive } from '../activitypub/getPostThreadRecursive'
 import { Op, Sequelize } from 'sequelize'
 import { loadPoll } from '../activitypub/loadPollFromPost'
+import getPostBaseQuery from '../getPostBaseQuery'
+import { redisCache } from '../redis'
 
 async function inboxWorker(job: Job) {
   try {
@@ -95,11 +97,15 @@ async function inboxWorker(job: Job) {
               updatedAt: new Date(),
               userId: remoteUser.id,
               remotePostId: body.id,
-              privacy: privacy
+              privacy: privacy,
+              parentId: retooted_content.id
             }
             const newToot = await Post.create(postToCreate)
-            await newToot.setParent(retooted_content)
-            await newToot.save()
+            newToot.save().then(async () => {
+              // load posts into redis cache
+              const postQueryResult = await Post.findByPk(newToot.id,getPostBaseQuery())
+              await redisCache.set("post:" + newToot.id, JSON.stringify(postQueryResult.dataValues))
+            })
             await signAndAccept({ body: body }, remoteUser, user)
           }
           break
@@ -116,6 +122,10 @@ async function inboxWorker(job: Job) {
               if (postRecived.type === 'Question' && postCreated) {
                 await loadPoll(postCreated, postRecived, user)
               }
+              // we load the post into the cache
+              Post.findByPk(postCreated.id,getPostBaseQuery()).then(async (newCreatedPost: any) => {
+                await redisCache.set("post:" + newCreatedPost.id, JSON.stringify(newCreatedPost.dataValues))
+              })
               break
             }
             default:
@@ -195,6 +205,15 @@ async function inboxWorker(job: Job) {
                   mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
                   await postToEdit.removeMedias()
                   await postToEdit.addMedias(medias)
+                  Post.findByPk(postToEdit.id, getPostBaseQuery()).then(async (postObject: any) => {
+                    redisCache.set('post:' + postObject.id, JSON.stringify(postObject.dataValues));
+                    const idsToRemoveFromCache = await postObject.getChildren({attributes: ['id']});
+                    if(idsToRemoveFromCache && idsToRemoveFromCache.length > 0) {
+                      idsToRemoveFromCache.forEach((elem: any) => {
+                        redisCache.del('post:' + elem.id)
+                      });
+                    }
+                  })
                 }
               }
               postToEdit.content = `${body.content}<p>${mediasString}<p>Post edited at ${body.updated}</p>`
