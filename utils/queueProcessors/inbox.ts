@@ -104,7 +104,7 @@ async function inboxWorker(job: Job) {
             newToot.save().then(async () => {
               // load posts into redis cache
               const postQueryResult = await Post.findByPk(newToot.id,getPostBaseQuery())
-              await redisCache.set("post:" + newToot.id, JSON.stringify(postQueryResult.dataValues))
+              redisCache.set("post:" + newToot.id, JSON.stringify(postQueryResult.dataValues))
             })
             await signAndAccept({ body: body }, remoteUser, user)
           }
