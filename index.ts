@@ -35,6 +35,7 @@ import optionalAuthentication from './utils/optionalAuthentication'
 import { workerInbox, workerUpdateRemoteUsers, workerSendPostChunk, workerPrepareSendPost } from './utils/workers'
 import { logger } from './utils/logger'
 import listRoutes from './routes/lists'
+import getFollowedsIds from './utils/getFollowedsIds'
 
 const swaggerJSON = require('./swagger.json')
 
@@ -69,10 +70,8 @@ app.get('/api/dashboard', authenticateToken, async (req: AuthorizedRequest, res:
     ...getPostBaseQuery(req),
     where: {
       createdAt: { [Op.lt]: getStartScrollParam(req) },
-      privacy: { [Op.in]: [0, 1] },
-      literal: sequelize.literal(
-        `userId in (select followedId from follows where followerId like "${posterId}" and accepted=true) OR userId like "${posterId}"`
-      )
+      privacy: { [Op.in]: [0, 1, 2] },
+      userId: {[Op.in]: await getFollowedsIds(posterId ? posterId : '')}
     }
   })
   const responseWithNotes = await getPosstGroupDetails(rawPostsByFollowed)

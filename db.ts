@@ -243,6 +243,14 @@ const Post = sequelize.define(
       {
         unique: false,
         fields: ['userId']
+      },
+      {
+        unique: false,
+        fields: ['createdAt']
+      },
+      {
+        unique: false,
+        fields: ['createdAt', 'userId']
       }
     ]
   }
@@ -335,6 +343,10 @@ const PostMentionsUserRelation = sequelize.define(
             //length: 1024
           }
         ]
+      },
+      {
+        unique: false,
+        fields: ['userId']
       }
     ]
   }
