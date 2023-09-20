@@ -3,6 +3,7 @@ import { User, Blocks } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 import { logger } from '../utils/logger'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
+import { redisCache } from '../utils/redis'
 
 export default function blockRoutes(app: Application) {
   app.post('/api/block', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
@@ -19,6 +20,12 @@ export default function blockRoutes(app: Application) {
         }
 
         success = true
+        redisCache.del('blocks:' + posterId)
+        redisCache.del('blocks:' + req.body.userId)
+        redisCache.del('follows:full:' + posterId)
+        redisCache.del('follows:local:' + posterId)
+        redisCache.del('follows:full:' + req.body.userId)
+        redisCache.del('follows:local:' + req.body.userId)
       }
     } catch (error) {
       logger.error(error)
@@ -41,6 +48,12 @@ export default function blockRoutes(app: Application) {
     res.send({
       success
     })
+    redisCache.del('blocks:' + posterId)
+    redisCache.del('blocks:' + req.body.userId)
+    redisCache.del('follows:full:' + posterId)
+    redisCache.del('follows:local:' + posterId)
+    redisCache.del('follows:full:' + req.body.userId)
+    redisCache.del('follows:local:' + req.body.userId)
   })
 
   async function myBlocks(id: string) {

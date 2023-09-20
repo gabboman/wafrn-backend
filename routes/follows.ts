@@ -9,6 +9,7 @@ import { remoteUnfollow } from '../utils/activitypub/remoteUnfollow'
 import { Op, Sequelize } from 'sequelize'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { follow } from '../utils/follow'
+import { redisCache } from '../utils/redis'
 
 export default function followsRoutes(app: Application) {
   app.post('/api/follow', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
@@ -49,6 +50,8 @@ export default function followsRoutes(app: Application) {
         }
 
         userUnfollowed.removeFollower(posterId)
+        redisCache.del('follows:full:' + posterId)
+        redisCache.del('follows:local:' + posterId)
         success = true
       }
     } catch (error) {

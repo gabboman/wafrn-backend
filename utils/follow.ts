@@ -3,6 +3,7 @@ import { Blocks, Follows, User } from '../db'
 import { logger } from './logger'
 import { Response } from 'express'
 import { remoteFollow } from './activitypub/remoteFollow'
+import { redisCache } from './redis'
 
 async function follow(followerId: string, followedId: string, petition?: Response): Promise<boolean> {
   let res = false
@@ -54,6 +55,8 @@ async function follow(followerId: string, followedId: string, petition?: Respons
         await follow.destroy()
       }
     }
+    redisCache.del('follows:full:' + followerId)
+    redisCache.del('follows:local:' + followerId)
   } catch (error) {
     logger.error(error)
     res = false
