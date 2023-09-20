@@ -4,7 +4,7 @@ import getBlockedIds from './getBlockedIds'
 import getFollowedsIds from './getFollowedsIds'
 
 export default async function getNonFollowedLocalUsersIds(userId: string): Promise<string[]> {
-  // TODO should we redis this data?
+  // TODO If we wanted to add cache to this, we would need to CLEAR LOCAL CACHE when registering a new user.
   try {
     const followedLocalUsers = getFollowedsIds(userId, true)
     const blockedUsers = getBlockedIds(userId)

@@ -1,9 +1,13 @@
 import { Op } from 'sequelize'
 import { Blocks, Follows, User } from '../db'
 import getBlockedIds from './getBlockedIds'
+import { redisCache } from './redis'
 
 export default async function getFollowedsIds(userId: string, local = false): Promise<string[]> {
-  //  should we redis this data?
+  const cacheResult = await redisCache.get(local ? 'follows:local:' + userId : 'follows:full:' + userId)
+  if (cacheResult) {
+    return JSON.parse(cacheResult)
+  }
   try {
     const usersWithBlocks = await getBlockedIds(userId)
     const whereObject: any = {
@@ -31,6 +35,7 @@ export default async function getFollowedsIds(userId: string, local = false): Pr
     })
     const result = followed.map((followed: any) => followed.followedId)
     result.push(userId)
+    redisCache.set(local ? 'follows:local:' + userId : 'follows:full:' + userId, JSON.stringify(result))
     return result as string[]
   } catch (error) {
     return []
