@@ -1,5 +1,5 @@
 import express, { Response } from 'express'
-import { Post, User, sequelize } from './db'
+import { Post, PostMentionsUserRelation, User, sequelize } from './db'
 import { Op, Sequelize } from 'sequelize'
 
 import cors from 'cors'
@@ -37,6 +37,7 @@ import { logger } from './utils/logger'
 import listRoutes from './routes/lists'
 import getFollowedsIds from './utils/getFollowedsIds'
 import getNonFollowedLocalUsersIds from './utils/getNotFollowedLocalUsersIds'
+import getBlockedIds from './utils/getBlockedIds'
 
 const swaggerJSON = require('./swagger.json')
 
@@ -159,15 +160,31 @@ app.get('/api/explore', authenticateToken, async (req: AuthorizedRequest, res) =
 })
 
 app.get('/api/private', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-  const posterId = req.jwtData?.userId
+  const posterId = req.jwtData?.userId;
+  const mentionedPostIds = (await PostMentionsUserRelation.findAll({
+    attributes: ['postId'],
+    where: {
+      userId: posterId
+    }
+  })).map( (mention: any ) => mention.postId )
   const rawPostsByFollowed = await Post.findAll({
     where: {
       // date the user has started scrolling
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: 10,
-      literal: sequelize.literal(
-        `id in (select postId from postMentionsUserRelations where userId like "${posterId}") or userId like "${posterId}" and privacy=10`
-      )
+      [Op.or]: [
+        {
+          id: {
+            [Op.in]: mentionedPostIds
+          },
+          userId: {
+            [Op.notIn]: await getBlockedIds(posterId? posterId : '')
+          }
+        },
+        {
+          userId: posterId
+        }
+      ]
     },
     ...getPostBaseQuery(req)
   })
