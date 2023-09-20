@@ -1,14 +1,31 @@
-import { Follows } from '../db'
+import { Op } from 'sequelize';
+import { Blocks, Follows, User } from '../db'
+import getBlockedIds from './getBlockedIds';
 
-export default async function getFollowedsIds(userId: string): Promise<string[]> {
+export default async function getFollowedsIds(userId: string, local = false): Promise<string[]> {
+  //  should we redis this data?
   try {
-    // TODO Utilize redis cache for this. We need to make sure every time follows get updated so does cache
+    const usersWithBlocks = await getBlockedIds(userId)
+    const whereObject: any = {
+      followerId: userId,
+      accepted: true,
+      followedId: {
+        [Op.notIn]: usersWithBlocks
+      }
+    };
+    if(local) {
+      whereObject['$follower.url$'] =  {
+        [Op.notLike]: '@%'
+      }
+    }
     const followed = await Follows.findAll({
       attributes: ['followedId'],
-      where: {
-        followerId: userId,
-        accepted: true
-      }
+      include: [{
+        model: User,
+        as: 'follower',
+        attributes: ['url']
+      }],
+      where: whereObject
     })
     const result = followed.map((followed: any) => followed.followedId)
     result.push(userId)
