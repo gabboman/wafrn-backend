@@ -16,13 +16,17 @@ export default async function getBlockedIds(userId: string, includeMutes = true)
         ]
       }
     })
-    const mutes = includeMutes ? Mutes.findAll({
-      where: {
-        muterId: userId
-      }
-    }) : []
+    const mutes = includeMutes
+      ? Mutes.findAll({
+          where: {
+            muterId: userId
+          }
+        })
+      : []
     await Promise.all([blocks, mutes])
-    return (await blocks).map((block: any) => block.blockerId !== userId ? block.blockerId : block.blockedId).concat((await mutes).map((mute: any) => mute.mutedId))
+    return (await blocks)
+      .map((block: any) => (block.blockerId !== userId ? block.blockerId : block.blockedId))
+      .concat((await mutes).map((mute: any) => mute.mutedId))
   } catch (error) {
     return []
   }

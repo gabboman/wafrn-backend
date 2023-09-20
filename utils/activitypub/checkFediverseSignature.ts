@@ -17,7 +17,6 @@ const adminUser = environment.forceSync
       }
     })
 
-
 export default async function checkFediverseSignature(req: Request, res: Response, next: NextFunction) {
   let success = false
   const digest = req.headers.digest

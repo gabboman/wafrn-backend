@@ -1,6 +1,6 @@
-import { Op } from 'sequelize';
+import { Op } from 'sequelize'
 import { Blocks, Follows, User } from '../db'
-import getBlockedIds from './getBlockedIds';
+import getBlockedIds from './getBlockedIds'
 
 export default async function getFollowedsIds(userId: string, local = false): Promise<string[]> {
   //  should we redis this data?
@@ -12,19 +12,21 @@ export default async function getFollowedsIds(userId: string, local = false): Pr
       followedId: {
         [Op.notIn]: usersWithBlocks
       }
-    };
-    if(local) {
-      whereObject['$follower.url$'] =  {
+    }
+    if (local) {
+      whereObject['$follower.url$'] = {
         [Op.notLike]: '@%'
       }
     }
     const followed = await Follows.findAll({
       attributes: ['followedId'],
-      include: [{
-        model: User,
-        as: 'follower',
-        attributes: ['url']
-      }],
+      include: [
+        {
+          model: User,
+          as: 'follower',
+          attributes: ['url']
+        }
+      ],
       where: whereObject
     })
     const result = followed.map((followed: any) => followed.followedId)

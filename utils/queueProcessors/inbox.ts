@@ -74,6 +74,7 @@ async function inboxWorker(job: Job) {
               if (followToUpdate) {
                 followToUpdate.accepted = true
                 await followToUpdate.save()
+                redisCache.del('follows:full:' + followToUpdate.followerId)
               }
             }
           }
@@ -198,12 +199,12 @@ async function inboxWorker(job: Job) {
                   await postToEdit.removeMedias()
                   await postToEdit.addMedias(medias)
                   Post.findByPk(postToEdit.id, getPostBaseQuery()).then(async (postObject: any) => {
-                    redisCache.set('post:' + postObject.id, JSON.stringify(postObject.dataValues));
-                    const idsToRemoveFromCache = await postObject.getChildren({attributes: ['id']});
-                    if(idsToRemoveFromCache && idsToRemoveFromCache.length > 0) {
+                    redisCache.set('post:' + postObject.id, JSON.stringify(postObject.dataValues))
+                    const idsToRemoveFromCache = await postObject.getChildren({ attributes: ['id'] })
+                    if (idsToRemoveFromCache && idsToRemoveFromCache.length > 0) {
                       idsToRemoveFromCache.forEach((elem: any) => {
                         redisCache.del('post:' + elem.id)
-                      });
+                      })
                     }
                   })
                 }

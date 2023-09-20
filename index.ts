@@ -73,7 +73,7 @@ app.get('/api/dashboard', authenticateToken, async (req: AuthorizedRequest, res:
     where: {
       createdAt: { [Op.lt]: getStartScrollParam(req) },
       privacy: { [Op.in]: [0, 1, 2] },
-      userId: {[Op.in]: await getFollowedsIds(posterId ? posterId : '')}
+      userId: { [Op.in]: await getFollowedsIds(posterId ? posterId : '') }
     }
   })
   const responseWithNotes = await getPosstGroupDetails(rawPostsByFollowed)
@@ -81,11 +81,11 @@ app.get('/api/dashboard', authenticateToken, async (req: AuthorizedRequest, res:
 })
 
 app.get('/api/exploreLocal', optionalAuthentication, async (req: AuthorizedRequest, res) => {
-  let rawPosts;
+  let rawPosts
   if (req.jwtData) {
-    const followedUsers =  getFollowedsIds(req.jwtData.userId, true);
-    const nonFollowedUsers = getNonFollowedLocalUsersIds(req.jwtData.userId);
-    await Promise.all([followedUsers, nonFollowedUsers]);
+    const followedUsers = getFollowedsIds(req.jwtData.userId, true)
+    const nonFollowedUsers = getNonFollowedLocalUsersIds(req.jwtData.userId)
+    await Promise.all([followedUsers, nonFollowedUsers])
     rawPosts = await Post.findAll({
       ...getPostBaseQuery(req),
       where: {
@@ -108,20 +108,22 @@ app.get('/api/exploreLocal', optionalAuthentication, async (req: AuthorizedReque
               [Op.in]: await nonFollowedUsers
             }
           }
-        ]   
+        ]
       }
-    });
+    })
   } else {
     // its a lot easier if we leave this as another query, the one with the user logged in is complex enough
-    const localUsers: string[] = (await User.findAll({
-      attributes: ['id'],
-      where: {
-        banned: false,
-        url: {
-          [Op.notLike]: '@%'
+    const localUsers: string[] = (
+      await User.findAll({
+        attributes: ['id'],
+        where: {
+          banned: false,
+          url: {
+            [Op.notLike]: '@%'
+          }
         }
-      }
-    })).map((user: any) => user.id)
+      })
+    ).map((user: any) => user.id)
     rawPosts = await Post.findAll({
       ...getPostBaseQuery(req),
       where: {
@@ -160,13 +162,15 @@ app.get('/api/explore', authenticateToken, async (req: AuthorizedRequest, res) =
 })
 
 app.get('/api/private', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-  const posterId = req.jwtData?.userId;
-  const mentionedPostIds = (await PostMentionsUserRelation.findAll({
-    attributes: ['postId'],
-    where: {
-      userId: posterId
-    }
-  })).map( (mention: any ) => mention.postId )
+  const posterId = req.jwtData?.userId
+  const mentionedPostIds = (
+    await PostMentionsUserRelation.findAll({
+      attributes: ['postId'],
+      where: {
+        userId: posterId
+      }
+    })
+  ).map((mention: any) => mention.postId)
   const rawPostsByFollowed = await Post.findAll({
     where: {
       // date the user has started scrolling
@@ -178,7 +182,7 @@ app.get('/api/private', authenticateToken, async (req: AuthorizedRequest, res: R
             [Op.in]: mentionedPostIds
           },
           userId: {
-            [Op.notIn]: await getBlockedIds(posterId? posterId : '')
+            [Op.notIn]: await getBlockedIds(posterId ? posterId : '')
           }
         },
         {
