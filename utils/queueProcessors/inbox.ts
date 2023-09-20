@@ -101,11 +101,7 @@ async function inboxWorker(job: Job) {
               parentId: retooted_content.id
             }
             const newToot = await Post.create(postToCreate)
-            newToot.save().then(async () => {
-              // load posts into redis cache
-              const postQueryResult = await Post.findByPk(newToot.id,getPostBaseQuery())
-              redisCache.set("post:" + newToot.id, JSON.stringify(postQueryResult.dataValues))
-            })
+            await newToot.save()
             await signAndAccept({ body: body }, remoteUser, user)
           }
           break
@@ -122,10 +118,6 @@ async function inboxWorker(job: Job) {
               if (postRecived.type === 'Question' && postCreated) {
                 await loadPoll(postCreated, postRecived, user)
               }
-              // we load the post into the cache
-              Post.findByPk(postCreated.id,getPostBaseQuery()).then(async (newCreatedPost: any) => {
-                await redisCache.set("post:" + newCreatedPost.id, JSON.stringify(newCreatedPost.dataValues))
-              })
               break
             }
             default:
