@@ -3,6 +3,7 @@ import { User, Mutes, FederatedHost, ServerBlock } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 import { logger } from '../utils/logger'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
+import { redisCache } from '../utils/redis'
 
 export default function blockUserServerRoutes(app: Application) {
   app.post('/api/blockUserServer', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
@@ -24,6 +25,8 @@ export default function blockUserServerRoutes(app: Application) {
             blockedServerId: userToGetServerBlocked.federatedHost.id
           })
         }
+        redisCache.del("serverblocks:" + userBlocker.id)
+
         success = true
       }
     } catch (error) {
@@ -33,6 +36,7 @@ export default function blockUserServerRoutes(app: Application) {
     res.send({
       success
     })
+
   })
 
   app.post('/api/unblockUserServer', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
@@ -45,7 +49,9 @@ export default function blockUserServerRoutes(app: Application) {
     }
     res.send({
       success
-    })
+    });
+    redisCache.del("serverblocks:" + posterId)
+
   })
 
   async function myServerBlocks(id: string) {
@@ -78,7 +84,7 @@ export default function blockUserServerRoutes(app: Application) {
         blockedServerId: serverToBeUnblocked,
         userBlockerId: userUnblocker
       }
-    })
+    });
     res.send(await myServerBlocks(userUnblocker))
   })
 }

@@ -20,14 +20,12 @@ import { Op, Sequelize } from 'sequelize'
 import { loadPoll } from '../activitypub/loadPollFromPost'
 import getPostBaseQuery from '../getPostBaseQuery'
 import { redisCache } from '../redis'
+import getBlockedIds from '../getBlockedIds'
+import getUserBlockedServers from '../getUserBlockedServers'
 
 async function inboxWorker(job: Job) {
   try {
-    const user = await User.findOne({
-      where: {
-        id: job.data.petitionBy
-      }
-    })
+    const user = await User.findByPk(job.data.petitionBy)
     const body = job.data.petition
     const req = { body: body }
     const remoteUser = await getRemoteActor(req.body.actor, user)
@@ -37,26 +35,10 @@ async function inboxWorker(job: Job) {
       }
     })
     // we check if the user has blocked the user or the server. This will mostly work for follows and dms. Will investigate further down the line
-    const blocksExisting = await Blocks.count({
-      where: {
-        [Op.or]: [
-          {
-            blockerId: user.id,
-            blockedId: remoteUser.id
-          },
-          {
-            blockedId: user.id,
-            blockerId: remoteUser.id
-          }
-        ]
-      }
-    })
-    const blocksServers = await ServerBlock.count({
-      where: {
-        blockedServerId: host.id,
-        userBlockerId: user.id
-      }
-    })
+    const userBlocks: string[] = await getBlockedIds(user.id, false)
+    const blocksExisting = userBlocks.includes(remoteUser.id) ? 1 : 0;
+    const blockedServersData = await getUserBlockedServers(user.id)
+    const blocksServers = blockedServersData.find((elem: any) => elem.id === host.id) ? 1 : 0;
     if (!remoteUser?.banned && !host?.blocked && blocksExisting + blocksServers === 0) {
       switch (req.body.type) {
         case 'Accept': {
