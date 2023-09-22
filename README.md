@@ -3,7 +3,7 @@ Wafrn is an opensource social network that connects with the fediverse. The fron
 
 
 ## What will you need
-Before trying to host your own wafrn, we advice you to please, very please, [join our matrix channel](https://matrix.to/#/#wafrn:matrix.org) to get support, questions to the team and all those stuffs. Wafrn is an alpha software. kinda. And you WILL find bugs. Either during the use or while trying to follow this manual. So yet again, [please join our matrix chatroom](https://matrix.to/#/#wafrn:matrix.org). We recomend the client element if you're new to this.
+Before trying to host your own wafrn, we advice you to please, very please, [join our matrix channel](https://matrix.to/#/!KFbQcLWJSAEcoKGxhl:matrix.org?via=matrix.org&via=t2bot.io) to get support, questions to the team and all those stuffs. Wafrn is an alpha software. kinda. And you WILL find bugs. Either during the use or while trying to follow this manual. So yet again, [please join our matrix chatroom](https://matrix.to/#/!KFbQcLWJSAEcoKGxhl:matrix.org?via=matrix.org&via=t2bot.io). We recomend the client element if you're new to this.
 Ok let's get started, this is what you will need
 
 - A few hours
