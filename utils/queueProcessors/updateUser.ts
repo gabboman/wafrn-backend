@@ -18,6 +18,8 @@ async function updateUserWorker(job: Job) {
     await remoteUser.save()
   } catch (error) {
     logger.trace(`Failed to update user ${job.data.userToUpdate}`)
+    logger.trace(error)
+    // TODO if user is deleted do stuff too
   }
 }
 
