@@ -150,9 +150,6 @@ app.get('/api/explore', authenticateToken, async (req: AuthorizedRequest, res) =
       },
       content: {
         [Op.notLike]: ''
-      },
-      banned: {
-        [Op.in]: [false, null]
       }
     },
     ...getPostBaseQuery(req)
