@@ -104,7 +104,7 @@ export default function notificationRoutes(app: Application) {
 
     const newLikes = UserLikesPostRelations.findAll({
       where: {
-        id: {
+        postId: {
           [Op.notIn]: await getMutedPosts(userId)
         },
         createdAt: {
@@ -160,7 +160,7 @@ export default function notificationRoutes(app: Application) {
 
     const newLikes = UserLikesPostRelations.count({
       where: {
-        id: {
+        postId: {
           [Op.notIn]: await getMutedPosts(userId)
         },
         createdAt: {
