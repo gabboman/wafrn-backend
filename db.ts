@@ -36,7 +36,7 @@ const FederatedHost = sequelize.define(
       allowNull: false,
       primaryKey: true
     },
-    displayName: Sequelize.STRING,
+    displayName: Sequelize.TEXT,
     publicInbox: Sequelize.TEXT,
     publicKey: Sequelize.TEXT,
     detail: Sequelize.STRING,
@@ -48,8 +48,13 @@ const FederatedHost = sequelize.define(
   {
     indexes: [
       {
-        unique: true,
-        fields: ['displayName']
+        unique: true, // fucking hell mysql
+        fields: [
+        {
+          attribute: 'displayName',
+          length: 768
+        }],
+
       }
     ]
   }
@@ -255,7 +260,8 @@ const Post = sequelize.define(
     ]
   }
 )
-
+const SilencedPost = sequelize.define('silencedPost', {
+})
 const PostTag = sequelize.define(
   'postTags',
   {
@@ -509,7 +515,11 @@ PostReport.belongsTo(User)
 PostReport.belongsTo(Post)
 Post.hasMany(PostReport)
 User.hasMany(PostReport)
+User.hasMany(SilencedPost, { as: 'silencedPost'})
+Post.hasMany(SilencedPost, {as: 'silencedBy'}),
 
+SilencedPost.belongsTo(User)
+SilencedPost.belongsTo(Post)
 Post.hasMany(PostTag)
 PostTag.belongsTo(Post)
 
@@ -575,5 +585,6 @@ export {
   PostMentionsUserRelation,
   UserLikesPostRelations,
   FederatedHost,
-  ServerBlock
+  ServerBlock,
+  SilencedPost
 }

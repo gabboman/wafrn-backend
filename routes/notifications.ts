@@ -7,11 +7,12 @@ import { sequelize } from '../db'
 import getStartScrollParam from '../utils/getStartScrollParam'
 import { environment } from '../environment'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
+import { getMutedPosts } from '../utils/cacheGetters/getMutedPosts'
 
 export default function notificationRoutes(app: Application) {
   app.get('/api/notificationsScroll', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const page = Number(req?.query.page) || 0
-    const userId = req.jwtData?.userId
+    const userId = req.jwtData?.userId as string;
     if (page === 0) {
       // we update the lasttimenotificationscheck
       User.findByPk(userId).then(async (user: any) => {
@@ -24,6 +25,9 @@ export default function notificationRoutes(app: Application) {
       where: {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
+        },
+        id: {
+          [Op.notIn]: await getMutedPosts(userId)
         },
         literal: Sequelize.literal(
           `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}" AND  posts.userId not in (select blockedId from blocks where blockerId = "${userId}")`
@@ -74,6 +78,9 @@ export default function notificationRoutes(app: Application) {
     */
     const newMentions = await Post.findAll({
       where: {
+        id: {
+          [Op.notIn]: await getMutedPosts(userId)
+        },
         literal: sequelize.literal(
           `posts.id in (select postId from postMentionsUserRelations where userId = "${userId}")
           AND
@@ -97,6 +104,9 @@ export default function notificationRoutes(app: Application) {
 
     const newLikes = UserLikesPostRelations.findAll({
       where: {
+        id: {
+          [Op.notIn]: await getMutedPosts(userId)
+        },
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
@@ -136,7 +146,7 @@ export default function notificationRoutes(app: Application) {
     //const blockedUsers = await getBlockedIds(userId)
     const startCountDate = (await User.findByPk(userId)).lastTimeNotificationsCheck
 
-    const postNotifications = Post.count(getQueryReblogsMentions(userId, startCountDate))
+    const postNotifications = Post.count(await getQueryReblogsMentions(userId, startCountDate))
 
     const newFollows = Follows.count({
       where: {
@@ -150,6 +160,9 @@ export default function notificationRoutes(app: Application) {
 
     const newLikes = UserLikesPostRelations.count({
       where: {
+        id: {
+          [Op.notIn]: await getMutedPosts(userId)
+        },
         createdAt: {
           [Op.gt]: startCountDate
         },
@@ -165,9 +178,12 @@ export default function notificationRoutes(app: Application) {
     })
   })
 
-  function getQueryReblogsMentions(userId: string, date: Date) {
+  async function getQueryReblogsMentions(userId: string, date: Date) {
     return {
       where: {
+        id: {
+          [Op.notIn]: await getMutedPosts(userId)
+        },
         createdAt: {
           [Op.gt]: date
         },
