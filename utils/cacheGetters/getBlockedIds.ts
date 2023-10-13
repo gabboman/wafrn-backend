@@ -1,6 +1,6 @@
 import { Op } from 'sequelize'
-import { Blocks, Mutes, User } from '../db'
-import { redisCache } from './redis'
+import { Blocks, Mutes, User } from '../../db'
+import { redisCache } from '../redis'
 
 export default async function getBlockedIds(userId: string, includeMutes = true): Promise<string[]> {
   try {

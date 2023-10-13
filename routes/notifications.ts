@@ -8,6 +8,7 @@ import getStartScrollParam from '../utils/getStartScrollParam'
 import { environment } from '../environment'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { getMutedPosts } from '../utils/cacheGetters/getMutedPosts'
+import getBlockedIds from '../utils/cacheGetters/getBlockedIds'
 
 export default function notificationRoutes(app: Application) {
   app.get('/api/notificationsScroll', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
@@ -29,8 +30,11 @@ export default function notificationRoutes(app: Application) {
         parentId: {
           [Op.notIn]: await getMutedPosts(userId)
         },
+        userId: {
+          [Op.notIn]:  await getBlockedIds(userId)
+        },
         literal: Sequelize.literal(
-          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}" AND  posts.userId not in (select blockedId from blocks where blockerId = "${userId}")`
+          `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}"`
         )
       },
       include: [
@@ -47,11 +51,13 @@ export default function notificationRoutes(app: Application) {
 
     const newFollowsQuery = await Follows.findAll({
       where: {
-        literal: sequelize.literal(`followerId not in (select blockedId from blocks where blockerId = "${userId}")`),
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        followedId: userId
+        followedId: userId,
+        followerId: {
+          [Op.notIn]:  await getBlockedIds(userId)
+        }
       },
       attributes: ['createdAt'],
       include: [
@@ -82,12 +88,13 @@ export default function notificationRoutes(app: Application) {
           [Op.notIn]: await getMutedPosts(userId)
         },
         literal: sequelize.literal(
-          `posts.id in (select postId from postMentionsUserRelations where userId = "${userId}")
-          AND
-          posts.userId not in (select blockedId from blocks where blockerId = "${userId}")`
+          `posts.id in (select postId from postMentionsUserRelations where userId = "${userId}")`
         ),
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
+        },
+        userId: {
+          [Op.notIn]:  await getBlockedIds(userId)
         }
       },
       include: [
@@ -110,9 +117,10 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")
-        AND
-        userId not in (select blockedId from blocks where blockerId = "${userId}")`)
+        userId: {
+          [Op.notIn]:  await getBlockedIds(userId)
+        },
+        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
       },
       include: [
         {
@@ -150,7 +158,9 @@ export default function notificationRoutes(app: Application) {
 
     const newFollows = Follows.count({
       where: {
-        literal: sequelize.literal(`followerId not in (select blockedId from blocks where blockerId = "${userId}")`),
+        followerId: {
+          [Op.notIn]:  await getBlockedIds(userId)
+        },
         createdAt: {
           [Op.gt]: startCountDate
         },
@@ -166,8 +176,10 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.gt]: startCountDate
         },
-        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}") AND
-        userId not in (select blockedId from blocks where blockerId = "${userId}")`)
+        userId: {
+          [Op.notIn]:  await getBlockedIds(userId)
+        },
+        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
       }
     })
 
@@ -188,7 +200,7 @@ export default function notificationRoutes(app: Application) {
           [Op.gt]: date
         },
         userId: {
-          [Op.notIn]: sequelize.literal(`(select blockedId from blocks where blockerId = "${userId}")`)
+          [Op.notIn]: await getBlockedIds(userId)
         },
         [Op.or]: [
           {

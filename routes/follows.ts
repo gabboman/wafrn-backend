@@ -2,7 +2,7 @@ import { Application, Response } from 'express'
 import { Blocks, Follows, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
-import getBlockedIds from '../utils/getBlockedIds'
+import getBlockedIds from '../utils/cacheGetters/getBlockedIds'
 import { logger } from '../utils/logger'
 import { remoteFollow } from '../utils/activitypub/remoteFollow'
 import { remoteUnfollow } from '../utils/activitypub/remoteUnfollow'

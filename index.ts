@@ -35,9 +35,9 @@ import optionalAuthentication from './utils/optionalAuthentication'
 import { workerInbox, workerUpdateRemoteUsers, workerSendPostChunk, workerPrepareSendPost } from './utils/workers'
 import { logger } from './utils/logger'
 import listRoutes from './routes/lists'
-import getFollowedsIds from './utils/getFollowedsIds'
-import getNonFollowedLocalUsersIds from './utils/getNotFollowedLocalUsersIds'
-import getBlockedIds from './utils/getBlockedIds'
+import getFollowedsIds from './utils/cacheGetters/getFollowedsIds'
+import getBlockedIds from './utils/cacheGetters/getBlockedIds'
+import getNonFollowedLocalUsersIds from './utils/cacheGetters/getNotFollowedLocalUsersIds'
 
 const swaggerJSON = require('./swagger.json')
 

@@ -1,7 +1,7 @@
 import { Op } from 'sequelize'
-import { Blocks, Follows, User } from '../db'
-import getBlockedIds from './getBlockedIds'
 import getFollowedsIds from './getFollowedsIds'
+import getBlockedIds from './getBlockedIds'
+import { User } from '../../db'
 
 export default async function getNonFollowedLocalUsersIds(userId: string): Promise<string[]> {
   // TODO If we wanted to add cache to this, we would need to CLEAR LOCAL CACHE when registering a new user.

@@ -20,8 +20,8 @@ import { Op, Sequelize } from 'sequelize'
 import { loadPoll } from '../activitypub/loadPollFromPost'
 import getPostBaseQuery from '../getPostBaseQuery'
 import { redisCache } from '../redis'
-import getBlockedIds from '../getBlockedIds'
-import getUserBlockedServers from '../getUserBlockedServers'
+import getBlockedIds from '../cacheGetters/getBlockedIds'
+import getUserBlockedServers from '../cacheGetters/getUserBlockedServers'
 
 async function inboxWorker(job: Job) {
   try {

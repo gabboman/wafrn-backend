@@ -1,7 +1,6 @@
 import { Op } from 'sequelize'
-import { Blocks, Follows, ServerBlock, User } from '../db'
-import getBlockedIds from './getBlockedIds'
-import { redisCache } from './redis'
+import { redisCache } from '../redis'
+import { ServerBlock } from '../../db'
 
 export default async function getUserBlockedServers(userId: string): Promise<string[]> {
   const cacheResult = await redisCache.get('serverblocks:' + userId)

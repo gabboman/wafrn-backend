@@ -1,7 +1,7 @@
 import { Op } from 'sequelize'
-import { Blocks, Follows, User } from '../db'
+import { Blocks, Follows, User } from '../../db'
 import getBlockedIds from './getBlockedIds'
-import { redisCache } from './redis'
+import { redisCache } from '../redis'
 
 export default async function getFollowedsIds(userId: string, local = false): Promise<string[]> {
   const cacheResult = await redisCache.get(local ? 'follows:local:' + userId : 'follows:full:' + userId)
