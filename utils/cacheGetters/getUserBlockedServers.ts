@@ -9,10 +9,10 @@ export default async function getUserBlockedServers(userId: string): Promise<str
   }
   try {
     const blocksServers = await ServerBlock.findAll({
-        where: {
-          userBlockerId: userId
-        }
-      })
+      where: {
+        userBlockerId: userId
+      }
+    })
     const result = blocksServers.map((elem: any) => elem.dataValues)
     redisCache.set('serverblocks:' + userId, JSON.stringify(result))
     return result as string[]

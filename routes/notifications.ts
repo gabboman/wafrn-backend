@@ -13,7 +13,7 @@ import getBlockedIds from '../utils/cacheGetters/getBlockedIds'
 export default function notificationRoutes(app: Application) {
   app.get('/api/notificationsScroll', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const page = Number(req?.query.page) || 0
-    const userId = req.jwtData?.userId as string;
+    const userId = req.jwtData?.userId as string
     if (page === 0) {
       // we update the lasttimenotificationscheck
       User.findByPk(userId).then(async (user: any) => {
@@ -31,7 +31,7 @@ export default function notificationRoutes(app: Application) {
           [Op.notIn]: await getMutedPosts(userId)
         },
         userId: {
-          [Op.notIn]:  await getBlockedIds(userId)
+          [Op.notIn]: await getBlockedIds(userId)
         },
         literal: Sequelize.literal(
           `posts.id IN (select postsId from postsancestors where ancestorId in (select id from posts where userId = "${userId}")) AND userId NOT LIKE "${userId}"`
@@ -56,7 +56,7 @@ export default function notificationRoutes(app: Application) {
         },
         followedId: userId,
         followerId: {
-          [Op.notIn]:  await getBlockedIds(userId)
+          [Op.notIn]: await getBlockedIds(userId)
         }
       },
       attributes: ['createdAt'],
@@ -94,7 +94,7 @@ export default function notificationRoutes(app: Application) {
           [Op.lt]: getStartScrollParam(req)
         },
         userId: {
-          [Op.notIn]:  await getBlockedIds(userId)
+          [Op.notIn]: await getBlockedIds(userId)
         }
       },
       include: [
@@ -118,7 +118,7 @@ export default function notificationRoutes(app: Application) {
           [Op.lt]: getStartScrollParam(req)
         },
         userId: {
-          [Op.notIn]:  await getBlockedIds(userId)
+          [Op.notIn]: await getBlockedIds(userId)
         },
         literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
       },
@@ -159,7 +159,7 @@ export default function notificationRoutes(app: Application) {
     const newFollows = Follows.count({
       where: {
         followerId: {
-          [Op.notIn]:  await getBlockedIds(userId)
+          [Op.notIn]: await getBlockedIds(userId)
         },
         createdAt: {
           [Op.gt]: startCountDate
@@ -177,7 +177,7 @@ export default function notificationRoutes(app: Application) {
           [Op.gt]: startCountDate
         },
         userId: {
-          [Op.notIn]:  await getBlockedIds(userId)
+          [Op.notIn]: await getBlockedIds(userId)
         },
         literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
       }

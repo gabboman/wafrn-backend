@@ -26,7 +26,12 @@ const files = [
   './routes/notifications.ts',
   './routes/posts.ts',
   './routes/search.ts',
-  './routes/users.ts'
+  './routes/users.ts',
+  './routes/admin.ts',
+  './routes/blockUserServer.ts',
+  './routes/blocks.ts',
+  './routes/like.ts',
+  './routes/mute.ts'
 ]
 
 swaggerAutogen({ openapi: '3.0.0' })('./swagger.json', files, config)
