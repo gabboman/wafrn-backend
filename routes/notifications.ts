@@ -163,9 +163,6 @@ export default function notificationRoutes(app: Application) {
         postId: {
           [Op.notIn]: await getMutedPosts(userId)
         },
-        id: {
-          [Op.notIn]: await getMutedPosts(userId)
-        },
         createdAt: {
           [Op.gt]: startCountDate
         },
