@@ -26,7 +26,7 @@ export default function notificationRoutes(app: Application) {
         createdAt: {
           [Op.lt]: getStartScrollParam(req)
         },
-        id: {
+        parentId: {
           [Op.notIn]: await getMutedPosts(userId)
         },
         literal: Sequelize.literal(
@@ -161,6 +161,9 @@ export default function notificationRoutes(app: Application) {
     const newLikes = UserLikesPostRelations.count({
       where: {
         postId: {
+          [Op.notIn]: await getMutedPosts(userId)
+        },
+        parentId: {
           [Op.notIn]: await getMutedPosts(userId)
         },
         createdAt: {
