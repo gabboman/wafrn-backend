@@ -34,6 +34,7 @@ async function getPetitionSigned(user: any, target: string): Promise<any> {
     }/fediverse/blog/${user.url.toLocaleLowerCase()}#main-key",algorithm="rsa-sha256",headers="(request-target) host date accept",signature="${signature}"`
     const headers = {
       'Content-Type': 'application/activity+json',
+      'User-Agent': environment.instanceUrl,
       Accept: acceptedFormats,
       Algorithm: 'rsa-sha256',
       Host: url.host,
