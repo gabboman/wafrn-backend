@@ -99,7 +99,7 @@ async function inboxWorker(job: Job) {
               const postCreated = await getPostThreadRecursive(user, postRecived.id, postRecived)
               await signAndAccept({ body: body }, remoteUser, user)
               if (postRecived.type === 'Question' && postCreated) {
-                await loadPoll(postCreated, postRecived, user)
+                await loadPoll(postRecived, postCreated, user)
               }
               break
             }
@@ -151,6 +151,10 @@ async function inboxWorker(job: Job) {
         case 'Update': {
           const body = req.body.object
           switch (body.type) {
+            case 'Question': {
+              await loadPoll(body.object, await getPostThreadRecursive(user, body.id), user)
+            }
+            // eslint-disable-next-line no-fallthrough
             case 'Note': {
               const postToEdit = await Post.findOne({
                 where: {
@@ -185,8 +189,8 @@ async function inboxWorker(job: Job) {
               postToEdit.content = `${body.content}<p>${mediasString}<p>Post edited at ${body.updated}</p>`
               postToEdit.updatedAt = body.updated
               await postToEdit.save()
-              const acceptResponse = await signAndAccept(req, remoteUser, user)
-              break
+              const acceptResponse = await signAndAccept(req, remoteUser, user);
+              break;
             }
             default: {
               logger.info(`update not implemented ${body.type}`)

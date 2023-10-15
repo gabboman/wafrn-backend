@@ -410,11 +410,14 @@ const UserLikesPostRelations = sequelize.define(
 )
 
 const QuestionPoll = sequelize.define('questionPoll', {
-  endDate: Sequelize.DATE
+  endDate: Sequelize.DATE,
+  multiChoice: Sequelize.BOOLEAN
 })
 
 const QuestionPollQuestion = sequelize.define('questionPollQuestion', {
-  questionText: Sequelize.TEXT
+  questionText: Sequelize.TEXT,
+  index: Sequelize.INTEGER,
+  remoteReplies: Sequelize.INTEGER
 })
 
 const QuestionPollAnswer = sequelize.define('questionPollAnswer', {
@@ -423,11 +426,14 @@ const QuestionPollAnswer = sequelize.define('questionPollAnswer', {
 
 Post.hasOne(QuestionPoll)
 QuestionPoll.belongsTo(Post)
-QuestionPoll.hasMany(QuestionPollQuestion)
+QuestionPoll.hasMany(QuestionPollQuestion,  { onDelete: 'cascade' })
 QuestionPollQuestion.belongsTo(QuestionPoll)
-QuestionPollQuestion.hasMany(QuestionPollAnswer)
+QuestionPollQuestion.hasMany(QuestionPollAnswer, { onDelete: 'cascade' })
+QuestionPollAnswer.belongsTo(User)
 QuestionPollAnswer.belongsTo(QuestionPollQuestion)
 
+
+User.hasMany(QuestionPollAnswer)
 User.belongsToMany(User, {
   through: Follows,
   as: 'followed',
@@ -583,5 +589,8 @@ export {
   UserLikesPostRelations,
   FederatedHost,
   ServerBlock,
-  SilencedPost
+  SilencedPost,
+  QuestionPoll,
+  QuestionPollAnswer,
+  QuestionPollQuestion
 }
