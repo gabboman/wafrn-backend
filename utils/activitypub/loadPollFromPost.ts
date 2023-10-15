@@ -4,7 +4,7 @@ import { getPostThreadRecursive } from "./getPostThreadRecursive";
 
 async function loadPoll(apObj: any, internalPostObject: any, user: any) {
 try{
-const multiChoice = !!apObj.anyOf;
+const multiChoice = apObj.anyOf != undefined;
   const remoteQuestions: any[] = apObj.anyOf ? apObj.anyOf : apObj.oneOf;
   const existingPoll = await QuestionPoll.findOne({where: {
     postId: internalPostObject.id
