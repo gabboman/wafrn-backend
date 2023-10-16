@@ -12,7 +12,7 @@ const multiChoice = apObj.anyOf != undefined;
   // we check the poll and if it does not exists we create it
   const poll = existingPoll ? existingPoll : await QuestionPoll.create({
     postId: internalPostObject.id,
-    endDate: new Date(apObj.closed),
+    endDate: new Date(apObj.closed ? apObj.closed : apObj.endTime),
     multiChoice: multiChoice
   });
   const questions = await poll.getQuestionPollQuestions();
