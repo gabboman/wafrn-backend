@@ -152,8 +152,7 @@ async function inboxWorker(job: Job) {
           const body = req.body.object
           switch (body.type) {
             case 'Question': {
-              logger.warn(body)
-              await loadPoll(body.object, await getPostThreadRecursive(user, body.id), user)
+              await loadPoll(body, await getPostThreadRecursive(user, body.id), user)
             }
             // eslint-disable-next-line no-fallthrough
             case 'Note': {
