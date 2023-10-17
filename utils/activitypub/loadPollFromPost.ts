@@ -26,8 +26,10 @@ const multiChoice = apObj.anyOf != undefined;
         index: index,
         questionText: remoteQuestions[index].name,
         remoteReplies: remoteQuestions[index].replies.totalItems ? remoteQuestions[index].replies.totalItems : 0,
-        questionPollId: poll.id
-    })
+        questionPollId: poll.id,
+        updatedAt: new Date()
+    });
+    elem.save()
     });
   } else {
     // OH NO! the poll has a different number of things. We will assume that is new
