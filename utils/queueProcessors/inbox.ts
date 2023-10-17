@@ -146,6 +146,7 @@ async function inboxWorker(job: Job) {
           // we accept it
           const acceptResponse = await signAndAccept(req, remoteUser, user)
           logger.debug(`Remote user ${remoteUser.url} started following ${user.url}`)
+          logger.debug({body: req.body})
           break
         }
         case 'Update': {

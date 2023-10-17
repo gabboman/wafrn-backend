@@ -6,18 +6,28 @@ async function loadPoll(apObj: any, internalPostObject: any, user: any) {
 try{
 const multiChoice = apObj.anyOf != undefined;
   const remoteQuestions: any[] = apObj.anyOf ? apObj.anyOf : apObj.oneOf;
-  const existingPoll = await QuestionPoll.findOne({where: {
+  const existingPoll = await QuestionPoll.findOne({
+    include: [QuestionPollQuestion],
+    where: {
     postId: internalPostObject.id
-  }})
+  }}
+  )
   // we check the poll and if it does not exists we create it
   const poll = existingPoll ? existingPoll : await QuestionPoll.create({
     postId: internalPostObject.id,
     endDate: new Date(apObj.closed ? apObj.closed : apObj.endTime),
     multiChoice: multiChoice
   });
-  const questions = await poll.getQuestionPollQuestions();
+  const questions = existingPoll.questionPOllQuestions? existingPoll.questionPOllQuestions :  await poll.getQuestionPollQuestions();
   if(remoteQuestions.length === questions.length) {
-    // all good. We might need to update names
+    questions.forEach((elem: any, index: number) => {
+      elem.update({
+        index: index,
+        questionText: remoteQuestions[index].name,
+        remoteReplies: remoteQuestions[index].replies.totalItems ? remoteQuestions[index].replies.totalItems : 0,
+        questionPollId: poll.id
+    })
+    });
   } else {
     // OH NO! the poll has a different number of things. We will assume that is new
     // just in case we will delete the vote tho
