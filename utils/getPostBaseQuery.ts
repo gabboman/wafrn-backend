@@ -15,6 +15,21 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
         as: 'ancestors',
         include: [
           {
+            model: QuestionPoll,
+            include: [{
+              model: QuestionPollQuestion,
+              include: [
+                {
+                  model: QuestionPollAnswer,
+                  required: false,
+                  where: {
+                    userId: userPosterId
+                  }
+                }
+              ]
+            }]
+          },
+          {
             model: User,
             as: 'user',
             attributes: ['avatar', 'remoteId', 'url', 'description', 'id']
