@@ -7,50 +7,16 @@ import { environment } from '../../environment'
 import { return404 } from '../../utils/return404'
 import { postToJSONLD } from '../../utils/activitypub/postToJSONLD'
 import { Queue } from 'bullmq'
+import { getLocalUserId } from '../../utils/cacheGetters/getLocalUserId'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Cacher = require('cacher')
 const cacher = new Cacher()
 
-// local user cache
-const userCache = new Map<string, string>()
-let userCacheRefreshed: Date = new Date()
-
-function updateLocalUserCache() {
-  if (environment.forceSync) {
-    return undefined
-  }
-  userCacheRefreshed = new Date()
-  userCache.clear()
-  User.findAll({
-    attributes: ['id', 'url'],
-    where: {
-      url: {
-        [Op.notLike]: '@%'
-      },
-      banned: false
-    }
-  }).then((users: any[]) => {
-    users.forEach((user: any) => {
-      userCache.set(user.url.toLowerCase(), user.id)
-    })
-  })
-}
-
-updateLocalUserCache()
 
 // we get the user from the memory cache. if does not exist we try to find it
 async function getLocalUserByUrl(url: string): Promise<any> {
-  const resultId = userCache.get(url.toLocaleLowerCase())
-  let result: any
-  if (!resultId && !url.startsWith('@')) {
-    result = await User.findOne({
-      where: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', url.toLowerCase())
-    })
-    userCache.set(url.toLocaleLowerCase(), result.id)
-  } else {
-    result = await User.findByPk(resultId)
-  }
-  return result
+  const userId = await getLocalUserId(url)
+  return await User.findByPk(userId)
 }
 
 const inboxQueue = new Queue('inbox', {
