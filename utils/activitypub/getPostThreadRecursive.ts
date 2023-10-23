@@ -39,6 +39,16 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
   } else {
     try {
       const postPetition = remotePostObject ? remotePostObject : await getPetitionSigned(user, remotePostId)
+      if(postPetition) {
+        const remotePostInDatabase =  await Post.findOne({
+          where: {
+            remotePostId: postPetition.id
+          }
+        });
+        if(remotePostInDatabase) {
+          return remotePostInDatabase
+        }
+      }
       const remoteUser = await getRemoteActor(postPetition.attributedTo, user)
       const remoteUserServerBaned = remoteUser.federatedHostId
         ? (await FederatedHost.findByPk(remoteUser.federatedHostId)).blocked
@@ -106,7 +116,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         createdAt: new Date(postPetition.published),
         updatedAt: new Date(),
         userId: remoteUser.id,
-        remotePostId,
+        remotePostId: postPetition.id,
         privacy: privacy
       }
 
