@@ -1,10 +1,10 @@
 import { QuestionPoll, QuestionPollQuestion } from "../../db";
 import { logger } from "../logger";
-import { getPostThreadRecursive } from "./getPostThreadRecursive";
 
 async function loadPoll(apObj: any, internalPostObject: any, user: any) {
-if(!apObj.anyOf && !apObj.oneOf) {
-  return;
+  let res = false;
+if(apObj.anyOf == undefined && apObj.oneOf == undefined) {
+  return res;
 }
 try{
 const multiChoice = apObj.anyOf != undefined;
@@ -49,12 +49,14 @@ const multiChoice = apObj.anyOf != undefined;
       })
     }
   }
-
+  res = true;
 } 
 catch(error)
 {
   logger.warn({error: error, ap: apObj, internalPostObject: internalPostObject})
 }
+
+return res;
   
 }
 
