@@ -96,11 +96,9 @@ async function inboxWorker(job: Job) {
             case 'Note':
             case 'ChatMessage':
             case 'Question': {
-              const postCreated = await getPostThreadRecursive(user, postRecived.id, postRecived)
+              await getPostThreadRecursive(user, postRecived.id, postRecived)
               await signAndAccept({ body: body }, remoteUser, user)
-              if (postRecived.type === 'Question' && postCreated) {
-                await loadPoll(postRecived, postCreated, user)
-              }
+              
               break
             }
             default:

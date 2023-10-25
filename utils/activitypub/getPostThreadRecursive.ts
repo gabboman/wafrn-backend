@@ -18,6 +18,7 @@ import { getPetitionSigned } from './getPetitionSigned'
 import { fediverseTag } from '../../interfaces/fediverse/tags'
 import { toHtml } from '@opera7133/mfmp'
 import * as mfm from 'mfm-js'
+import { loadPoll } from './loadPollFromPost'
 async function getPostThreadRecursive(user: any, remotePostId: string, remotePostObject?: any) {
   if (remotePostId.startsWith(`${environment.frontendUrl}/fediverse/post/`)) {
     // we are looking at a local post
@@ -35,6 +36,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
     }
   })
   if (postInDatabase) {
+    await loadPoll(remotePostObject, postInDatabase, user)
     return postInDatabase
   } else {
     try {
@@ -46,6 +48,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
           }
         });
         if(remotePostInDatabase) {
+          await loadPoll(remotePostObject, remotePostInDatabase, user)
           return remotePostInDatabase
         }
       }
@@ -173,6 +176,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
           logger.info('problem processing tags')
         }
         await processMentions(newPost, mentionedUsersIds)
+        await loadPoll(remotePostObject, newPost, user)
         return newPost
       } else {
         const post = await Post.create(postToCreate)
@@ -188,7 +192,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
           logger.debug('Problem processing emojis')
         }
         await processMentions(post, mentionedUsersIds)
-
+        await loadPoll(remotePostObject, post, user)
         return post
       }
     } catch (error) {

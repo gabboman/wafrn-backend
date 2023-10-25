@@ -3,6 +3,9 @@ import { logger } from "../logger";
 import { getPostThreadRecursive } from "./getPostThreadRecursive";
 
 async function loadPoll(apObj: any, internalPostObject: any, user: any) {
+if(!apObj.anyOf && !apObj.oneOf) {
+  return;
+}
 try{
 const multiChoice = apObj.anyOf != undefined;
   const remoteQuestions: any[] = apObj.anyOf ? apObj.anyOf : apObj.oneOf;
