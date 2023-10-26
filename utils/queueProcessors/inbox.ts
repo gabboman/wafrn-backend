@@ -98,7 +98,6 @@ async function inboxWorker(job: Job) {
             case 'Question': {
               await getPostThreadRecursive(user, postRecived.id, postRecived)
               await signAndAccept({ body: body }, remoteUser, user)
-              
               break
             }
             default:

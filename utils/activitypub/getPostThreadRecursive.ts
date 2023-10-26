@@ -36,8 +36,10 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
     }
   })
   if (postInDatabase) {
-    await loadPoll(remotePostObject, postInDatabase, user)
-    return postInDatabase
+    const parentPostPetition = await getPetitionSigned(user, postInDatabase.remotePostId);
+    if(parentPostPetition) {
+      await loadPoll(parentPostPetition, postInDatabase, user)
+    }    return postInDatabase
   } else {
     try {
       const postPetition = remotePostObject ? remotePostObject : await getPetitionSigned(user, remotePostId)
@@ -48,7 +50,10 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
           }
         });
         if(remotePostInDatabase) {
-          await loadPoll(remotePostObject, remotePostInDatabase, user)
+          const parentPostPetition = await getPetitionSigned(user, remotePostInDatabase.remotePostId);
+          if(parentPostPetition) {
+            await loadPoll(parentPostPetition, remotePostInDatabase, user)
+          }
           return remotePostInDatabase
         }
       }
@@ -200,7 +205,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         message: 'error getting remote post',
         url: remotePostId,
         user: user.url,
-        error: error
+        problem: error
       })
       return null
     }

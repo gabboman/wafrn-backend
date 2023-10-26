@@ -3,7 +3,7 @@ import { logger } from "../logger";
 
 async function loadPoll(apObj: any, internalPostObject: any, user: any) {
   let res = false;
-if(apObj.anyOf == undefined && apObj.oneOf == undefined) {
+if(apObj && apObj.anyOf == undefined && apObj.oneOf == undefined) {
   return res;
 }
 try{
