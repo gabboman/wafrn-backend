@@ -38,7 +38,7 @@ async function likePostRemote(like: any, dislike = false) {
     ]
   })
   const stringMyFollowers = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`
-  const ownerOfLikedPost = likedPost.user.remoteId
+  const ownerOfLikedPost = likedPost.user.remoteId ? likedPost.user.remoteId : `${environment.frontendUrl}/fediverse/blog/${likedPost.user.url}`
   const likeObject: activityPubObject = !dislike
     ? {
         '@context': ['https://www.w3.org/ns/activitystreams', `${environment.frontendUrl}/contexts/litepub-0.1.jsonld`],
@@ -51,7 +51,7 @@ async function likePostRemote(like: any, dislike = false) {
             : [stringMyFollowers],
         cc: likedPost.privacy / 1 === 0 ? [ownerOfLikedPost] : [],
         id: `${environment.frontendUrl}/fediverse/likes/${like.userId}/${like.postId}`,
-        object: likedPost.remotePostId,
+        object: likedPost.remotePostId ? likedPost.remotePostId : `${environment.frontendUrl}/fediverse/post/${likedPost.id}`,
         type: 'Like'
       }
     : {
