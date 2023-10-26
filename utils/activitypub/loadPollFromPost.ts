@@ -53,7 +53,7 @@ const multiChoice = apObj.anyOf != undefined;
 } 
 catch(error)
 {
-  logger.warn({problem: error, ap: apObj, internalPostObject: internalPostObject})
+  logger.trace({problem: error, ap: apObj, internalPostObject: internalPostObject})
 }
 
 return res;
