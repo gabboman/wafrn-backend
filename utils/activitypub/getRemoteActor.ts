@@ -1,5 +1,7 @@
 import { FederatedHost, User } from '../../db'
 import { environment } from '../../environment'
+import { getFederatedHostIdFromUrl } from '../cacheGetters/getHostIdFromUrl'
+import { getUserIdFromRemoteId } from '../cacheGetters/getUserIdFromRemoteId'
 import { logger } from '../logger'
 import { getPetitionSigned } from './getPetitionSigned'
 import { Queue } from 'bullmq'
@@ -20,82 +22,16 @@ const deletedUser = environment.forceSync
       }
     })
 
-const hostCache: Map<string, any> = new Map()
 
-// we only cache the uuids
-const userCache: Map<string, string> = new Map()
-
-function updateHostCache() {
-  if (environment.forceSync) {
-    return undefined
-  }
-  hostCache.clear()
-  FederatedHost.findAll({}).then((hosts: any) => {
-    hosts.forEach((host: any) => {
-      hostCache.set(host.displayName, host.id)
-    })
-  })
-}
-
-function updateUserCache() {
-  if (environment.forceSync) {
-    return undefined
-  }
-  userCache.clear()
-  User.findAll().then((users: any) => {
-    users.forEach((user: any) => {
-      userCache.set(user.remoteId, user.id)
-    })
-  })
-}
 
 async function getUserFromCache(remoteId: string) {
-  let result = undefined
-  let userId = userCache.get(remoteId)
-  if (userId) {
-    result = await User.findByPk(userId)
-    if (result.id != userId) {
-      console.log('findbypk did not returned the correct thing')
-      userId = undefined
-    }
-  }
-  if (!userId) {
-    result = await User.findOne({
-      where: {
-        remoteId: remoteId
-      }
-    })
-    if (result) {
-      userCache.set(remoteId, result.id)
-    }
-  }
-  return result
+  return await User.findByPk(await getUserIdFromRemoteId(remoteId))
 }
 
 async function getHostFromCache(displayName: string): Promise<any> {
-  const cacheResult = hostCache.get(displayName)
-  let result: any
-  if (!cacheResult) {
-    result = await FederatedHost.findOne({
-      where: {
-        displayName: displayName
-      }
-    })
-    if (result) {
-      hostCache.set(displayName, result.id)
-    } else {
-      result = {
-        blocked: false
-      }
-    }
-  } else {
-    result = await FederatedHost.findByPk(cacheResult)
-  }
-  return result
+  await FederatedHost.findByPk(await getFederatedHostIdFromUrl(displayName))
 }
 
-updateHostCache()
-updateUserCache()
 
 async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdate = false): Promise<any> {
   if (level === 100) {

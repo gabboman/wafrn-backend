@@ -262,16 +262,16 @@ export default function postsRoutes(app: Application) {
             ]
           }
         })
-        const blocksServers = await ServerBlock.count({
+        const blocksServers = 0;/*await ServerBlock.count({
           where: {
             userBlockerId: posterId,
             literal: Sequelize.literal(
-              `blockedServerId IN (SELECT federatedHostId from users where id IN (${mentionsToAdd.map(
+              `blockedServerId IN (SELECT federatedHostId from users where id IN (${  mentionsToAdd.map(
                 (elem) => '"' + elem + '"'
               )}))`
             )
           }
-        })
+        })*/
         if (blocksExisting + blocksServers > 0) {
           res.status(500)
           post.destroy()
