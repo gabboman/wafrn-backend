@@ -10,7 +10,7 @@ async function getFederatedHostIdFromUrl(hostname: string): Promise<string> {
     const host = await FederatedHost.findOne({
         attributes: ['id'],
         where: {
-            displayName: sequelize.where(sequelize.fn('LOWER', sequelize.col('hostname')), 'LIKE', hostname.toLowerCase())
+            displayName: sequelize.where(sequelize.fn('LOWER', sequelize.col('displayName')), 'LIKE', hostname.toLowerCase())
 
         }
     });
