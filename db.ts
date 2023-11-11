@@ -75,6 +75,7 @@ const User = sequelize.define(
       //unique: true
     },
     description: Sequelize.TEXT,
+    name: Sequelize.TEXT,
     url: {
       type: Sequelize.TEXT
     },
