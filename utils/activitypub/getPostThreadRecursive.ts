@@ -161,7 +161,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       }
       if (postPetition.inReplyTo) {
         const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
-        postToCreate.parentId = parent.id
+        postToCreate.parentId = parent?.id
         const newPost = await Post.create(postToCreate)
         await newPost.setParent(parent)
         try {
