@@ -32,11 +32,11 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
           {
             model: User,
             as: 'user',
-            attributes: ['avatar', 'remoteId', 'url', 'name', 'description', 'id']
+            attributes: ['avatar', 'remoteId', 'url', 'name', 'id']
           },
           {
             model: Media,
-            attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external']
+            attributes: ['id', 'NSFW', 'url', 'adultContent', 'external']
           },
           {
             model: PostTag,
@@ -74,11 +74,11 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
       {
         model: User,
         as: 'user',
-        attributes: ['avatar', 'url', 'name', 'description', 'id', 'remoteId']
+        attributes: ['avatar', 'url', 'name', 'id', 'remoteId']
       },
       {
         model: Media,
-        attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external']
+        attributes: ['id', 'NSFW', 'url', 'adultContent', 'external']
       },
       {
         model: PostTag,
