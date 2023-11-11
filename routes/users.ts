@@ -71,6 +71,7 @@ export default function userRoutes(app: Application) {
             email: req.body.email.toLowerCase(),
             description: req.body.description.trim(),
             url: req.body.url.trim().replace(' ', '_'),
+            name: req.body.name ? req.body.name : req.body.url.trim().replace(' ', '_'),
             NSFW: req.body.nsfw === 'true',
             password: await bcrypt.hash(req.body.password, environment.saltRounds),
             birthDate: new Date(req.body.birthDate),
@@ -320,7 +321,7 @@ export default function userRoutes(app: Application) {
     if (req.query?.id) {
       const blogId: string = (req.query.id || '').toString().toLowerCase().trim()
       const blog = await User.findOne({
-        attributes: ['id', 'url', 'description', 'remoteId', 'avatar', 'federatedHostId'],
+        attributes: ['id', 'url', 'name', 'description', 'remoteId', 'avatar', 'federatedHostId'],
         where: {
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId),
           banned: false,

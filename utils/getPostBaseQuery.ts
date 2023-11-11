@@ -32,11 +32,11 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
           {
             model: User,
             as: 'user',
-            attributes: ['avatar', 'remoteId', 'url', 'description', 'id']
+            attributes: ['avatar', 'remoteId', 'url', 'name', 'description', 'id']
           },
           {
             model: Media,
-            attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external']
+            attributes: ['id', 'NSFW', 'description', 'url', 'name', 'adultContent', 'external']
           },
           {
             model: PostTag,
@@ -49,7 +49,7 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
           {
             model: User,
             as: 'mentionPost',
-            attributes: ['url', 'id', 'avatar', 'remoteId']
+            attributes: ['url', 'name', 'id', 'avatar', 'remoteId']
           },
           {
             model: Emoji
@@ -74,11 +74,11 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
       {
         model: User,
         as: 'user',
-        attributes: ['avatar', 'url', 'description', 'id', 'remoteId']
+        attributes: ['avatar', 'url', 'name', 'description', 'id', 'remoteId']
       },
       {
         model: Media,
-        attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external']
+        attributes: ['id', 'NSFW', 'description', 'url', 'name', 'adultContent', 'external']
       },
       {
         model: PostTag,
@@ -87,7 +87,7 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
       {
         model: User,
         as: 'mentionPost',
-        attributes: ['url', 'id', 'avatar', 'remoteId']
+        attributes: ['url', 'name', 'id', 'avatar', 'remoteId']
       },
       {
         model: UserLikesPostRelations,
