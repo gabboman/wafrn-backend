@@ -23,7 +23,6 @@ const multiChoice = apObj.anyOf != undefined;
   });
   const questions = existingPoll.questionPOllQuestions? existingPoll.questionPOllQuestions :  await poll.getQuestionPollQuestions();
   if(remoteQuestions.length === questions.length) {
-    logger.info('updating poll')
     questions.forEach((elem: any, index: number) => {
       elem.update({
         index: index,
