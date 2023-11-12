@@ -321,7 +321,7 @@ export default function userRoutes(app: Application) {
     if (req.query?.id) {
       const blogId: string = (req.query.id || '').toString().toLowerCase().trim()
       const blog = await User.findOne({
-        attributes: ['id', 'url', 'name', 'description', 'remoteId', 'avatar', 'federatedHostId'],
+        attributes: ['id', 'url', 'name', 'description', 'remoteId', 'avatar', 'federatedHostId', 'headerImage'],
         where: {
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId),
           banned: false,

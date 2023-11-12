@@ -14,6 +14,7 @@ async function updateUserWorker(job: Job) {
     })
     remoteUser.description = userPetition.summary
     remoteUser.name = userPetition.name
+    remoteUser.headerImage = userPetition.image?.url ? userPetition.image.url : ''
     remoteUser.avatar = userPetition.icon?.url ? userPetition.icon.url : `${environment.mediaUrl}/uploads/default.webp`
     remoteUser.updatedAt = new Date()
     await remoteUser.save()

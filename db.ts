@@ -116,7 +116,8 @@ const User = sequelize.define(
     manuallyAcceptsFollows: {
       type: Sequelize.BOOLEAN,
       defaultValue: false
-    }
+    },
+    headerImage: Sequelize.TEXT
   },
   {
     indexes: [

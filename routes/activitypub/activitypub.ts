@@ -84,7 +84,7 @@ function activityPubRoutes(app: Application) {
           inbox: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/inbox`,
           outbox: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/outbox`,
           preferredUsername: user.url.toLowerCase(),
-          name: user.url,
+          name: user.name,
           summary: user.description,
           url: `${environment.frontendUrl}/blog/${user.url.toLowerCase()}`,
           manuallyApprovesFollowers: false,
@@ -101,7 +101,7 @@ function activityPubRoutes(app: Application) {
           image: {
             type: 'Image',
             mediaType: 'image/webp',
-            url: environment.mediaUrl + user.avatar
+            url: environment.mediaUrl + user.headerImage
           },
           publicKey: {
             id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}#main-key`,
