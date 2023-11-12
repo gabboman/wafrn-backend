@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Blocks, Mutes, ServerBlock, User } from '../db'
+import { Blocks, Emoji, Mutes, ServerBlock, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import generateRandomString from '../utils/generateRandomString'
@@ -322,6 +322,12 @@ export default function userRoutes(app: Application) {
       const blogId: string = (req.query.id || '').toString().toLowerCase().trim()
       const blog = await User.findOne({
         attributes: ['id', 'url', 'name', 'description', 'remoteId', 'avatar', 'federatedHostId', 'headerImage'],
+        include: [
+          {
+            model: Emoji,
+            required: false
+          }
+        ],
         where: {
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId),
           banned: false,
