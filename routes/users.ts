@@ -161,6 +161,10 @@ export default function userRoutes(app: Application) {
             user.description = req.body.description
           }
 
+          if(req.body.name){
+            user.name = req.body.name
+          }
+
           if (req.file != null) {
             let avatarURL = `/${optimizeMedia(req.file.path)}`
             if (environment.removeFolderNameFromFileUploads) {
