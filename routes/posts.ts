@@ -147,7 +147,7 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.post('/api/createPost', authenticateToken, createPostLimiter, async (req: AuthorizedRequest, res: Response) => {
+  app.post('/api/createPost', checkIpBlocked, authenticateToken, createPostLimiter, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     const posterId = req.jwtData?.userId
     try {
