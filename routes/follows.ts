@@ -10,6 +10,7 @@ import { Op, Sequelize } from 'sequelize'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { follow } from '../utils/follow'
 import { redisCache } from '../utils/redis'
+import getFollowedsIds from '../utils/cacheGetters/getFollowedsIds'
 
 export default function followsRoutes(app: Application) {
   app.post('/api/follow', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
@@ -64,18 +65,22 @@ export default function followsRoutes(app: Application) {
   })
 
   app.get('/api/getFollowedUsers', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-    // const followedUsers = getFollowedsIds(req.jwtData?.userId)
-    const followedUsers = Follows.findAll({
-      where: {
-        followerId: req.jwtData?.userId
-      }
-    })
+    const followedUsers = getFollowedsIds(req.jwtData?.userId as string)
     const blockedUsers = getBlockedIds(req.jwtData?.userId as string)
-
-    Promise.all([followedUsers, blockedUsers])
-    res.send({
-      followedUsers: (await followedUsers).map((elem: any) => elem.followedId).concat(req.jwtData?.userId),
-      blockedUsers: await blockedUsers
+    let user = await User.findByPk(req.jwtData?.userId, {
+      attributes: ['banned']
     })
+    Promise.all([followedUsers, blockedUsers, user]);
+    user = await user;
+    if(!user || user.banned) {
+      res.sendStatus(401)
+    }
+    else {
+      res.send({
+        followedUsers: await followedUsers,
+        blockedUsers: await blockedUsers
+      })
+    }
+    
   })
 }
