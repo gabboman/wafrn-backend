@@ -275,7 +275,12 @@ export default function userRoutes(app: Application) {
     try {
       if (req.body?.email && req.body.password) {
         const userWithEmail = await User.findOne({
-          where: { email: req.body.email.toLowerCase() }
+          where: {
+            email: req.body.email.toLowerCase(),
+            banned: {
+              [Op.ne]: true
+            }
+          }
         })
         if (userWithEmail) {
           const correctPassword = await bcrypt.compare(req.body.password, userWithEmail.password)
