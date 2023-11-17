@@ -42,7 +42,7 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
           },
           {
             model: Media,
-            attributes: ['id', 'NSFW', 'url', 'adultContent', 'external']
+            attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external']
           },
           {
             model: PostTag,
@@ -96,7 +96,7 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
       },
       {
         model: Media,
-        attributes: ['id', 'NSFW', 'url', 'adultContent', 'external']
+        attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external']
       },
       {
         model: PostTag,
