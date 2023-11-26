@@ -70,17 +70,15 @@ export default function followsRoutes(app: Application) {
     let user = await User.findByPk(req.jwtData?.userId, {
       attributes: ['banned']
     })
-    Promise.all([followedUsers, blockedUsers, user]);
-    user = await user;
-    if(!user || user.banned) {
+    Promise.all([followedUsers, blockedUsers, user])
+    user = await user
+    if (!user || user.banned) {
       res.sendStatus(401)
-    }
-    else {
+    } else {
       res.send({
         followedUsers: await followedUsers,
         blockedUsers: await blockedUsers
       })
     }
-    
   })
 }

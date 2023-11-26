@@ -24,8 +24,6 @@ const deletedUser = environment.forceSync
       }
     })
 
-
-
 async function getUserFromCache(remoteId: string) {
   return await User.findByPk(await getUserIdFromRemoteId(remoteId))
 }
@@ -33,7 +31,6 @@ async function getUserFromCache(remoteId: string) {
 async function getHostFromCache(displayName: string): Promise<any> {
   await FederatedHost.findByPk(await getFederatedHostIdFromUrl(displayName))
 }
-
 
 async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdate = false): Promise<any> {
   if (level === 100) {
@@ -71,7 +68,10 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
         activated: true
       }
       remoteUser = await User.create(userToCreate)
-      await processUserEmojis(remoteUser, userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji'))
+      await processUserEmojis(
+        remoteUser,
+        userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
+      )
       let federatedHost = await FederatedHost.findOne({
         where: {
           displayName: url.host.toLocaleLowerCase()

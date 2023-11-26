@@ -1,13 +1,23 @@
 import { Request } from 'express'
-import { Emoji, Media, Post, PostTag, QuestionPoll, QuestionPollAnswer, QuestionPollQuestion, User, UserLikesPostRelations } from '../db'
+import {
+  Emoji,
+  Media,
+  Post,
+  PostTag,
+  QuestionPoll,
+  QuestionPollAnswer,
+  QuestionPollQuestion,
+  User,
+  UserLikesPostRelations
+} from '../db'
 import { environment } from '../environment'
-import AuthorizedRequest from '../interfaces/authorizedRequest';
+import AuthorizedRequest from '../interfaces/authorizedRequest'
 
 const POSTS_PER_PAGE = environment.postsPerPage
 
 export default function getPostBaseQuery(req?: AuthorizedRequest) {
-  const page = Number(req?.query.page) || 0;
-  const userPosterId = req?.jwtData?.userId ? req.jwtData.userId : environment.deletedUser;
+  const page = Number(req?.query.page) || 0
+  const userPosterId = req?.jwtData?.userId ? req.jwtData.userId : environment.deletedUser
   return {
     include: [
       {
@@ -16,18 +26,20 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
         include: [
           {
             model: QuestionPoll,
-            include: [{
-              model: QuestionPollQuestion,
-              include: [
-                {
-                  model: QuestionPollAnswer,
-                  required: false,
-                  where: {
-                    userId: userPosterId
+            include: [
+              {
+                model: QuestionPollQuestion,
+                include: [
+                  {
+                    model: QuestionPollAnswer,
+                    required: false,
+                    where: {
+                      userId: userPosterId
+                    }
                   }
-                }
-              ]
-            }]
+                ]
+              }
+            ]
           },
           {
             model: User,
@@ -70,18 +82,20 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
       },
       {
         model: QuestionPoll,
-        include: [{
-          model: QuestionPollQuestion,
-          include: [
-            {
-              model: QuestionPollAnswer,
-              required: false,
-              where: {
-                userId: userPosterId
+        include: [
+          {
+            model: QuestionPollQuestion,
+            include: [
+              {
+                model: QuestionPollAnswer,
+                required: false,
+                where: {
+                  userId: userPosterId
+                }
               }
-            }
-          ]
-        }]
+            ]
+          }
+        ]
       },
       {
         model: User,

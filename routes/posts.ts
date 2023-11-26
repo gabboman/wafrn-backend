@@ -147,122 +147,127 @@ export default function postsRoutes(app: Application) {
     }
   })
 
-  app.post('/api/createPost', checkIpBlocked, authenticateToken, createPostLimiter, async (req: AuthorizedRequest, res: Response) => {
-    let success = false
-    const posterId = req.jwtData?.userId
-    try {
-      if (req.body.parent) {
-        const parent = await Post.findOne({
-          where: {
-            id: req.body.parent
-          },
-          include: [
-            {
-              model: Post,
-              as: 'ancestors'
-            }
-          ]
-        })
-        if (!parent) {
-          success = false
-          res.status(500)
-          res.send({ success: false, message: 'non existent parent' })
-          return false
-        }
-        // we check that the user is not reblogging a post by someone who blocked them or the other way arround
-        // TODO: make poostparentusers an unique array.
-        const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId)
-        postParentsUsers.push(parent.userId)
-        const bannedUsers = await User.count({
-          where: {
-            id: {
-              [Op.in]: postParentsUsers
+  app.post(
+    '/api/createPost',
+    checkIpBlocked,
+    authenticateToken,
+    createPostLimiter,
+    async (req: AuthorizedRequest, res: Response) => {
+      let success = false
+      const posterId = req.jwtData?.userId
+      try {
+        if (req.body.parent) {
+          const parent = await Post.findOne({
+            where: {
+              id: req.body.parent
             },
-            banned: true
-          }
-        })
-        const blocksExistingOnParents = await Blocks.count({
-          where: {
-            [Op.or]: [
+            include: [
               {
-                blockerId: posterId,
-                blockedId: { [Op.in]: postParentsUsers }
-              },
-              {
-                blockedId: posterId,
-                blockerId: { [Op.in]: postParentsUsers }
+                model: Post,
+                as: 'ancestors'
               }
             ]
+          })
+          if (!parent) {
+            success = false
+            res.status(500)
+            res.send({ success: false, message: 'non existent parent' })
+            return false
           }
-        })
-        if (blocksExistingOnParents + bannedUsers > 0) {
-          success = false
-          res.status(500)
-          res.send({ success: false, message: 'You have no permission to reblog this post' })
-          return false
+          // we check that the user is not reblogging a post by someone who blocked them or the other way arround
+          // TODO: make poostparentusers an unique array.
+          const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId)
+          postParentsUsers.push(parent.userId)
+          const bannedUsers = await User.count({
+            where: {
+              id: {
+                [Op.in]: postParentsUsers
+              },
+              banned: true
+            }
+          })
+          const blocksExistingOnParents = await Blocks.count({
+            where: {
+              [Op.or]: [
+                {
+                  blockerId: posterId,
+                  blockedId: { [Op.in]: postParentsUsers }
+                },
+                {
+                  blockedId: posterId,
+                  blockerId: { [Op.in]: postParentsUsers }
+                }
+              ]
+            }
+          })
+          if (blocksExistingOnParents + bannedUsers > 0) {
+            success = false
+            res.status(500)
+            res.send({ success: false, message: 'You have no permission to reblog this post' })
+            return false
+          }
         }
-      }
-      const content = req.body.content ? req.body.content.trim() : ''
-      const content_warning = req.body.content_warning ? req.body.content_warning.trim() : ''
-      const post = await Post.create({
-        content,
-        content_warning,
-        userId: posterId,
-        privacy: req.body.privacy ? req.body.privacy : 0,
-        parentId: req.body.parent
-      })
+        const content = req.body.content ? req.body.content.trim() : ''
+        const content_warning = req.body.content_warning ? req.body.content_warning.trim() : ''
+        const post = await Post.create({
+          content,
+          content_warning,
+          userId: posterId,
+          privacy: req.body.privacy ? req.body.privacy : 0,
+          parentId: req.body.parent
+        })
 
-      // post content as html
-      const parsedAsHTML = cheerio.load(req.body.content)
+        // post content as html
+        const parsedAsHTML = cheerio.load(req.body.content)
 
-      // detect media in posts using regexes
-      // eslint-disable-next-line max-len
-      const wafrnMediaRegex =
-        /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
+        // detect media in posts using regexes
+        // eslint-disable-next-line max-len
+        const wafrnMediaRegex =
+          /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
 
-      // eslint-disable-next-line max-len
-      const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/
+        // eslint-disable-next-line max-len
+        const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/
 
-      const mediaInPost = req.body.content.match(wafrnMediaRegex)
-      const mentionsInPost = parsedAsHTML('span.mention')
-      if (mediaInPost) {
-        const mediaToAdd: string[] = []
-        mediaInPost.forEach((element: string) => {
-          const mediaUUIDs = element.match(uuidRegex)
-          if (mediaUUIDs != null) {
-            const uuid = mediaUUIDs[0]
-            if (!mediaToAdd.includes(uuid)) {
-              mediaToAdd.push(uuid)
+        const mediaInPost = req.body.content.match(wafrnMediaRegex)
+        const mentionsInPost = parsedAsHTML('span.mention')
+        if (mediaInPost) {
+          const mediaToAdd: string[] = []
+          mediaInPost.forEach((element: string) => {
+            const mediaUUIDs = element.match(uuidRegex)
+            if (mediaUUIDs != null) {
+              const uuid = mediaUUIDs[0]
+              if (!mediaToAdd.includes(uuid)) {
+                mediaToAdd.push(uuid)
+              }
+            }
+          })
+
+          post.addMedias(mediaToAdd)
+        }
+
+        if (mentionsInPost && mentionsInPost.length > 0) {
+          const mentionsToAdd: string[] = []
+          for (let index = 0; index < mentionsInPost.length; index++) {
+            const elem = mentionsInPost[index]
+            if (elem.attribs['data-id'] && !mentionsToAdd.includes(elem.attribs['data-id'])) {
+              mentionsToAdd.push(elem.attribs['data-id'])
             }
           }
-        })
-
-        post.addMedias(mediaToAdd)
-      }
-
-      if (mentionsInPost && mentionsInPost.length > 0) {
-        const mentionsToAdd: string[] = []
-        for (let index = 0; index < mentionsInPost.length; index++) {
-          const elem = mentionsInPost[index]
-          if (elem.attribs['data-id'] && !mentionsToAdd.includes(elem.attribs['data-id'])) {
-            mentionsToAdd.push(elem.attribs['data-id'])
-          }
-        }
-        const blocksExisting = await Blocks.count({
-          where: {
-            [Op.or]: [
-              {
-                blockerId: posterId,
-                blockedId: { [Op.in]: mentionsToAdd }
-              },
-              {
-                blockedId: posterId,
-                blockerId: { [Op.in]: mentionsToAdd }
-              }
-            ]
-          }
-        })
-        const blocksServers = 0;/*await ServerBlock.count({
+          const blocksExisting = await Blocks.count({
+            where: {
+              [Op.or]: [
+                {
+                  blockerId: posterId,
+                  blockedId: { [Op.in]: mentionsToAdd }
+                },
+                {
+                  blockedId: posterId,
+                  blockerId: { [Op.in]: mentionsToAdd }
+                }
+              ]
+            }
+          })
+          const blocksServers = 0 /*await ServerBlock.count({
           where: {
             userBlockerId: posterId,
             literal: Sequelize.literal(
@@ -272,51 +277,56 @@ export default function postsRoutes(app: Application) {
             )
           }
         })*/
-        if (blocksExisting + blocksServers > 0) {
-          res.status(500)
-          post.destroy()
-          res.send({
-            error: true,
-            message: 'You can not mention an user that you have blocked or has blocked you'
-          })
-          return null
-        }
-        mentionsToAdd.forEach((mention) => {
-          PostMentionsUserRelation.create({
-            userId: mention,
-            postId: post.id
-          })
-        })
-      }
-      success = !req.body.tags
-      if (req.body.tags) {
-        const tagListString = req.body.tags
-        let tagList: string[] = tagListString.split(',')
-        tagList = tagList.map((s: string) => s.trim())
-        await PostTag.bulkCreate(
-          tagList.map((tag) => {
-            return {
-              tagName: tag,
+          if (blocksExisting + blocksServers > 0) {
+            res.status(500)
+            post.destroy()
+            res.send({
+              error: true,
+              message: 'You can not mention an user that you have blocked or has blocked you'
+            })
+            return null
+          }
+          mentionsToAdd.forEach((mention) => {
+            PostMentionsUserRelation.create({
+              userId: mention,
               postId: post.id
-            }
+            })
           })
-        )
+        }
+        success = !req.body.tags
+        if (req.body.tags) {
+          const tagListString = req.body.tags
+          let tagList: string[] = tagListString.split(',')
+          tagList = tagList.map((s: string) => s.trim())
+          await PostTag.bulkCreate(
+            tagList.map((tag) => {
+              return {
+                tagName: tag,
+                postId: post.id
+              }
+            })
+          )
 
-        success = true
+          success = true
+        }
+        res.send(post)
+        await post.save()
+        if (post.privacy.toString() !== '2') {
+          await prepareSendPostQueue.add(
+            'prepareSendPost',
+            { postId: post.id, petitionBy: posterId },
+            { jobId: post.id }
+          )
+        }
+      } catch (error) {
+        logger.error(error)
       }
-      res.send(post)
-      await post.save()
-      if (post.privacy.toString() !== '2') {
-        await prepareSendPostQueue.add('prepareSendPost', { postId: post.id, petitionBy: posterId }, { jobId: post.id })
+      if (!success) {
+        res.statusCode = 400
+        res.send({ success: false })
       }
-    } catch (error) {
-      logger.error(error)
     }
-    if (!success) {
-      res.statusCode = 400
-      res.send({ success: false })
-    }
-  })
+  )
 
   app.post('/api/reportPost', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false

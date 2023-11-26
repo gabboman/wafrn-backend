@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer')
+import nodemailer from 'nodemailer'
 import { environment } from '../environment'
 const transporter = nodemailer.createTransport(environment.emailConfig)
 

@@ -69,34 +69,31 @@ function wellKnownRoutes(app: Application) {
   })
 
   app.get('/.well-known/nodeinfo/2.0', cacher.cache('seconds', 300), async (req, res) => {
-    const localUsersIds = await getAllLocalUserIds();
+    const localUsersIds = await getAllLocalUserIds()
     const localUsers = localUsersIds.length
-      const activeUsersSixMonths = await Post.count({
-        where: {
-          userId: {[Op.in]: localUsersIds},
-          createdAt: {
-            [Op.gt]: (new Date()).setMonth(-6)
-          },
-          privacy: 0,
-
+    const activeUsersSixMonths = await Post.count({
+      where: {
+        userId: { [Op.in]: localUsersIds },
+        createdAt: {
+          [Op.gt]: new Date().setMonth(-6)
         },
-        attributes: [[sequelize.fn('DISTINCT', sequelize.col('userId')), 'userId']],
-        group: ['userId']
-      })
+        privacy: 0
+      },
+      attributes: [[sequelize.fn('DISTINCT', sequelize.col('userId')), 'userId']],
+      group: ['userId']
+    })
 
-      const activeUsersLastMonth = await Post.count({
-        where: {
-          userId: {[Op.in]: localUsersIds},
-          createdAt: {
-            [Op.gt]: (new Date()).setMonth(-1)
-          },
-          privacy: 0,
+    const activeUsersLastMonth = await Post.count({
+      where: {
+        userId: { [Op.in]: localUsersIds },
+        createdAt: {
+          [Op.gt]: new Date().setMonth(-1)
         },
-        attributes: [[sequelize.fn('DISTINCT', sequelize.col('userId')), 'userId']],
-        group: ['userId']
-      })
-
-    
+        privacy: 0
+      },
+      attributes: [[sequelize.fn('DISTINCT', sequelize.col('userId')), 'userId']],
+      group: ['userId']
+    })
 
     res.send({
       version: '2.0',

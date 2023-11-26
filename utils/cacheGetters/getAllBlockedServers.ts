@@ -8,16 +8,14 @@ async function getallBlockedServers(): Promise<string[]> {
     res = JSON.parse(cacheResult)
   } else {
     const blockedServers = await FederatedHost.findAll({
-        attributes: ['id'],
-        where: {
-            blocked: true
-
-        }
-    });
-    if(blockedServers) {
-        res = blockedServers.map((elem: any) => elem.id);
-        await redisCache.set('allBlockedServers', JSON.stringify(res))
-
+      attributes: ['id'],
+      where: {
+        blocked: true
+      }
+    })
+    if (blockedServers) {
+      res = blockedServers.map((elem: any) => elem.id)
+      await redisCache.set('allBlockedServers', JSON.stringify(res))
     }
   }
   return res

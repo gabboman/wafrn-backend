@@ -428,17 +428,16 @@ const QuestionPollAnswer = sequelize.define('questionPollAnswer', {
 
 Post.hasOne(QuestionPoll)
 QuestionPoll.belongsTo(Post)
-QuestionPoll.hasMany(QuestionPollQuestion,  { onDelete: 'cascade' })
+QuestionPoll.hasMany(QuestionPollQuestion, { onDelete: 'cascade' })
 QuestionPollQuestion.belongsTo(QuestionPoll)
 QuestionPollQuestion.hasMany(QuestionPollAnswer, { onDelete: 'cascade' })
 QuestionPollAnswer.belongsTo(User)
 QuestionPollAnswer.belongsTo(QuestionPollQuestion)
 
-
 User.hasMany(QuestionPollAnswer),
-User.belongsToMany(Emoji, {
-  through: 'userEmojiRelation'
-})
+  User.belongsToMany(Emoji, {
+    through: 'userEmojiRelation'
+  })
 User.belongsToMany(User, {
   through: Follows,
   as: 'followed',

@@ -73,7 +73,7 @@ export default function searchRoutes(app: Application) {
             sequelize.where(sequelize.fn('LOWER', sequelize.col('description')), 'LIKE', `%${searchTerm}%`)
           ]
         },
-        attributes: ['id', 'url', 'name',  'description', 'avatar', 'remoteId']
+        attributes: ['id', 'url', 'name', 'description', 'avatar', 'remoteId']
       })
       promises.push(users)
       // remote user search time

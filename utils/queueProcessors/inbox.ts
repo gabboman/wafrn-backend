@@ -143,7 +143,7 @@ async function inboxWorker(job: Job) {
           // we accept it
           const acceptResponse = await signAndAccept(req, remoteUser, user)
           logger.debug(`Remote user ${remoteUser.url} started following ${user.url}`)
-          logger.debug({body: req.body})
+          logger.debug({ body: req.body })
           break
         }
         case 'Update': {
@@ -187,8 +187,8 @@ async function inboxWorker(job: Job) {
               postToEdit.content = `${body.content}<p>${mediasString}<p>Post edited at ${body.updated}</p>`
               postToEdit.updatedAt = body.updated
               await postToEdit.save()
-              const acceptResponse = await signAndAccept(req, remoteUser, user);
-              break;
+              const acceptResponse = await signAndAccept(req, remoteUser, user)
+              break
             }
             default: {
               logger.info(`update not implemented ${body.type}`)

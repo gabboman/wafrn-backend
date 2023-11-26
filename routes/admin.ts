@@ -62,8 +62,7 @@ export default function adminRoutes(app: Application) {
                         }
                       ]
                     }
-
-                  ],
+                  ]
                 }
               )
             )
@@ -181,7 +180,7 @@ export default function adminRoutes(app: Application) {
               }
             ]
           }
-        ],
+        ]
       }
     )
     res.send({

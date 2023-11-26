@@ -9,19 +9,17 @@ async function getAllLocalUserIds(): Promise<string[]> {
     res = JSON.parse(cacheResult)
   } else {
     const localUsers = await User.findAll({
-        attributes: ['id'],
-        where: {
-            url: {
-              [Op.notLike]: '@%'
-            },
-            banned: false
-
-        }
-    });
-    if(localUsers) {
-        res = localUsers.map((elem: any) => elem.id);
-        await redisCache.set('allLocalUserIds', JSON.stringify(res))
-
+      attributes: ['id'],
+      where: {
+        url: {
+          [Op.notLike]: '@%'
+        },
+        banned: false
+      }
+    })
+    if (localUsers) {
+      res = localUsers.map((elem: any) => elem.id)
+      await redisCache.set('allLocalUserIds', JSON.stringify(res))
     }
   }
   return res

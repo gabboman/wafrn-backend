@@ -26,108 +26,114 @@ import { redisCache } from '../utils/redis'
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 
 export default function userRoutes(app: Application) {
-  app.post('/api/register', checkIpBlocked, createAccountLimiter, uploadHandler().single('avatar'), async (req, res) => {
-    let success = false
-    try {
-      if (
-        req.body?.email &&
-        req.body.url &&
-        !forbiddenCharacters.some((char) => req.body.url.includes(char)) &&
-        validateEmail(req.body.email)
-      ) {
-        const emailExists = await User.findOne({
-          where: {
-            [Op.or]: [
-              { email: req.body.email.toLowerCase() },
-              sequelize.where(
-                sequelize.fn('LOWER', sequelize.col('url')),
-                'LIKE',
-                req.body.url.toLowerCase().trim().replace(' ', '_')
-              )
-            ]
-          }
-        })
-        if (!emailExists) {
-          let avatarURL = '/uploads/default.webp'
-          if (req.file != null) {
-            avatarURL = `/${await optimizeMedia(req.file.path)}`
-          }
-          if (environment.removeFolderNameFromFileUploads) {
-            avatarURL = avatarURL.slice('/uploads/'.length - 1)
-          }
-
-          const activationCode = generateRandomString()
-          const { publicKey, privateKey } = generateKeyPairSync('rsa', {
-            modulusLength: 4096,
-            publicKeyEncoding: {
-              type: 'spki',
-              format: 'pem'
-            },
-            privateKeyEncoding: {
-              type: 'pkcs8',
-              format: 'pem'
+  app.post(
+    '/api/register',
+    checkIpBlocked,
+    createAccountLimiter,
+    uploadHandler().single('avatar'),
+    async (req, res) => {
+      let success = false
+      try {
+        if (
+          req.body?.email &&
+          req.body.url &&
+          !forbiddenCharacters.some((char) => req.body.url.includes(char)) &&
+          validateEmail(req.body.email)
+        ) {
+          const emailExists = await User.findOne({
+            where: {
+              [Op.or]: [
+                { email: req.body.email.toLowerCase() },
+                sequelize.where(
+                  sequelize.fn('LOWER', sequelize.col('url')),
+                  'LIKE',
+                  req.body.url.toLowerCase().trim().replace(' ', '_')
+                )
+              ]
             }
           })
-          const user = {
-            email: req.body.email.toLowerCase(),
-            description: req.body.description.trim(),
-            url: req.body.url.trim().replace(' ', '_'),
-            name: req.body.name ? req.body.name : req.body.url.trim().replace(' ', '_'),
-            NSFW: req.body.nsfw === 'true',
-            password: await bcrypt.hash(req.body.password, environment.saltRounds),
-            birthDate: new Date(req.body.birthDate),
-            avatar: avatarURL,
-            activated: false,
-            registerIp: getIp(req),
-            lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
-            banned: false,
-            activationCode,
-            privateKey,
-            publicKey
-          }
+          if (!emailExists) {
+            let avatarURL = '/uploads/default.webp'
+            if (req.file != null) {
+              avatarURL = `/${await optimizeMedia(req.file.path)}`
+            }
+            if (environment.removeFolderNameFromFileUploads) {
+              avatarURL = avatarURL.slice('/uploads/'.length - 1)
+            }
 
-          const userWithEmail = User.create(user)
-          const emailSent = sendActivationEmail(
-            req.body.email.toLowerCase(),
-            activationCode,
-            'Welcome to wafrn!',
-            `<h1>Welcome to wafrn</h1> To activate your account <a href="${
-              environment.frontendUrl
-            }/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
-          )
-          await Promise.all([userWithEmail, emailSent])
-          success = true
-          await redisCache.del('allLocalUserIds')
-          res.send({
-            success: true
-          })
+            const activationCode = generateRandomString()
+            const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+              modulusLength: 4096,
+              publicKeyEncoding: {
+                type: 'spki',
+                format: 'pem'
+              },
+              privateKeyEncoding: {
+                type: 'pkcs8',
+                format: 'pem'
+              }
+            })
+            const user = {
+              email: req.body.email.toLowerCase(),
+              description: req.body.description.trim(),
+              url: req.body.url.trim().replace(' ', '_'),
+              name: req.body.name ? req.body.name : req.body.url.trim().replace(' ', '_'),
+              NSFW: req.body.nsfw === 'true',
+              password: await bcrypt.hash(req.body.password, environment.saltRounds),
+              birthDate: new Date(req.body.birthDate),
+              avatar: avatarURL,
+              activated: false,
+              registerIp: getIp(req),
+              lastLoginIp: 'ACCOUNT_NOT_ACTIVATED',
+              banned: false,
+              activationCode,
+              privateKey,
+              publicKey
+            }
+
+            const userWithEmail = User.create(user)
+            const emailSent = sendActivationEmail(
+              req.body.email.toLowerCase(),
+              activationCode,
+              'Welcome to wafrn!',
+              `<h1>Welcome to wafrn</h1> To activate your account <a href="${
+                environment.frontendUrl
+              }/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
+            )
+            await Promise.all([userWithEmail, emailSent])
+            success = true
+            await redisCache.del('allLocalUserIds')
+            res.send({
+              success: true
+            })
+          } else {
+            logger.info({
+              message: 'Email exists',
+              email: req.body?.email,
+              url: req.body.url,
+              forbidChar: !forbiddenCharacters.some((char) => req.body.url.includes(char)),
+              emailValid: validateEmail(req.body.email)
+            })
+          }
         } else {
           logger.info({
-            message: 'Email exists',
+            message: 'Failed registration',
             email: req.body?.email,
             url: req.body.url,
             forbidChar: !forbiddenCharacters.some((char) => req.body.url.includes(char)),
             emailValid: validateEmail(req.body.email)
           })
         }
-      } else {
-        logger.info({
-          message: 'Failed registration',
-          email: req.body?.email,
-          url: req.body.url,
-          forbidChar: !forbiddenCharacters.some((char) => req.body.url.includes(char)),
-          emailValid: validateEmail(req.body.email)
-        })
+      } catch (error) {
+        console.log(error)
+        logger.error(error)
       }
-    } catch (error) {
-      console.log(error)
-      logger.error(error)
+      if (!success) {
+        res.statusCode = 401
+        res.send({ success: false })
+      }
     }
-    if (!success) {
-      res.statusCode = 401
-      res.send({ success: false })
-    }
-  })
+  )
 
   app.post('/api/updateCSS', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const posterId = req.jwtData?.userId
@@ -163,7 +169,7 @@ export default function userRoutes(app: Application) {
             user.description = req.body.description
           }
 
-          if(req.body.name){
+          if (req.body.name) {
             user.name = req.body.name
           }
 
@@ -345,11 +351,11 @@ export default function userRoutes(app: Application) {
         ],
         where: {
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId),
-          banned: false,
+          banned: false
         }
       })
-      let muted = false;
-      let blocked = false;
+      let muted = false
+      let blocked = false
       let serverBlocked = false || blog.federatedHost?.blocked
       if (req.jwtData?.userId && blog) {
         const mutedQuery = Mutes.count({

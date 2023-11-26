@@ -36,22 +36,23 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
     }
   })
   if (postInDatabase) {
-    const parentPostPetition = await getPetitionSigned(user, postInDatabase.remotePostId);
-    if(parentPostPetition) {
+    const parentPostPetition = await getPetitionSigned(user, postInDatabase.remotePostId)
+    if (parentPostPetition) {
       await loadPoll(parentPostPetition, postInDatabase, user)
-    }    return postInDatabase
+    }
+    return postInDatabase
   } else {
     try {
       const postPetition = remotePostObject ? remotePostObject : await getPetitionSigned(user, remotePostId)
-      if(postPetition) {
-        const remotePostInDatabase =  await Post.findOne({
+      if (postPetition) {
+        const remotePostInDatabase = await Post.findOne({
           where: {
             remotePostId: postPetition.id
           }
-        });
-        if(remotePostInDatabase) {
-          const parentPostPetition = await getPetitionSigned(user, remotePostInDatabase.remotePostId);
-          if(parentPostPetition) {
+        })
+        if (remotePostInDatabase) {
+          const parentPostPetition = await getPetitionSigned(user, remotePostInDatabase.remotePostId)
+          if (parentPostPetition) {
             await loadPoll(parentPostPetition, remotePostInDatabase, user)
           }
           return remotePostInDatabase

@@ -12,7 +12,6 @@ import { getLocalUserId } from '../../utils/cacheGetters/getLocalUserId'
 const Cacher = require('cacher')
 const cacher = new Cacher()
 
-
 // we get the user from the memory cache. if does not exist we try to find it
 async function getLocalUserByUrl(url: string): Promise<any> {
   const userId = await getLocalUserId(url)
@@ -36,37 +35,34 @@ const inboxQueue = new Queue('inbox', {
 
 function activityPubRoutes(app: Application) {
   // get post
-  app.get(
-    ['/fediverse/post/:id', '/fediverse/activity/post/:id'],
-    async (req: Request, res: Response) => {
-      if (req.params?.id) {
-        const post = await Post.findOne({
-          where: {
-            id: req.params.id,
-            privacy: {
-              [Op.notIn]: [2, 10]
-            }
+  app.get(['/fediverse/post/:id', '/fediverse/activity/post/:id'], async (req: Request, res: Response) => {
+    if (req.params?.id) {
+      const post = await Post.findOne({
+        where: {
+          id: req.params.id,
+          privacy: {
+            [Op.notIn]: [2, 10]
           }
-        })
-        if (post) {
-          // TODO corregir esto seguramente
-          res.set({
-            'content-type': 'application/activity+json'
-          })
-          const response = await postToJSONLD(post)
-          res.send({
-            ...response.object,
-            '@context': response['@context']
-          })
-        } else {
-          res.sendStatus(404)
         }
+      })
+      if (post) {
+        // TODO corregir esto seguramente
+        res.set({
+          'content-type': 'application/activity+json'
+        })
+        const response = await postToJSONLD(post)
+        res.send({
+          ...response.object,
+          '@context': response['@context']
+        })
       } else {
         res.sendStatus(404)
       }
-      res.end()
+    } else {
+      res.sendStatus(404)
     }
-  )
+    res.end()
+  })
   // Get blog for fediverse
   app.get('/fediverse/blog/:url', async (req: Request, res: Response) => {
     if (!req.params.url?.startsWith('@')) {
