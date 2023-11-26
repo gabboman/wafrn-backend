@@ -71,6 +71,7 @@ export default function adminRoutes(app: Application) {
         }
       })
       await Promise.all(promises)
+      await redisCache.del('allBlockedServers')
       res.send({})
     } else {
       res.send({})
