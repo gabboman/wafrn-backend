@@ -15,6 +15,7 @@ import { environment } from '../environment'
 import { getPostThreadRecursive } from '../utils/activitypub/getPostThreadRecursive'
 import checkIpBlocked from '../utils/checkIpBlocked'
 import { getAllLocalUserIds } from '../utils/cacheGetters/getAllLocalUserIds'
+import { getallBlockedServers } from '../utils/cacheGetters/getAllBlockedServers'
 
 export default function searchRoutes(app: Application) {
   app.get('/api/search/', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
@@ -22,7 +23,6 @@ export default function searchRoutes(app: Application) {
     // const success = false;
     // eslint-disable-next-line max-len
     const searchTerm: string = (req.query.term || '').toString().toLowerCase().trim()
-
     let users: any = []
     let posts: any = []
     let remoteUsers: any[] = []
@@ -65,7 +65,7 @@ export default function searchRoutes(app: Application) {
         where: {
           activated: true,
           federatedHostId: {
-            [Op.in]: Sequelize.literal(`(SELECT id FROM federatedHosts WHERE blocked= false)`)
+            [Op.notIn]: await getallBlockedServers()
           },
           banned: false,
           [Op.or]: [
@@ -111,7 +111,7 @@ export default function searchRoutes(app: Application) {
         activated: true,
         url: { [Op.like]: '@%' },
         federatedHostId: {
-          [Op.in]: Sequelize.literal(`(SELECT id FROM federatedHosts WHERE blocked= false)`)
+          [Op.notIn]: await getallBlockedServers()
         },
         banned: false,
         [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
