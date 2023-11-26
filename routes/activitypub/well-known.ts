@@ -69,37 +69,28 @@ function wellKnownRoutes(app: Application) {
   })
 
   app.get('/.well-known/nodeinfo/2.0', cacher.cache('seconds', 300), async (req, res) => {
-    const localUsers = (await getAllLocalUserIds()).length
-      const activeUsersSixMonths = User.count({
+    const localUsersIds = await getAllLocalUserIds();
+    const localUsers = localUsersIds.length
+      const activeUsersSixMonths = await Post.count({
         where: {
-          id: {[Op.in]: await getAllLocalUserIds()},
+          userId: {[Op.in]: localUsersIds},
+          createdAt: {
+            [Op.gt]: (new Date()).setMonth(-6)
+          },
         },
-        include: [
-          {
-            model: Post,
-            where: {
-              createdAt: {
-                [Op.gt]: (new Date()).setMonth(-6)
-              }
-            }
-          }
-        ]
+        attributes: [[sequelize.fn('DISTINCT', sequelize.col('userId')), 'userId']],
+        group: ['userId']
       })
 
-      const activeUsersLastMonth = User.count({
+      const activeUsersLastMonth = await Post.count({
         where: {
-          id: {[Op.in]: await getAllLocalUserIds()},
+          userId: {[Op.in]: localUsersIds},
+          createdAt: {
+            [Op.gt]: (new Date()).setMonth(-1)
+          },
         },
-        include: [
-          {
-            model: Post,
-            where: {
-              createdAt: {
-                [Op.gt]: (new Date()).setMonth(-1)
-              }
-            }
-          }
-        ]
+        attributes: [[sequelize.fn('DISTINCT', sequelize.col('userId')), 'userId']],
+        group: ['userId']
       })
 
     
@@ -118,8 +109,8 @@ function wellKnownRoutes(app: Application) {
       usage: {
         users: {
           total: localUsers,
-          activeMonth: activeUsersSixMonths,
-          activeHalfyear: activeUsersLastMonth
+          activeMonth: activeUsersLastMonth.length,
+          activeHalfyear: activeUsersSixMonths.length
         },
         localPosts: await Post.count({
           where: {
