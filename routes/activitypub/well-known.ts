@@ -3,12 +3,10 @@ import { Post, User, sequelize } from '../../db'
 import { environment } from '../../environment'
 import { return404 } from '../../utils/return404'
 import { Op } from 'sequelize'
+import { getAllLocalUserIds } from '../../utils/cacheGetters/getAllLocalUserIds'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Cacher = require('cacher')
 const cacher = new Cacher()
-let lastTimeCached: Date = new Date(0)
-let activeUsersMonthCached: number
-let activeUsersHalfYearCached: number
 
 function wellKnownRoutes(app: Application) {
   // webfinger protocol
@@ -71,35 +69,34 @@ function wellKnownRoutes(app: Application) {
   })
 
   app.get('/.well-known/nodeinfo/2.0', cacher.cache('seconds', 300), async (req, res) => {
-    const localUsers = await User.count({
-      where: {
-        remoteInbox: { [Op.eq]: null }
-      }
-    })
-    if (new Date().getTime() - lastTimeCached.getTime() > 1000 * 3600 * 3) {
-      lastTimeCached = new Date()
-      const activeUsersSixMonths = await sequelize.query(`SELECT COUNT(*) AS count
-    FROM users
-    WHERE id IN (
-      SELECT userId
-      FROM posts
-      WHERE createdAt between date_sub(now(),INTERVAL 6 MONTH) and now()
-      GROUP BY userId
-      HAVING COUNT(1) > 0
-    ) AND url NOT LIKE '@%'`)
+    const localUsersIds = await getAllLocalUserIds();
+    const localUsers = localUsersIds.length
+      const activeUsersSixMonths = await Post.count({
+        where: {
+          userId: {[Op.in]: localUsersIds},
+          createdAt: {
+            [Op.gt]: (new Date()).setMonth(-6)
+          },
+          privacy: 0,
 
-      const activeUsersLastMonth = await sequelize.query(`SELECT COUNT(*) AS count
-    FROM users
-    WHERE id IN (
-      SELECT userId
-      FROM posts
-      WHERE createdAt between date_sub(now(),INTERVAL 1 MONTH) and now()
-      GROUP BY userId
-      HAVING COUNT(1) > 0
-    ) AND url NOT LIKE '@%'`)
-      activeUsersMonthCached = activeUsersLastMonth[0][0].count
-      activeUsersHalfYearCached = activeUsersSixMonths[0][0].count
-    }
+        },
+        attributes: [[sequelize.fn('DISTINCT', sequelize.col('userId')), 'userId']],
+        group: ['userId']
+      })
+
+      const activeUsersLastMonth = await Post.count({
+        where: {
+          userId: {[Op.in]: localUsersIds},
+          createdAt: {
+            [Op.gt]: (new Date()).setMonth(-1)
+          },
+          privacy: 0,
+        },
+        attributes: [[sequelize.fn('DISTINCT', sequelize.col('userId')), 'userId']],
+        group: ['userId']
+      })
+
+    
 
     res.send({
       version: '2.0',
@@ -115,12 +112,14 @@ function wellKnownRoutes(app: Application) {
       usage: {
         users: {
           total: localUsers,
-          activeMonth: activeUsersMonthCached,
-          activeHalfyear: activeUsersHalfYearCached
+          activeMonth: activeUsersLastMonth.length,
+          activeHalfyear: activeUsersSixMonths.length
         },
         localPosts: await Post.count({
           where: {
-            literal: sequelize.literal(`userId in (SELECT id FROM users where url NOT LIKE '@%')`),
+            userId: {
+              [Op.in]: localUsersIds
+            },
             privacy: 0
           }
         })

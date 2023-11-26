@@ -435,7 +435,10 @@ QuestionPollAnswer.belongsTo(User)
 QuestionPollAnswer.belongsTo(QuestionPollQuestion)
 
 
-User.hasMany(QuestionPollAnswer)
+User.hasMany(QuestionPollAnswer),
+User.belongsToMany(Emoji, {
+  through: 'userEmojiRelation'
+})
 User.belongsToMany(User, {
   through: Follows,
   as: 'followed',
@@ -450,7 +453,9 @@ Emoji.belongsToMany(Post, {
 })
 Emoji.belongsTo(EmojiCollection)
 EmojiCollection.hasMany(Emoji)
-
+Emoji.belongsToMany(User, {
+  through: 'userEmojiRelation'
+})
 User.belongsToMany(User, {
   through: Follows,
   as: 'follower',

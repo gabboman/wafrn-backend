@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Blocks, Mutes, ServerBlock, User } from '../db'
+import { Blocks, Emoji, Mutes, ServerBlock, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import generateRandomString from '../utils/generateRandomString'
@@ -21,11 +21,12 @@ import fs from 'fs/promises'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import optionalAuthentication from '../utils/optionalAuthentication'
 import checkIpBlocked from '../utils/checkIpBlocked'
+import { redisCache } from '../utils/redis'
 
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 
 export default function userRoutes(app: Application) {
-  app.post('/api/register', createAccountLimiter, uploadHandler().single('avatar'), async (req, res) => {
+  app.post('/api/register', checkIpBlocked, createAccountLimiter, uploadHandler().single('avatar'), async (req, res) => {
     let success = false
     try {
       if (
@@ -96,6 +97,7 @@ export default function userRoutes(app: Application) {
           )
           await Promise.all([userWithEmail, emailSent])
           success = true
+          await redisCache.del('allLocalUserIds')
           res.send({
             success: true
           })
@@ -161,6 +163,10 @@ export default function userRoutes(app: Application) {
             user.description = req.body.description
           }
 
+          if(req.body.name){
+            user.name = req.body.name
+          }
+
           if (req.file != null) {
             let avatarURL = `/${optimizeMedia(req.file.path)}`
             if (environment.removeFolderNameFromFileUploads) {
@@ -181,7 +187,7 @@ export default function userRoutes(app: Application) {
     }
   )
 
-  app.post('/api/forgotPassword', createAccountLimiter, async (req, res) => {
+  app.post('/api/forgotPassword', checkIpBlocked, createAccountLimiter, async (req, res) => {
     const resetCode = generateRandomString()
     try {
       if (req.body?.email && validateEmail(req.body.email)) {
@@ -214,7 +220,7 @@ export default function userRoutes(app: Application) {
     res.send({ success: true })
   })
 
-  app.post('/api/activateUser', async (req, res) => {
+  app.post('/api/activateUser', checkIpBlocked, async (req, res) => {
     let success = false
     if (req.body?.email && validateEmail(req.body.email) && req.body.code) {
       const user = await User.findOne({
@@ -235,7 +241,7 @@ export default function userRoutes(app: Application) {
     })
   })
 
-  app.post('/api/resetPassword', async (req, res) => {
+  app.post('/api/resetPassword', checkIpBlocked, async (req, res) => {
     let success = false
 
     try {
@@ -266,12 +272,17 @@ export default function userRoutes(app: Application) {
     })
   })
 
-  app.post('/api/login', loginRateLimiter, async (req, res) => {
+  app.post('/api/login', checkIpBlocked, loginRateLimiter, async (req, res) => {
     let success = false
     try {
       if (req.body?.email && req.body.password) {
         const userWithEmail = await User.findOne({
-          where: { email: req.body.email.toLowerCase() }
+          where: {
+            email: req.body.email.toLowerCase(),
+            banned: {
+              [Op.ne]: true
+            }
+          }
         })
         if (userWithEmail) {
           const correctPassword = await bcrypt.compare(req.body.password, userWithEmail.password)
@@ -322,6 +333,12 @@ export default function userRoutes(app: Application) {
       const blogId: string = (req.query.id || '').toString().toLowerCase().trim()
       const blog = await User.findOne({
         attributes: ['id', 'url', 'name', 'description', 'remoteId', 'avatar', 'federatedHostId', 'headerImage'],
+        include: [
+          {
+            model: Emoji,
+            required: false
+          }
+        ],
         where: {
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId),
           banned: false,

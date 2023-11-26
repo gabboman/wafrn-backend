@@ -38,7 +38,6 @@ function activityPubRoutes(app: Application) {
   // get post
   app.get(
     ['/fediverse/post/:id', '/fediverse/activity/post/:id'],
-    cacher.cache('minutes', 5),
     async (req: Request, res: Response) => {
       if (req.params?.id) {
         const post = await Post.findOne({
@@ -69,7 +68,7 @@ function activityPubRoutes(app: Application) {
     }
   )
   // Get blog for fediverse
-  app.get('/fediverse/blog/:url', cacher.cache('minutes', 5), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url', async (req: Request, res: Response) => {
     if (!req.params.url?.startsWith('@')) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -124,7 +123,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/following', cacher.cache('seconds', 15), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/following', async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -187,7 +186,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/followers', cacher.cache('seconds', 15), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/followers', async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -250,7 +249,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/featured', cacher.cache('minutes', 5), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/featured', async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -292,7 +291,7 @@ function activityPubRoutes(app: Application) {
     }
   )
 
-  app.get('/fediverse/blog/:url/outbox', cacher.cache('minutes', 5), async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/outbox', async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({

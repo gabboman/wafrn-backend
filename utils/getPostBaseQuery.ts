@@ -31,12 +31,18 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
           },
           {
             model: User,
+            include: [
+              {
+                model: Emoji,
+                required: false
+              }
+            ],
             as: 'user',
             attributes: ['avatar', 'remoteId', 'url', 'name', 'id']
           },
           {
             model: Media,
-            attributes: ['id', 'NSFW', 'url', 'adultContent', 'external']
+            attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external']
           },
           {
             model: PostTag,
@@ -48,6 +54,12 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
           },
           {
             model: User,
+            include: [
+              {
+                model: Emoji,
+                required: false
+              }
+            ],
             as: 'mentionPost',
             attributes: ['url', 'name', 'id', 'avatar', 'remoteId']
           },
@@ -73,12 +85,18 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
       },
       {
         model: User,
+        include: [
+          {
+            model: Emoji,
+            required: false
+          }
+        ],
         as: 'user',
         attributes: ['avatar', 'url', 'name', 'id', 'remoteId']
       },
       {
         model: Media,
-        attributes: ['id', 'NSFW', 'url', 'adultContent', 'external']
+        attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external']
       },
       {
         model: PostTag,
@@ -86,6 +104,12 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
       },
       {
         model: User,
+        include: [
+          {
+            model: Emoji,
+            required: false
+          }
+        ],
         as: 'mentionPost',
         attributes: ['url', 'name', 'id', 'avatar', 'remoteId']
       },

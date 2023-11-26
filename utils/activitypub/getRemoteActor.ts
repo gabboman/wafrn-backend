@@ -5,6 +5,8 @@ import { getUserIdFromRemoteId } from '../cacheGetters/getUserIdFromRemoteId'
 import { logger } from '../logger'
 import { getPetitionSigned } from './getPetitionSigned'
 import { Queue } from 'bullmq'
+import { processUserEmojis } from './processUserEmojis'
+import { fediverseTag } from '../../interfaces/fediverse/tags'
 
 const updateUsersQueue = new Queue('UpdateUsers', {
   connection: environment.bullmqConnection,
@@ -69,7 +71,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
         activated: true
       }
       remoteUser = await User.create(userToCreate)
-
+      await processUserEmojis(remoteUser, userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji'))
       let federatedHost = await FederatedHost.findOne({
         where: {
           displayName: url.host.toLocaleLowerCase()

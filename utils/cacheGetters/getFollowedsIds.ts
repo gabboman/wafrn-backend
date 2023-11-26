@@ -28,7 +28,12 @@ export default async function getFollowedsIds(userId: string, local = false): Pr
         {
           model: User,
           as: 'follower',
-          attributes: ['url']
+          attributes: ['url'],
+          where: {
+            banned: {
+              [Op.ne]: true
+            }
+          }
         }
       ],
       where: whereObject

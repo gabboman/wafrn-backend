@@ -38,6 +38,7 @@ import listRoutes from './routes/lists'
 import getFollowedsIds from './utils/cacheGetters/getFollowedsIds'
 import getBlockedIds from './utils/cacheGetters/getBlockedIds'
 import getNonFollowedLocalUsersIds from './utils/cacheGetters/getNotFollowedLocalUsersIds'
+import { getAllLocalUserIds } from './utils/cacheGetters/getAllLocalUserIds'
 
 const swaggerJSON = require('./swagger.json')
 
@@ -113,17 +114,7 @@ app.get('/api/exploreLocal', optionalAuthentication, async (req: AuthorizedReque
     })
   } else {
     // its a lot easier if we leave this as another query, the one with the user logged in is complex enough
-    const localUsers: string[] = (
-      await User.findAll({
-        attributes: ['id'],
-        where: {
-          banned: false,
-          url: {
-            [Op.notLike]: '@%'
-          }
-        }
-      })
-    ).map((user: any) => user.id)
+    const localUsers: string[] = await getAllLocalUserIds()
     rawPosts = await Post.findAll({
       ...getPostBaseQuery(req),
       where: {
