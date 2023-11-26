@@ -44,13 +44,26 @@ export default function adminRoutes(app: Application) {
                   resolved: true
                 },
                 {
-                  where: {
-                    postId: {
-                      [Op.in]: sequelize.literal(
-                        `(select id from posts where userId in (SELECT id from users where federatedHostId="${elemToUpdate.id}"))`
-                      )
+                  include: [
+                    {
+                      model: Post,
+                      include: [
+                        {
+                          model: User,
+                          include: [
+                            {
+                              model: FederatedHost,
+                              required: true,
+                              where: {
+                                id: elemToUpdate.id
+                              }
+                            }
+                          ]
+                        }
+                      ]
                     }
-                  }
+
+                  ],
                 }
               )
             )
@@ -154,9 +167,20 @@ export default function adminRoutes(app: Application) {
         resolved: true
       },
       {
-        where: {
-          postId: { [Op.in]: sequelize.literal(`(select id from posts where userId="${req.body.id}")`) }
-        }
+        include: [
+          {
+            model: Post,
+            required: true,
+            include: [
+              {
+                model: User,
+                where: {
+                  id: req.body.id
+                }
+              }
+            ]
+          }
+        ],
       }
     )
     res.send({
