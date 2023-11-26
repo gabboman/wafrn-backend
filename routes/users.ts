@@ -21,6 +21,7 @@ import fs from 'fs/promises'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import optionalAuthentication from '../utils/optionalAuthentication'
 import checkIpBlocked from '../utils/checkIpBlocked'
+import { redisCache } from '../utils/redis'
 
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 
@@ -96,6 +97,7 @@ export default function userRoutes(app: Application) {
           )
           await Promise.all([userWithEmail, emailSent])
           success = true
+          await redisCache.del('allLocalUserIds')
           res.send({
             success: true
           })

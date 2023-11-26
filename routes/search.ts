@@ -14,6 +14,7 @@ import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { environment } from '../environment'
 import { getPostThreadRecursive } from '../utils/activitypub/getPostThreadRecursive'
 import checkIpBlocked from '../utils/checkIpBlocked'
+import { getAllLocalUserIds } from '../utils/cacheGetters/getAllLocalUserIds'
 
 export default function searchRoutes(app: Application) {
   app.get('/api/search/', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
@@ -122,8 +123,10 @@ export default function searchRoutes(app: Application) {
       limit: 20,
       where: {
         activated: true,
-        url: { [Op.notLike]: '@%' },
-        [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
+        id: {
+          [Op.in]: await getAllLocalUserIds()
+        },
+        url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)
       },
       attributes: ['url', 'avatar', 'id', 'remoteId']
     })
