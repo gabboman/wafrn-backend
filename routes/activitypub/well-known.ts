@@ -77,6 +77,8 @@ function wellKnownRoutes(app: Application) {
           createdAt: {
             [Op.gt]: (new Date()).setMonth(-6)
           },
+          privacy: 0,
+
         },
         attributes: [[sequelize.fn('DISTINCT', sequelize.col('userId')), 'userId']],
         group: ['userId']
@@ -88,6 +90,7 @@ function wellKnownRoutes(app: Application) {
           createdAt: {
             [Op.gt]: (new Date()).setMonth(-1)
           },
+          privacy: 0,
         },
         attributes: [[sequelize.fn('DISTINCT', sequelize.col('userId')), 'userId']],
         group: ['userId']
@@ -115,7 +118,7 @@ function wellKnownRoutes(app: Application) {
         localPosts: await Post.count({
           where: {
             userId: {
-              [Op.in]: await getAllLocalUserIds()
+              [Op.in]: localUsersIds
             },
             privacy: 0
           }
