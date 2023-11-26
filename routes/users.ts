@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Blocks, Emoji, Mutes, ServerBlock, User } from '../db'
+import { Blocks, Emoji, FederatedHost, Mutes, ServerBlock, User } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import generateRandomString from '../utils/generateRandomString'
@@ -337,19 +337,20 @@ export default function userRoutes(app: Application) {
           {
             model: Emoji,
             required: false
+          },
+          {
+            model: FederatedHost,
+            required: false
           }
         ],
         where: {
           url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', blogId),
           banned: false,
-          literal: Sequelize.literal(
-            `(federatedHostId  IN (SELECT id FROM federatedHosts WHERE blocked= false) OR federatedHostId IS NULL)`
-          )
         }
       })
-      let muted = false
-      let blocked = false
-      let serverBlocked = false
+      let muted = false;
+      let blocked = false;
+      let serverBlocked = false || blog.federatedHost?.blocked
       if (req.jwtData?.userId && blog) {
         const mutedQuery = Mutes.count({
           where: {
@@ -372,7 +373,7 @@ export default function userRoutes(app: Application) {
         await Promise.all([mutedQuery, blockedQuery, serverBlockedQuery])
         muted = (await mutedQuery) === 1
         blocked = (await blockedQuery) === 1
-        serverBlocked = (await serverBlockedQuery) === 1
+        serverBlocked = serverBlocked || (await serverBlockedQuery) === 1
       }
       success = blog
       if (success) {
