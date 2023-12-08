@@ -3,6 +3,7 @@ import { logger } from './utils/logger'
 const { Sequelize } = require('sequelize')
 import { Table, Column, Model, HasMany } from 'sequelize-typescript'
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require('sequelize-hierarchy-fork')(Sequelize)
 
 const sequelize = new Sequelize(environment.databaseConnectionString, {
@@ -14,15 +15,15 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
     }
   },
   pool: {
-    max: 10,
+    max: 6,
     min: 1,
     acquire: 30000,
-    idle: 100000
+    idle: 5000
   },
   retry: {
     max: environment.prod ? 5 : 0,
-    backoffBase: 3000, // Initial backoff duration in ms. Default: 100,
-    backoffExponent: 1.5 // Exponent to increase backoff each try. Default: 1.1
+    backoffBase: 250, // Initial backoff duration in ms. Default: 100,
+    backoffExponent: 1.2 // Exponent to increase backoff each try. Default: 1.1
   },
   benchmark: true
 })
