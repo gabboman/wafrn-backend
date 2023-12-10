@@ -181,8 +181,8 @@ async function inboxWorker(job: Job) {
                   medias.push(wafrnMedia)
                   mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
                   // TODO improve this
-                  await postToEdit.removeMedias(await postToEdit.getMedias())
-                  await postToEdit.addMedias(medias)
+                  //await postToEdit.removeMedias(await postToEdit.getMedias())
+                  await postToEdit.setMedias(medias)
                 }
               }
               postToEdit.content = `${body.content}<p>${mediasString}<p>Post edited at ${body.updated}</p>`
