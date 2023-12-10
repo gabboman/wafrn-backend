@@ -180,7 +180,8 @@ async function inboxWorker(job: Job) {
                   })
                   medias.push(wafrnMedia)
                   mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
-                  await postToEdit.removeMedias()
+                  // TODO improve this
+                  await postToEdit.removeMedias(await postToEdit.getMedias())
                   await postToEdit.addMedias(medias)
                 }
               }
