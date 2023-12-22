@@ -356,7 +356,7 @@ export default function userRoutes(app: Application) {
       })
       let muted = false
       let blocked = false
-      let serverBlocked = false || blog.federatedHost?.blocked
+      let serverBlocked = false || blog?.federatedHost?.blocked
       if (req.jwtData?.userId && blog) {
         const mutedQuery = Mutes.count({
           where: {
