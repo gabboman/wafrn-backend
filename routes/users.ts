@@ -60,7 +60,7 @@ export default function userRoutes(app: Application) {
             if (environment.removeFolderNameFromFileUploads) {
               avatarURL = avatarURL.slice('/uploads/'.length - 1)
             }
-
+            throw new Error('disabled registration')
             const activationCode = generateRandomString()
             const { publicKey, privateKey } = generateKeyPairSync('rsa', {
               modulusLength: 4096,
