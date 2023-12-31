@@ -46,7 +46,8 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
             include: [
               {
                 model: Emoji,
-                required: false
+                required: false,
+                attributes: ['name', 'url']
               }
             ],
             as: 'user',
@@ -66,17 +67,19 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
           },
           {
             model: User,
-            include: [
+            /*include: [
               {
                 model: Emoji,
                 required: false
               }
-            ],
+            ],*/
             as: 'mentionPost',
             attributes: ['url', 'name', 'id', 'avatar', 'remoteId']
           },
           {
-            model: Emoji
+            model: Emoji,
+            required: false,
+            attributes: ['name', 'url']
           }
         ]
       },
@@ -102,7 +105,8 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
         include: [
           {
             model: Emoji,
-            required: false
+            required: false,
+            attributes: ['name', 'url']
           }
         ],
         as: 'user',
@@ -119,10 +123,12 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
       {
         model: User,
         include: [
+          /*
           {
             model: Emoji,
             required: false
           }
+          */
         ],
         as: 'mentionPost',
         attributes: ['url', 'name', 'id', 'avatar', 'remoteId']
@@ -132,7 +138,9 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
         attributes: ['userId']
       },
       {
-        model: Emoji
+        model: Emoji,
+        required: false,
+        attributes: ['name', 'url']
       }
     ],
     order: [['createdAt', 'DESC']],
