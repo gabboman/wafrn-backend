@@ -78,5 +78,9 @@ export const environment = {
     }
   },
   // if someone is trying to scrap your place you can send a funny message in some petitions (attacks to the frontend)
-  blockedIps: []
+  blockedIps: [],
+  // do you want to manually review registrations or have them open?
+  reviewRegistrations: true,
+  // admin email wich you will recive things like "someone registred and you need to review this"
+  adminEmail: 'my@email.com'
 }

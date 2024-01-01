@@ -60,7 +60,6 @@ export default function userRoutes(app: Application) {
             if (environment.removeFolderNameFromFileUploads) {
               avatarURL = avatarURL.slice('/uploads/'.length - 1)
             }
-            throw new Error('disabled registration')
             const activationCode = generateRandomString()
             const { publicKey, privateKey } = generateKeyPairSync('rsa', {
               modulusLength: 4096,
@@ -92,14 +91,20 @@ export default function userRoutes(app: Application) {
             }
 
             const userWithEmail = User.create(user)
-            const emailSent = sendActivationEmail(
-              req.body.email.toLowerCase(),
-              activationCode,
-              'Welcome to wafrn!',
-              `<h1>Welcome to wafrn</h1> To activate your account <a href="${
-                environment.frontendUrl
-              }/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
-            )
+            const mailHeader = environment.reviewRegistrations ? 'We are reviewing your profile' : 'Welcome to wafrn!'
+            const mailBody = environment.reviewRegistrations
+              ? `Hello ${req.body.url}, at this moment we are manually reviewing registrations. You will recive an email from us once it's accepted`
+              : `<h1>Welcome to wafrn</h1> To activate your account <a href="${
+                  environment.frontendUrl
+                }/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
+            const emailSent = sendActivationEmail(req.body.email.toLowerCase(), activationCode, mailHeader, mailBody)
+            sendActivationEmail(environment.adminEmail, '', 'new user ask for review', 'time to check ' + req.body.url)
+              .then(() => {
+                logger.trace('sent email to admin for review')
+              })
+              .catch((error) => {
+                logger.error('failed to send review email')
+              })
             await Promise.all([userWithEmail, emailSent])
             success = true
             await redisCache.del('allLocalUserIds')
@@ -228,7 +233,7 @@ export default function userRoutes(app: Application) {
 
   app.post('/api/activateUser', checkIpBlocked, async (req, res) => {
     let success = false
-    if (req.body?.email && validateEmail(req.body.email) && req.body.code) {
+    if (req.body?.email && validateEmail(req.body.email) && req.body.code && !environment.reviewRegistrations) {
       const user = await User.findOne({
         where: {
           email: req.body.email.toLowerCase(),
@@ -263,7 +268,7 @@ export default function userRoutes(app: Application) {
         })
         if (user) {
           user.password = await bcrypt.hash(req.body.password, environment.saltRounds)
-          user.activated = 1
+          user.activated = environment.reviewRegistrations ? user.activated : true
           user.requestedPasswordReset = null
           user.save()
           success = true
