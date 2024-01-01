@@ -62,7 +62,6 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const remoteUserServerBaned = remoteUser.federatedHostId
         ? (await FederatedHost.findByPk(remoteUser.federatedHostId)).blocked
         : false
-      let mediasString = ''
       const medias = []
       const fediTags: fediverseTag[] = [
         ...new Set<fediverseTag>(
@@ -106,9 +105,8 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
               external: true
             })
             medias.push(wafrnMedia)
-            mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
           } else {
-            mediasString = `${mediasString} <a href="${remoteFile.href}" >${remoteFile.href}</a>`
+            postTextContent =  '' + postTextContent + `<a href="${remoteFile.href}" >${remoteFile.href}</a>`
           }
         }
       }
@@ -116,7 +114,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const lemmyName = postPetition.name ? postPetition.name : ''
       postTextContent = postTextContent ? postTextContent : `<p>${lemmyName}</p>`
       const postToCreate: any = {
-        content: '' + postTextContent + mediasString,
+        content: '' + postTextContent,
         content_warning: postPetition.sensitive
           ? postPetition.summary
           : remoteUser.NSFW
