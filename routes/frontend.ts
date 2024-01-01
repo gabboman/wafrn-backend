@@ -72,7 +72,18 @@ export default function frontend(app: Application) {
 
   // serve default angular application
   app.get(
-    ['/', '/blog/*', '/dashboard/*', '/post/*', '/login', '/register', '/privacy', '/admin/*', '/profile/*'],
+    [
+      '/',
+      '/blog/*',
+      '/dashboard/*',
+      '/dashboard',
+      '/post/*',
+      '/login',
+      '/register',
+      '/privacy',
+      '/admin/*',
+      '/profile/*'
+    ],
     function (req, res) {
       res.status(200).sendFile('/', { root: environment.frontedLocation })
     }
