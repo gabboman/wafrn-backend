@@ -193,7 +193,7 @@ async function inboxWorker(job: Job) {
             }
             default: {
               logger.info(`update not implemented ${body.type}`)
-              logger.info(body.object)
+              logger.info(body)
             }
           }
           break
