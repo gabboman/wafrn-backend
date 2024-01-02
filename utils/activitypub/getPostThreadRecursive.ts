@@ -106,7 +106,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
             })
             medias.push(wafrnMedia)
           } else {
-            postTextContent =  '' + postTextContent + `<a href="${remoteFile.href}" >${remoteFile.href}</a>`
+            postTextContent = '' + postTextContent + `<a href="${remoteFile.href}" >${remoteFile.href}</a>`
           }
         }
       }
@@ -157,6 +157,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         }
       } catch (error) {
         logger.info('problem processing mentions')
+        logger.info(error)
       }
       if (postPetition.inReplyTo) {
         const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
