@@ -22,6 +22,7 @@ import getPostBaseQuery from '../getPostBaseQuery'
 import { redisCache } from '../redis'
 import getBlockedIds from '../cacheGetters/getBlockedIds'
 import getUserBlockedServers from '../cacheGetters/getUserBlockedServers'
+import { object } from 'underscore'
 
 async function inboxWorker(job: Job) {
   try {
@@ -165,7 +166,6 @@ async function inboxWorker(job: Job) {
                   }
                 ]
               })
-              let mediasString = ''
               const medias = []
               if (body.attachment && body.attachment.length > 0) {
                 for await (const remoteFile of body.attachment) {
@@ -179,16 +179,20 @@ async function inboxWorker(job: Job) {
                     external: true
                   })
                   medias.push(wafrnMedia)
-                  mediasString = `${mediasString}[wafrnmediaid="${wafrnMedia.id}"]`
-                  // TODO improve this
-                  //await postToEdit.removeMedias(await postToEdit.getMedias())
                   await postToEdit.setMedias(medias)
                 }
               }
-              postToEdit.content = `${body.content}<p>${mediasString}<p>Post edited at ${body.updated}</p>`
+              postToEdit.content = `${body.content}<p>Post edited at ${body.updated}</p>`
               postToEdit.updatedAt = body.updated
               await postToEdit.save()
-              const acceptResponse = await signAndAccept(req, remoteUser, user)
+              await signAndAccept(req, remoteUser, user)
+              break
+            }
+            case 'Person': {
+              if (body.id) {
+                getRemoteActor(body.id, user, 0, true)
+                await signAndAccept(req, remoteUser, user)
+              }
               break
             }
             default: {
@@ -249,6 +253,8 @@ async function inboxWorker(job: Job) {
                 }
               })
               if (postToDelete) {
+                postToDelete.setMedias([])
+                postToDelete.setTags([])
                 const orphans = await postToDelete.getChildren({
                   where: {
                     hierarchyLevel: postToDelete.hierarchyLevel + 1
