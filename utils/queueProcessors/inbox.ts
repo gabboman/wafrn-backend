@@ -182,8 +182,9 @@ async function inboxWorker(job: Job) {
                   await postToEdit.setMedias(medias)
                 }
               }
-              postToEdit.content = `${body.content}<p>Post edited at ${body.updated}</p>`
-              postToEdit.updatedAt = body.updated
+              const postUpdateTime = body.updated ? body.updated : new Date()
+              postToEdit.content = `${body.content}<p>Post edited at ${postUpdateTime}</p>`
+              postToEdit.updatedAt = postUpdateTime
               await postToEdit.save()
               await signAndAccept(req, remoteUser, user)
               break
