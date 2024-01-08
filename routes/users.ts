@@ -91,10 +91,12 @@ export default function userRoutes(app: Application) {
             }
 
             const userWithEmail = User.create(user)
-            const mailHeader = environment.reviewRegistrations ? 'We are reviewing your profile' : 'Welcome to wafrn!'
+            const mailHeader = environment.reviewRegistrations
+              ? 'We are reviewing your profile'
+              : `Welcome to ${environment.instanceUrl}!`
             const mailBody = environment.reviewRegistrations
               ? `Hello ${req.body.url}, at this moment we are manually reviewing registrations. You will recive an email from us once it's accepted`
-              : `<h1>Welcome to wafrn</h1> To activate your account <a href="${
+              : `<h1>Welcome to ${environment.instanceUrl}</h1> To activate your account <a href="${
                   environment.frontendUrl
                 }/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
             const emailSent = sendActivationEmail(req.body.email.toLowerCase(), activationCode, mailHeader, mailBody)
@@ -215,7 +217,7 @@ export default function userRoutes(app: Application) {
           const email = await sendActivationEmail(
             req.body.email.toLowerCase(),
             '',
-            'So you forgot your wafrn password',
+            `So you forgot your ${environment.instanceUrl} password`,
             `<h1>Use this link to reset your password</h1> Click <a href="${
               environment.frontendUrl
             }/resetPassword/${encodeURIComponent(
