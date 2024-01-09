@@ -23,7 +23,9 @@ function uploadHandler(extensionsRegex?: RegExp) {
       const name = file.originalname.toLowerCase()
       const isFileAllowed = !(
         name.match(
-          extensionsRegex ? extensionsRegex : /\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv|aac|mp3|wav|ogg|oga|m4a)$/
+          extensionsRegex
+            ? extensionsRegex
+            : /\.(png|jpg|jpeg|gifv|gif|webp|mp4|mov|webm|mkv|aac|mp3|wav|ogg|oga|m4a|pdf)$/
         ) == null
       )
       cb(null, isFileAllowed)
