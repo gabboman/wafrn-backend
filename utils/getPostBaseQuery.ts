@@ -47,7 +47,10 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
               {
                 model: Emoji,
                 required: false,
-                attributes: ['name', 'url']
+                attributes: ['name', 'url'],
+                through: {
+                  attributes: []
+                }
               }
             ],
             as: 'user',
@@ -79,7 +82,10 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
           {
             model: Emoji,
             required: false,
-            attributes: ['name', 'url']
+            attributes: ['name', 'url'],
+            through: {
+              attributes: []
+            }
           }
         ]
       },
@@ -106,7 +112,10 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
           {
             model: Emoji,
             required: false,
-            attributes: ['name', 'url']
+            attributes: ['name', 'url'],
+            through: {
+              attributes: []
+            }
           }
         ],
         as: 'user',
@@ -140,7 +149,10 @@ export default function getPostBaseQuery(req?: AuthorizedRequest) {
       {
         model: Emoji,
         required: false,
-        attributes: ['name', 'url']
+        attributes: ['name', 'url'],
+        through: {
+          attributes: []
+        }
       }
     ],
     order: [['createdAt', 'DESC']],
