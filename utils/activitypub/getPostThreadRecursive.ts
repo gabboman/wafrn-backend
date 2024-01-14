@@ -151,8 +151,9 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
             } else {
               mentionedUser = await getRemoteActor(mention.href, user)
             }
-
-            mentionedUsersIds.push(mentionedUser.id)
+            if (mentionedUser?.id) {
+              mentionedUsersIds.push(mentionedUser.id)
+            }
           }
         }
       } catch (error) {
