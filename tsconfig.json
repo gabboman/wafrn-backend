@@ -6,5 +6,6 @@
     "outDir": "./build",
     "esModuleInterop": true,
     "strict": true
-  }
+  },
+  "files": ["typings/http.d.ts"]
 }

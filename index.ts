@@ -39,15 +39,22 @@ import getFollowedsIds from './utils/cacheGetters/getFollowedsIds'
 import getBlockedIds from './utils/cacheGetters/getBlockedIds'
 import getNonFollowedLocalUsersIds from './utils/cacheGetters/getNotFollowedLocalUsersIds'
 import { getAllLocalUserIds } from './utils/cacheGetters/getAllLocalUserIds'
+import { IncomingMessage } from 'http'
 
 const swaggerJSON = require('./swagger.json')
-
 // rest of the code remains same
 const app = express()
 const PORT = environment.port
 
 app.use(overrideContentType)
-app.use(bodyParser.json({ limit: '50mb' }))
+app.use(
+  bodyParser.json({
+    limit: '50mb',
+    verify: (req: IncomingMessage, res, buf) => {
+      req.rawBody = buf
+    }
+  })
+)
 app.use(cors())
 app.set('trust proxy', 1)
 

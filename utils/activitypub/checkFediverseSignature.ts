@@ -8,7 +8,9 @@ import crypto from 'crypto'
 const httpSignature = require('@peertube/http-signature')
 import Redis from 'ioredis'
 import { Op } from 'sequelize'
+import { createHash } from 'node:crypto'
 import { redisCache } from '../redis'
+
 const adminUser = environment.forceSync
   ? null
   : User.findOne({
@@ -17,16 +19,15 @@ const adminUser = environment.forceSync
       }
     })
 
-export default async function checkFediverseSignature(req: Request, res: Response, next: NextFunction) {
+export default async function checkFediverseSignature(req: any, res: Response, next: NextFunction) {
   let success = false
   const digest = req.headers.digest
   const signature = req.headers.signature
   if (digest && signature) {
-    // TODO check signatures for the love of god
-    success = true
     try {
-      // TODO do stuff here
-      const sigHead = httpSignature.parseRequest(req)
+      const sigHead = httpSignature.parseRequest(req, {
+        headers: ['(request-target)', 'digest', 'host', 'date']
+      })
       const remoteUserUrl = sigHead.keyId.split('#')[0]
       const hostUrl = new URL(remoteUserUrl).host
       let bannedHostInCache = await redisCache.get('server:' + hostUrl)
@@ -44,7 +45,6 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       if (bannedHostInCache === 'true') {
         return res.sendStatus(401)
       }
-      success = true
       const cachedKey = await redisCache.get('key:' + remoteUserUrl)
       const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, await adminUser)).publicKey
       if (!cachedKey) {
@@ -59,14 +59,27 @@ export default async function checkFediverseSignature(req: Request, res: Respons
       if (!tmp) {
         logger.trace(`Failed to verify signature from ${remoteUserUrl}`)
       }
-      //success = httpSignature.verifySignature(sigHead,  remoteKey)
+      success = verifyDigest(req.rawBody, req.headers.digest) || httpSignature.verifySignature(sigHead, remoteKey)
     } catch (error: any) {
       success = false
     }
   }
   if (!success) {
+    logger.trace(`Failed to verify signature in petition from somewhere`)
     return res.sendStatus(401)
   } else {
     next()
+  }
+
+  // stolen from catodon/firefish https://codeberg.org/catodon/catodon/src/branch/dev/packages/backend/src/remote/activitypub/check-fetch.ts
+  function verifyDigest(body: string, digest: string | string[] | undefined): boolean {
+    digest = toSingle(digest)
+    if (body == null || digest == null || !digest.toLowerCase().startsWith('sha-256=')) return false
+
+    return createHash('sha256').update(body).digest('base64') === digest.substring(8)
+  }
+  // also from catodon lol sorry
+  function toSingle<T>(x: T | T[] | undefined): T | undefined {
+    return Array.isArray(x) ? x[0] : x
   }
 }
