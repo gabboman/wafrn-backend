@@ -201,7 +201,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         return post
       }
     } catch (error) {
-      logger.info({
+      logger.trace({
         message: 'error getting remote post',
         url: remotePostId,
         user: user.url,
