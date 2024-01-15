@@ -162,27 +162,28 @@ export default function adminRoutes(app: Application) {
     const userToBeBanned = await User.findByPk(req.body.id)
     userToBeBanned.banned = 1
     await userToBeBanned.save()
-    const reportupdate = await PostReport.update(
-      {
-        resolved: true
+    // TOO fix this dirty thing oh my god
+    const unsolvedReports = await PostReport.findAll({
+      where: {
+        resolved: false
       },
-      {
-        include: [
-          {
-            model: Post,
-            required: true,
-            include: [
-              {
-                model: User,
-                where: {
-                  id: req.body.id
-                }
-              }
-            ]
+      include: [
+        {
+          model: Post,
+          where: {
+            userId: req.body.id
           }
-        ]
-      }
-    )
+        }
+      ]
+    })
+    if (unsolvedReports) {
+      await Promise.allSettled(
+        unsolvedReports.map((elem: any) => {
+          elem.resolved = true
+          return elem.save()
+        })
+      )
+    }
     res.send({
       success: true
     })
