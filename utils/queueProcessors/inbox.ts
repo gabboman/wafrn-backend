@@ -133,7 +133,7 @@ async function inboxWorker(job: Job) {
           remoteFollow.save()
           // we accept it
           const acceptResponse = await signAndAccept(req, remoteUser, user)
-          logger.debug(`Remote user ${remoteUser.url} started following ${user.url}`)
+          logger.debug(`Remote user ${remoteUser.url} started following ${userToBeFollowed.url}`)
           logger.debug({ body: req.body })
           break
         }
@@ -250,8 +250,21 @@ async function inboxWorker(job: Job) {
               await signAndAccept(req, remoteUser, user)
               break
             }
+            case 'Like': {
+              const likeToRemove = await UserLikesPostRelations.findOne({
+                where: {
+                  remoteId: body.id
+                }
+              })
+              if (likeToRemove) {
+                likeToRemove.destroy()
+              } else {
+                logger.trace(`Like not found in db: ${body.id}`)
+              }
+              break
+            }
             default: {
-              logger.info(`UNDO NOT IMPLEMENTED: ${req.body.type}`)
+              logger.info(`UNDO NOT IMPLEMENTED: ${body.object.type}`)
               logger.info(req.body)
             }
           }
