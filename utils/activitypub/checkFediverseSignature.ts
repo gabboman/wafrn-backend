@@ -10,6 +10,7 @@ import Redis from 'ioredis'
 import { Op } from 'sequelize'
 import { createHash } from 'node:crypto'
 import { redisCache } from '../redis'
+import { getKey } from '../cacheGetters/getKey'
 
 const adminUser = environment.forceSync
   ? null
@@ -45,20 +46,7 @@ export default async function checkFediverseSignature(req: any, res: Response, n
       if (bannedHostInCache === 'true') {
         return res.sendStatus(401)
       }
-      const cachedKey = await redisCache.get('key:' + remoteUserUrl)
-      const remoteKey = cachedKey ? cachedKey : (await getRemoteActor(remoteUserUrl, await adminUser)).publicKey
-      if (!cachedKey) {
-        redisCache.set('key:' + remoteUserUrl, remoteKey)
-      }
-      //const tmp = httpSignature.verifySignature(sigHead,  remoteKey)
-      const verifier = crypto.createVerify('RSA-SHA256')
-      verifier.update(sigHead.signingString, 'ascii')
-      const publicKeyBuf = Buffer.from(remoteKey, 'ascii')
-      const signatureBuf = Buffer.from(sigHead.params.signature, 'base64')
-      const tmp = verifier.verify(publicKeyBuf, signatureBuf)
-      if (!tmp) {
-        logger.trace(`Failed to verify signature from ${remoteUserUrl}`)
-      }
+      const remoteKey = await getKey(remoteUserUrl, await adminUser)
       success = verifyDigest(req.rawBody, req.headers.digest) || httpSignature.verifySignature(sigHead, remoteKey)
     } catch (error: any) {
       success = false
