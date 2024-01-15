@@ -1,4 +1,4 @@
-import { FederatedHost, User } from '../../db'
+import { FederatedHost, User, sequelize } from '../../db'
 import { environment } from '../../environment'
 import { getFederatedHostIdFromUrl } from '../cacheGetters/getHostIdFromUrl'
 import { getUserIdFromRemoteId } from '../cacheGetters/getUserIdFromRemoteId'
@@ -7,6 +7,7 @@ import { getPetitionSigned } from './getPetitionSigned'
 import { Queue } from 'bullmq'
 import { processUserEmojis } from './processUserEmojis'
 import { fediverseTag } from '../../interfaces/fediverse/tags'
+import { Op } from 'sequelize'
 
 const updateUsersQueue = new Queue('UpdateUsers', {
   connection: environment.bullmqConnection,
@@ -32,7 +33,17 @@ async function getHostFromCache(displayName: string): Promise<any> {
   await FederatedHost.findByPk(await getFederatedHostIdFromUrl(displayName))
 }
 
+// TODO refactor this thing?
 async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdate = false): Promise<any> {
+  if (actorUrl.startsWith(environment.frontendUrl + '/fediverse/blog/')) {
+    // well this is a local actor
+    const localUrl = actorUrl.split(environment.frontendUrl + '/fediverse/blog/')[1].toLowerCase()
+    return await User.findOne({
+      where: {
+        [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', localUrl)]
+      }
+    })
+  }
   if (level === 100) {
     //Actor is not valid.
     return await deletedUser

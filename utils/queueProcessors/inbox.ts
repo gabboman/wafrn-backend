@@ -108,17 +108,7 @@ async function inboxWorker(job: Job) {
         }
         case 'Follow': {
           // Follow user
-          let userToBeFollowed: any
-          if (req.body.object.startsWith(environment.frontendUrl)) {
-            const userUrl = req.body.object.split(environment.frontendUrl + '/fediverse/blog/')[1].toLowerCase()
-            userToBeFollowed = await User.findOne({
-              where: {
-                url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userUrl)
-              }
-            })
-          } else {
-            userToBeFollowed = await getRemoteActor(req.body.object, user)
-          }
+          const userToBeFollowed = await getRemoteActor(req.body.object, user)
           let remoteFollow = await Follows.findOne({
             where: {
               followedId: remoteUser.id,
@@ -209,17 +199,7 @@ async function inboxWorker(job: Job) {
           const body = req.body
           switch (body.object.type) {
             case 'Follow': {
-              let userToBeUnfollowed: any
-              if (req.body.object.startsWith(environment.frontendUrl)) {
-                const userUrl = req.body.object.split(environment.frontendUrl + '/fediverse/blog/')[1].toLowerCase()
-                userToBeUnfollowed = await User.findOne({
-                  where: {
-                    url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userUrl)
-                  }
-                })
-              } else {
-                userToBeUnfollowed = await getRemoteActor(req.body.object, user)
-              }
+              const userToBeUnfollowed = await getRemoteActor(req.body.object, user)
               const remoteFollow = await Follows.findOne({
                 where: {
                   // I think i was doing something wrong here. Changed so when remote unfollow does not cause you to unfollow them instead lol
