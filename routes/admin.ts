@@ -234,4 +234,37 @@ export default function adminRoutes(app: Application) {
       users: await getBannedUsers()
     })
   })
+
+  app.get(
+    '/api/admin/getPendingApprovalUsers',
+    authenticateToken,
+    adminToken,
+    async (req: AuthorizedRequest, res: Response) => {
+      const notActiveUsers = await User.findAll({
+        where: {
+          activated: false,
+          url: {
+            [Op.notLike]: '%@%'
+          }
+          //banned: false,
+        },
+        attributes: ['url', 'avatar', 'description', 'email']
+      })
+      res.send(notActiveUsers)
+    }
+  )
+
+  app.post('/api/admin/activateUser', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
+    if (req.body.id) {
+      const userToActivate = await User.update(
+        { activated: true },
+        {
+          where: {
+            id: req.body.id
+          }
+        }
+      )
+    }
+    res.send({ success: true })
+  })
 }
