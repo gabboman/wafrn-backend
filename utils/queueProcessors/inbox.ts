@@ -74,7 +74,7 @@ async function inboxWorker(job: Job) {
           if (req.body.to[0].toString().indexOf('followers') !== -1) {
             privacy = 1
           }
-          if (remoteUser.url !== environment.deletedUser) {
+          if (remoteUser.url !== environment.deletedUser && retooted_content) {
             const postToCreate = {
               content: '',
               content_warning: '',
@@ -88,6 +88,11 @@ async function inboxWorker(job: Job) {
             const newToot = await Post.create(postToCreate)
             await newToot.save()
             await signAndAccept({ body: body }, remoteUser, user)
+          } else {
+            if (!retooted_content) {
+              logger.debug(`We could not get remote post to be retooted: ${body.object}`)
+              logger.debug(body)
+            }
           }
           break
         }
