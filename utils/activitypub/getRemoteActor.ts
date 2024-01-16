@@ -35,8 +35,10 @@ async function getHostFromCache(displayName: string): Promise<any> {
 
 // TODO refactor this thing?
 async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdate = false): Promise<any> {
-  if (typeof actorUrl !== 'string') {
-    logger.debug('ATTENTION, getremoteactor called with non string')
+  try {
+    actorUrl.startsWith(environment.frontendUrl + '/fediverse/blog/')
+  } catch (error) {
+    logger.debug('actorurl not string')
     logger.debug(actorUrl)
   }
   if (actorUrl.startsWith(environment.frontendUrl + '/fediverse/blog/')) {
