@@ -197,16 +197,12 @@ async function inboxWorker(job: Job) {
         }
         case 'Undo': {
           // Unfollow? Destroy post? what else can be undone
-
           const body = req.body
           switch (body.object.type) {
             case 'Follow': {
-              const userToBeUnfollowed = await getRemoteActor(req.body.object, user)
               const remoteFollow = await Follows.findOne({
                 where: {
                   // I think i was doing something wrong here. Changed so when remote unfollow does not cause you to unfollow them instead lol
-                  followerId: remoteUser.id,
-                  followedId: userToBeUnfollowed.id,
                   remoteFollowId: body.object.id
                 }
               })
