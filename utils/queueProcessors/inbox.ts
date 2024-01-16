@@ -322,7 +322,7 @@ async function inboxWorker(job: Job) {
               }
             }
           } catch (error) {
-            logger.debug({
+            logger.trace({
               message: 'error with delete petition',
               error: error,
               petition: req.body
