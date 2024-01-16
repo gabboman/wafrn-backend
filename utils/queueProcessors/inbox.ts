@@ -133,8 +133,6 @@ async function inboxWorker(job: Job) {
           remoteFollow.save()
           // we accept it
           const acceptResponse = await signAndAccept(req, remoteUser, user)
-          logger.debug(`Remote user ${remoteUser.url} started following ${userToBeFollowed.url}`)
-          logger.debug({ body: req.body })
           break
         }
         case 'Update': {
@@ -210,7 +208,6 @@ async function inboxWorker(job: Job) {
               })
               if (remoteFollow) {
                 await remoteFollow.destroy()
-                logger.debug(`Remote unfollow ${remoteUser.url} unfollowed ${user.url}`)
               }
               await signAndAccept(req, remoteUser, user)
               break
@@ -258,8 +255,6 @@ async function inboxWorker(job: Job) {
               })
               if (likeToRemove) {
                 likeToRemove.destroy()
-              } else {
-                logger.trace(`Like not found in db: ${body.id}`)
               }
               break
             }
@@ -327,7 +322,7 @@ async function inboxWorker(job: Job) {
               }
             }
           } catch (error) {
-            logger.trace({
+            logger.debug({
               message: 'error with delete petition',
               error: error,
               petition: req.body
@@ -337,14 +332,12 @@ async function inboxWorker(job: Job) {
         }
         default: {
           logger.info(`NOT IMPLEMENTED: ${req.body.type}`)
-          logger.info(req.body.object)
+          logger.info(req.body)
         }
       }
-    } else {
-      logger.debug(`Ignoring petition from ${host.displayName}: ${remoteUser.url} to ${user.url}`)
     }
   } catch (err) {
-    logger.trace(err)
+    logger.debug(err)
     const error = new Error('error')
   }
 }
