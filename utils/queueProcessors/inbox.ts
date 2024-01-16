@@ -31,6 +31,11 @@ async function inboxWorker(job: Job) {
     const body = job.data.petition
     const req = { body: body }
     const remoteUser = await getRemoteActor(req.body.actor, user)
+    if (remoteUser == null) {
+      logger.debug('Error geting user in inbox ' + req.body.actor)
+      logger.debug(req.body)
+      return null
+    }
     const host = await FederatedHost.findOne({
       where: {
         displayName: new URL(req.body.actor).host
