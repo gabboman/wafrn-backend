@@ -72,8 +72,8 @@ async function inboxWorker(job: Job) {
           const retooted_content = await getPostThreadRecursive(user, urlToGet)
 
           if (!retooted_content) {
-            logger.debug(`We could not get remote post to be retooted: ${urlToGet}`)
-            logger.debug(body)
+            logger.trace(`We could not get remote post to be retooted: ${urlToGet}`)
+            logger.trace(body)
           }
 
           let privacy = 10
