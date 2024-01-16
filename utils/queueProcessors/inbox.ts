@@ -127,18 +127,11 @@ async function inboxWorker(job: Job) {
             }
           })
           if (!remoteFollow) {
-            await Follows.create({
+            remoteFollow = await Follows.create({
               followerId: remoteUser.id,
               followedId: userToBeFollowed.id,
               remoteFollowId: req.body.id,
-              accepted: !userToBeFollowed.manuallyAcceptsFollows
-            })
-            await user.addFollower(remoteUser)
-            remoteFollow = await Follows.findOne({
-              where: {
-                followerId: remoteUser.id,
-                followedId: userToBeFollowed.id
-              }
+              accepted: userToBeFollowed.url.startsWith('@') ? true : !userToBeFollowed.manuallyAcceptsFollows
             })
           }
           remoteFollow.save()
