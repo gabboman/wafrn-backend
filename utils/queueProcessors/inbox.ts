@@ -66,7 +66,7 @@ async function inboxWorker(job: Job) {
         }
         case 'Announce': {
           // LEMMY HACK
-          let urlToGet = typeof body.object === 'string' ? body.object : body.object.object;
+          let urlToGet = typeof body.object === 'string' ? body.object : body.object.object
           urlToGet = typeof urlToGet === 'string' ? urlToGet : urlToGet.id
           // GOD LORD, THIS IS HERE JUST BECAUSE LEMMY.
           const retooted_content = await getPostThreadRecursive(user, urlToGet)
@@ -93,7 +93,7 @@ async function inboxWorker(job: Job) {
             await newToot.save()
             await signAndAccept({ body: body }, remoteUser, user)
           } else {
-            if (!<retooted_content>) {
+            if (!retooted_content) {
               logger.debug(`We could not get remote post to be retooted: ${body.object}`)
               logger.debug(body)
             }
