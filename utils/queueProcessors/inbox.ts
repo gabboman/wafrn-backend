@@ -158,26 +158,31 @@ async function inboxWorker(job: Job) {
                   }
                 ]
               })
-              const medias = []
-              if (body.attachment && body.attachment.length > 0) {
-                for await (const remoteFile of body.attachment) {
-                  const wafrnMedia = await Media.create({
-                    url: remoteFile.url,
-                    NSFW: body?.sensitive,
-                    adultContent: !!body?.sensitive,
-                    userId: remoteUser.id,
-                    description: remoteFile.name,
-                    ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
-                    external: true
-                  })
-                  medias.push(wafrnMedia)
-                  await postToEdit.setMedias(medias)
+              if (postToEdit) {
+                const medias = []
+                if (body.attachment && body.attachment.length > 0) {
+                  for await (const remoteFile of body.attachment) {
+                    const wafrnMedia = await Media.create({
+                      url: remoteFile.url,
+                      NSFW: body?.sensitive,
+                      adultContent: !!body?.sensitive,
+                      userId: remoteUser.id,
+                      description: remoteFile.name,
+                      ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
+                      external: true
+                    })
+                    medias.push(wafrnMedia)
+                    await postToEdit.setMedias(medias)
+                  }
                 }
+                const postUpdateTime = body.updated ? body.updated : new Date()
+                postToEdit.content = `${body.content}<p>Post edited at ${postUpdateTime}</p>`
+                postToEdit.updatedAt = postUpdateTime
+                await postToEdit.save()
+              } else {
+                await getPostThreadRecursive(user, body.id)
               }
-              const postUpdateTime = body.updated ? body.updated : new Date()
-              postToEdit.content = `${body.content}<p>Post edited at ${postUpdateTime}</p>`
-              postToEdit.updatedAt = postUpdateTime
-              await postToEdit.save()
+
               await signAndAccept(req, remoteUser, user)
               break
             }
