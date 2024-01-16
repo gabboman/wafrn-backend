@@ -70,6 +70,12 @@ async function inboxWorker(job: Job) {
           urlToGet = typeof urlToGet === 'string' ? urlToGet : urlToGet.id
           // GOD LORD, THIS IS HERE JUST BECAUSE LEMMY.
           const retooted_content = await getPostThreadRecursive(user, urlToGet)
+
+          if (!retooted_content) {
+            logger.debug(`We could not get remote post to be retooted: ${urlToGet}`)
+            logger.debug(body)
+          }
+
           let privacy = 10
           if (req.body.to.indexOf('https://www.w3.org/ns/activitystreams#Public') !== -1) {
             // post is PUBLIC
@@ -92,11 +98,6 @@ async function inboxWorker(job: Job) {
             const newToot = await Post.create(postToCreate)
             await newToot.save()
             await signAndAccept({ body: body }, remoteUser, user)
-          } else {
-            if (!retooted_content) {
-              logger.debug(`We could not get remote post to be retooted: ${body.object}`)
-              logger.debug(body)
-            }
           }
           break
         }
