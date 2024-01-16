@@ -20,6 +20,12 @@ import { toHtml } from '@opera7133/mfmp'
 import * as mfm from 'mfm-js'
 import { loadPoll } from './loadPollFromPost'
 async function getPostThreadRecursive(user: any, remotePostId: string, remotePostObject?: any) {
+  try {
+    remotePostId.startsWith(`${environment.frontendUrl}/fediverse/post/`)
+  } catch (error) {
+    logger.debug('HERE IS THE ISSUE')
+    logger.debug(remotePostId)
+  }
   if (remotePostId.startsWith(`${environment.frontendUrl}/fediverse/post/`)) {
     // we are looking at a local post
     const partToRemove = `${environment.frontendUrl}/fediverse/post/`
