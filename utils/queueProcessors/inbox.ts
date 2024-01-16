@@ -72,7 +72,12 @@ async function inboxWorker(job: Job) {
         case 'Announce': {
           // LEMMY HACK
           let urlToGet = typeof body.object === 'string' ? body.object : body.object.object
-          urlToGet = typeof urlToGet === 'string' ? urlToGet : urlToGet.id
+          urlToGet = typeof urlToGet === 'string' ? urlToGet : urlToGet?.id
+          if (!urlToGet) {
+            logger.debug(`trying to get a non existing url`)
+            logger.debug(req.body)
+            return null
+          }
           // GOD LORD, THIS IS HERE JUST BECAUSE LEMMY.
           const retooted_content = await getPostThreadRecursive(user, urlToGet)
 
