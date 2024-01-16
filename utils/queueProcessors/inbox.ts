@@ -65,7 +65,9 @@ async function inboxWorker(job: Job) {
           break
         }
         case 'Announce': {
-          const retooted_content = await getPostThreadRecursive(user, body.object)
+          // LEMMY HACK
+          const urlToGet = typeof body.object === 'string' ? body.object : body.object.object
+          const retooted_content = await getPostThreadRecursive(user, urlToGet)
           let privacy = 10
           if (req.body.to.indexOf('https://www.w3.org/ns/activitystreams#Public') !== -1) {
             // post is PUBLIC
