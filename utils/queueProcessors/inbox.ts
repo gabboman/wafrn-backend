@@ -23,6 +23,7 @@ import { redisCache } from '../redis'
 import getBlockedIds from '../cacheGetters/getBlockedIds'
 import getUserBlockedServers from '../cacheGetters/getUserBlockedServers'
 import { object } from 'underscore'
+import { getUserIdFromRemoteId } from '../cacheGetters/getUserIdFromRemoteId'
 
 async function inboxWorker(job: Job) {
   try {
@@ -231,18 +232,17 @@ async function inboxWorker(job: Job) {
                 }
               })
               if (postToDelete) {
-                postToDelete.setMedias([])
-                postToDelete.setTags([])
-                const orphans = await postToDelete.getChildren({
+                const orphans = await Post.count({
                   where: {
-                    hierarchyLevel: postToDelete.hierarchyLevel + 1
+                    parentId: postToDelete.id
                   }
                 })
-                for (const orphan of orphans) {
-                  orphan.parentId = postToDelete.parentId
-                  await orphan.save()
+                if (orphans === 0) {
+                  await postToDelete.destroy()
+                } else {
+                  // WAIT WHAT THIS SHOULD NOT BE POSSIBLE
+                  logger.warn('We are trying to delete a retoot... with children. WHAT?')
                 }
-                await postToDelete.destroy()
               }
               await signAndAccept(req, remoteUser, user)
               break
