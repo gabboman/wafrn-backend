@@ -14,9 +14,14 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
       logger.warn({ duration: time, query: sql })
     }
   },
+  dialectOptions: {
+    options: {
+      connectTimeout: 3000
+    }
+  },
   pool: {
     max: 6,
-    min: 1,
+    min: 2,
     acquire: 30000,
     idle: 5000
   },
