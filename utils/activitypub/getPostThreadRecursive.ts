@@ -91,9 +91,14 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         // post is PUBLIC
         privacy = 0
       }
+      if (postPetition.cc.includes('https://www.w3.org/ns/activitystreams#Public')) {
+        // unlisted
+        privacy = 3
+      }
       if (postPetition.to[0].toString().indexOf('followers') !== -1) {
         privacy = 1
       }
+
       let postTextContent =
         '' + postPetition.source?.mediaType === 'text/x.misskeymarkdown'
           ? toHtml(mfm.parse(postPetition.source.content))

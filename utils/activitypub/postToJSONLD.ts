@@ -64,7 +64,7 @@ async function postToJSONLD(post: any) {
 
     fediMentions.push({
       type: 'Mention',
-      name: user.url.startsWith('@') ? user.url.substring(1) : user.url,
+      name: user.url.startsWith('@') ? user.url : '@' + user.url + '@' + environment.frontendUrl,
       href: user.remoteId ? user.remoteId : `${environment.frontendUrl}/blog/${user.url}`
     })
   }
@@ -76,19 +76,16 @@ async function postToJSONLD(post: any) {
     }
   })
 
+  const usersToSend = getToAndCC(post.privacy, mentionedUsers, stringMyFollowers)
+
   let postAsJSONLD: activityPubObject = {
     '@context': ['https://www.w3.org/ns/activitystreams', `${environment.frontendUrl}/contexts/litepub-0.1.jsonld`],
     id: `${environment.frontendUrl}/fediverse/activity/post/${post.id}`,
     type: 'Create',
     actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
     published: post.createdAt.toISOString(),
-    to:
-      post.privacy / 1 === 10
-        ? mentionedUsers
-        : post.privacy / 1 === 0
-        ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
-        : [stringMyFollowers],
-    cc: post.privacy / 1 !== 10 ? [...mentionedUsers] : [],
+    to: usersToSend.to,
+    cc: usersToSend.cc,
     object: {
       id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
@@ -153,6 +150,39 @@ async function postToJSONLD(post: any) {
     }
   }
   return postAsJSONLD
+}
+
+function getToAndCC(
+  privacy: number,
+  mentionedUsers: string[],
+  stringMyFollowers: string
+): { to: string[]; cc: string[] } {
+  let to: string[] = []
+  let cc: string[] = []
+  switch (privacy) {
+    case 0: {
+      to = ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers, ...mentionedUsers]
+      cc = mentionedUsers
+      break
+    }
+    case 1: {
+      to = [stringMyFollowers, ...mentionedUsers]
+      cc = []
+      break
+    }
+    case 3: {
+      to = [stringMyFollowers, ...mentionedUsers]
+      cc = ['https://www.w3.org/ns/activitystreams#Public']
+      break
+    }
+    default: {
+      ;(to = mentionedUsers), (cc = [])
+    }
+  }
+  return {
+    to,
+    cc
+  }
 }
 
 export { postToJSONLD }
