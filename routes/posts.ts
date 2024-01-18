@@ -112,7 +112,7 @@ export default function postsRoutes(app: Application) {
       })
       const blogId = blog?.id
       if (blogId) {
-        const privacyArray = [0, 2]
+        const privacyArray = [0, 2, 3]
         if (
           req.jwtData?.userId === blogId ||
           (req.jwtData?.userId &&
