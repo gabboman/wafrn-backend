@@ -229,7 +229,7 @@ export default function postsRoutes(app: Application) {
         const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/
 
         const mediaInPost = req.body.content.match(wafrnMediaRegex)
-        const mentionsInPost = parsedAsHTML('span.mention')
+        const mentionsInPost = parsedAsHTML('a.mention')
         if (mediaInPost) {
           const mediaToAdd: string[] = []
           mediaInPost.forEach((element: string) => {
