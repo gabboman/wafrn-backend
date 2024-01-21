@@ -456,6 +456,7 @@ QuestionPollQuestion.belongsTo(QuestionPoll)
 QuestionPollQuestion.hasMany(QuestionPollAnswer, { onDelete: 'cascade' })
 QuestionPollAnswer.belongsTo(User)
 QuestionPollAnswer.belongsTo(QuestionPollQuestion)
+
 Post.hasMany(EmojiReaction)
 EmojiReaction.belongsTo(Post)
 User.hasMany(EmojiReaction)
@@ -463,7 +464,7 @@ EmojiReaction.belongsTo(User)
 Emoji.belongsToMany(EmojiReaction, {
   through: 'emojiReactionToEmojiRelation'
 })
-EmojiReaction.hasOne(Emoji)
+EmojiReaction.belongsTo(Emoji)
 
 User.hasMany(QuestionPollAnswer),
   User.belongsToMany(Emoji, {
