@@ -77,9 +77,17 @@ async function prepareSendRemotePostWorker(job: Job) {
         where: {
           publicInbox: { [Op.ne]: null },
           blocked: { [Op.ne]: true },
-          literal: sequelize.literal(
-            `id in (SELECT federatedHostId from users where users.id IN (SELECT followerId from follows where followedId = '${post.userId}') and federatedHostId is not NULL)`
-          )
+
+          [Op.or]: [
+            {
+              literal: sequelize.literal(
+                `id in (SELECT federatedHostId from users where users.id IN (SELECT followerId from follows where followedId = '${post.userId}') and federatedHostId is not NULL)`
+              )
+            },
+            {
+              friendServer: true
+            }
+          ]
         }
       })
     }
