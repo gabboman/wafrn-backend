@@ -31,7 +31,9 @@ const files = [
   './routes/blockUserServer.ts',
   './routes/blocks.ts',
   './routes/like.ts',
-  './routes/mute.ts'
+  './routes/mute.ts',
+  './routes/deletepost.ts',
+  './routes/lists.ts'
 ]
 
 swaggerAutogen({ openapi: '3.0.0' })('./swagger.json', files, config)
