@@ -15,9 +15,7 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
     }
   },
   dialectOptions: {
-    options: {
-      connectTimeout: 3000
-    }
+    connectTimeout: 10000
   },
   pool: {
     max: 6,
@@ -26,9 +24,9 @@ const sequelize = new Sequelize(environment.databaseConnectionString, {
     idle: 5000
   },
   retry: {
-    max: environment.prod ? 5 : 0,
-    backoffBase: 250, // Initial backoff duration in ms. Default: 100,
-    backoffExponent: 1.2 // Exponent to increase backoff each try. Default: 1.1
+    max: environment.prod ? 3 : 0,
+    backoffBase: 100, // Initial backoff duration in ms. Default: 100,
+    backoffExponent: 1.1 // Exponent to increase backoff each try. Default: 1.1
   },
   benchmark: true
 })
