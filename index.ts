@@ -40,6 +40,7 @@ import getBlockedIds from './utils/cacheGetters/getBlockedIds'
 import getNonFollowedLocalUsersIds from './utils/cacheGetters/getNotFollowedLocalUsersIds'
 import { getAllLocalUserIds } from './utils/cacheGetters/getAllLocalUserIds'
 import { IncomingMessage } from 'http'
+import statusRoutes from './routes/status'
 
 const swaggerJSON = require('./swagger.json')
 // rest of the code remains same
@@ -208,6 +209,7 @@ muteRoutes(app)
 blockUserServerRoutes(app)
 listRoutes(app)
 frontend(app)
+statusRoutes(app)
 
 app.listen(PORT, environment.listenIp, () => {
   console.log('started app')
