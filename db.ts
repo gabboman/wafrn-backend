@@ -302,6 +302,19 @@ const Emoji = sequelize.define('emojis', {
   external: Sequelize.BOOLEAN
 })
 
+const EmojiReaction = sequelize.define('emojiReaction', {
+  id: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    primaryKey: true
+  },
+  remoteId: {
+    type: Sequelize.TEXT,
+    allowNull: true
+  },
+  content: Sequelize.TEXT
+})
+
 const EmojiCollection = sequelize.define('emojiCollections', {
   id: {
     type: Sequelize.UUID,
@@ -439,6 +452,14 @@ QuestionPollQuestion.belongsTo(QuestionPoll)
 QuestionPollQuestion.hasMany(QuestionPollAnswer, { onDelete: 'cascade' })
 QuestionPollAnswer.belongsTo(User)
 QuestionPollAnswer.belongsTo(QuestionPollQuestion)
+Post.hasMany(EmojiReaction)
+EmojiReaction.belongsTo(Post)
+User.hasMany(EmojiReaction)
+EmojiReaction.belongsTo(User)
+Emoji.belongsToMany(EmojiReaction, {
+  through: 'emojiReactionToEmojiRelation'
+})
+EmojiReaction.hasOne(Emoji)
 
 User.hasMany(QuestionPollAnswer),
   User.belongsToMany(Emoji, {
