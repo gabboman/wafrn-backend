@@ -31,6 +31,7 @@ export default function adminRoutes(app: Application) {
         if (newValue) {
           elemToUpdate.blocked = newValue.blocked
           elemToUpdate.detail = newValue.detail
+          elemToUpdate.friendServer = newValue.friendServer
           promises.push(elemToUpdate.save())
           if (elemToUpdate.blocked) {
             // we add it to the blocked cache

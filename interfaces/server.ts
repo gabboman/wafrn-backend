@@ -5,4 +5,5 @@ export interface server {
   publicKey: string
   detail: string
   blocked: boolean
+  friendServer: boolean
 }

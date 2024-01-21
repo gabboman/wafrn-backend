@@ -49,6 +49,10 @@ const FederatedHost = sequelize.define(
     blocked: {
       type: Sequelize.BOOLEAN,
       defaultValue: false
+    },
+    friendServer: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false
     }
   },
   {
