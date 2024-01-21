@@ -27,7 +27,7 @@ const workerPrepareSendPost = new Worker('prepareSendPost', (job: Job) => prepar
   metrics: {
     maxDataPoints: MetricsTime.ONE_WEEK * 2
   },
-  concurrency: environment.workers.medium,
+  concurrency: environment.workers.high,
   lockDuration: 60000
 })
 
