@@ -5,6 +5,8 @@ import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { server } from '../interfaces/server'
 import { Op } from 'sequelize'
 import { redisCache } from '../utils/redis'
+import sendActivationEmail from '../utils/sendActivationEmail'
+import { environment } from '../environment'
 
 export default function adminRoutes(app: Application) {
   app.get('/api/admin/server-list', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
@@ -245,10 +247,10 @@ export default function adminRoutes(app: Application) {
           activated: false,
           url: {
             [Op.notLike]: '%@%'
-          }
-          //banned: false,
+          },
+          banned: false
         },
-        attributes: ['url', 'avatar', 'description', 'email']
+        attributes: ['id', 'url', 'avatar', 'description', 'email']
       })
       res.send(notActiveUsers)
     }
@@ -256,15 +258,36 @@ export default function adminRoutes(app: Application) {
 
   app.post('/api/admin/activateUser', authenticateToken, adminToken, async (req: AuthorizedRequest, res: Response) => {
     if (req.body.id) {
-      const userToActivate = await User.update(
-        { activated: true },
-        {
-          where: {
-            id: req.body.id
-          }
-        }
+      const userToActivate = await User.findByPk(req.body.id)
+      userToActivate.activated = true
+      const emailPromise = sendActivationEmail(
+        userToActivate.email,
+        '',
+        `your account at ${environment.frontendUrl} has been activated`,
+        `Hello ${userToActivate.url}, your account has been reviewed by our team and is now activated! Congratulations`
       )
+      Promise.allSettled([emailPromise, userToActivate.save()])
     }
     res.send({ success: true })
   })
+
+  app.post(
+    '/api/admin/notActivateAndSendEmail',
+    authenticateToken,
+    adminToken,
+    async (req: AuthorizedRequest, res: Response) => {
+      if (req.body.id) {
+        const userToActivate = await User.findByPk(req.body.id)
+        userToActivate.banned = undefined // little hack, not adding another thing to the db. we set it to null and remove notification
+        const emailPromise = sendActivationEmail(
+          userToActivate.email,
+          '',
+          `Hello ${userToActivate.url}, before we can activate your account at ${environment.frontendUrl} we need you to reply to this email`,
+          `Hello ${userToActivate.url}, you recived this email because something might be off in your account. Please simply reply to this email with some info about you. Or maybe we pressed the big red button on accident who knows. In both cases, feel free to let us know. sorry for the extra hoop`
+        )
+        Promise.allSettled([userToActivate.save(), emailPromise])
+      }
+      res.send({ success: true })
+    }
+  )
 }
