@@ -120,19 +120,18 @@ async function prepareSendRemotePostWorker(job: Job) {
     usersToSendThePost?.forEach((server: any) => {
       inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
     })
-    for await (const inboxChunk of _.chunk(inboxes, 10)) {
-      await sendPostQueue.add(
-        'sencChunk',
-        {
+    const addSendPostToQueuePromises: Promise<any>[] = []
+    logger.debug(`Preparing send post. ${inboxes.length} inboxes`)
+    for (const inboxChunk of _.chunk(inboxes, 10)) {
+      addSendPostToQueuePromises.push(
+        sendPostQueue.add('sencChunk', {
           objectToSend: objectToSendComplete,
           petitionBy: localUser.dataValues,
           inboxList: inboxChunk
-        },
-        {
-          priority: 5
-        }
+        })
       )
     }
+    await Promise.allSettled(addSendPostToQueuePromises)
   }
 }
 
