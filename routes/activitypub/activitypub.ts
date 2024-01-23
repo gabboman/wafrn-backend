@@ -88,16 +88,16 @@ function activityPubRoutes(app: Application) {
           endpoints: {
             sharedInbox: `${environment.frontendUrl}/fediverse/sharedInbox`
           },
-          icon: {
+          ...(user.avatar? {icon: {
             type: 'Image',
             mediaType: 'image/webp',
             url: environment.mediaUrl + user.avatar
-          },
-          image: {
+          }} : undefined),
+          ...(user.headerImage? {image: {
             type: 'Image',
             mediaType: 'image/webp',
             url: environment.mediaUrl + user.headerImage
-          },
+          }} : undefined),
           publicKey: {
             id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}#main-key`,
             owner: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
