@@ -51,13 +51,16 @@ export default function statusRoutes(app: Application) {
     })
     const sendPostFailed = sendPostsQueue.getMetrics('failed')
     const sendPostSuccess = sendPostsQueue.getMetrics('completed')
+    const sendPostAwaiting = sendPostsQueue.count()
     const prepareSendPostFail = prepareSendPostQueue.getMetrics('failed')
     const prepareSendPostSuccess = prepareSendPostQueue.getMetrics('completed')
+    const prepareSendPostAwaiting = prepareSendPostQueue.count()
     const inboxFail = inboxQueue.getMetrics('failed')
     const inboxSuccess = inboxQueue.getMetrics('completed')
+    const inboxAwaiting = inboxQueue.count()
     const updateUserFail = updateUsersQueue.getMetrics('failed')
     const updateUserSuccess = updateUsersQueue.getMetrics('completed')
-
+    const updateUserAwaiting = updateUsersQueue.count()
     await Promise.allSettled([
       sendPostFailed,
       sendPostSuccess,
@@ -66,18 +69,26 @@ export default function statusRoutes(app: Application) {
       inboxFail,
       inboxSuccess,
       updateUserFail,
-      updateUserSuccess
+      updateUserSuccess,
+      sendPostAwaiting,
+      prepareSendPostAwaiting,
+      inboxAwaiting,
+      updateUserAwaiting
     ])
 
     res.send({
       sendPostFailed: await sendPostFailed,
       sendPostSuccess: await sendPostSuccess,
+      sendPostAwaiting: await sendPostAwaiting,
       prepareSendFail: await prepareSendPostFail,
       prepareSendSuccess: await prepareSendPostSuccess,
+      prepareSendPostAwaiting: await prepareSendPostAwaiting,
       inboxFail: await inboxFail,
       inboxSuccess: await inboxSuccess,
+      inboxAwaiting: await inboxAwaiting,
       updateUserFail: await updateUserFail,
-      updateUserSuccess: await updateUserSuccess
+      updateUserSuccess: await updateUserSuccess,
+      updateUserAwaiting: await updateUserAwaiting
     })
   })
 }
