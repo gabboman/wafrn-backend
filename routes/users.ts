@@ -97,7 +97,7 @@ export default function userRoutes(app: Application) {
             const mailBody = environment.reviewRegistrations
               ? `Hello ${req.body.url}, at this moment we are manually reviewing registrations. You will recive an email from us once it's accepted`
               : `<h1>Welcome to ${environment.instanceUrl}</h1> To activate your account <a href="${
-                  environment.frontendUrl
+                  environment.instanceUrl
                 }/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
             const emailSent = sendActivationEmail(req.body.email.toLowerCase(), activationCode, mailHeader, mailBody)
             if (environment.reviewRegistrations) {
@@ -226,7 +226,7 @@ export default function userRoutes(app: Application) {
             '',
             `So you forgot your ${environment.instanceUrl} password`,
             `<h1>Use this link to reset your password</h1> Click <a href="${
-              environment.frontendUrl
+              environment.instanceUrl
             }/resetPassword/${encodeURIComponent(
               req.body.email.toLowerCase()
             )}/${resetCode}">here</a> to reset your password`
