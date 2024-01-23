@@ -1,7 +1,8 @@
 import { environment } from './environment'
 import { logger } from './utils/logger'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Sequelize } = require('sequelize')
-import { Table, Column, Model, HasMany } from 'sequelize-typescript'
+import { Model, InferAttributes, InferCreationAttributes, DataTypes } from 'sequelize'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('sequelize-hierarchy-fork')(Sequelize)
