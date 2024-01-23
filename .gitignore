@@ -1,7 +1,8 @@
 node_modules
-environment.json
 environment.ts
 public
 uploads
 logs
 cache
+environment.prod.ts
+environment.dev.ts
