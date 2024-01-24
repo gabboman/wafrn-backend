@@ -13,6 +13,7 @@ async function sendPostToInboxes(job: Job) {
   } catch (error) {
     logger.debug(error)
   }
+  return true
 }
 
 export { sendPostToInboxes }
