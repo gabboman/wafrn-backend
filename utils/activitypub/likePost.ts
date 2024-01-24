@@ -77,70 +77,25 @@ async function likePostRemote(like: any, dislike = false) {
     ? postPetitionSigned(likeObject, user, likedPost.user.remoteInbox)
     : true
   // servers with shared inbox
-  let serversToSendThePost
-  // for servers with no shared inbox
-  let usersToSendThePost
-  switch (likedPost.privacy) {
-    case 1: {
-      serversToSendThePost = FederatedHost.findAll({
-        where: {
-          publicInbox: { [Op.ne]: null },
-          blocked: { [Op.ne]: true },
-          literal: sequelize.literal(
-            `id in (SELECT federatedHostId from users where users.id IN (SELECT followerId from follows where followedId = '${likedPost.userId}') and federatedHostId is not NULL)`
-          )
-        }
-      })
-      usersToSendThePost = usersToSendThePost = FederatedHost.findAll({
-        where: {
-          publicInbox: { [Op.eq]: null },
-          blocked: false
-        },
-        include: [
-          {
-            model: User,
-            attributes: ['remoteInbox'],
-            where: {
-              banned: false,
-              literal: Sequelize.literal(
-                `users.id IN (SELECT followerId from follows where followedId = "${likedPost.userId}")`
-              )
-            }
-          }
-        ]
-      })
+  let serversToSendThePost = await FederatedHost.findAll({
+    where: {
+      publicInbox: { [Op.ne]: null },
+      blocked: { [Op.ne]: true },
 
-      break
-    }
-    case 10: {
-      serversToSendThePost = []
-      usersToSendThePost = []
-      break
-    }
-    default: {
-      serversToSendThePost = FederatedHost.findAll({
-        where: {
-          publicInbox: { [Op.ne]: null },
-          blocked: false
-        }
-      })
-      usersToSendThePost = FederatedHost.findAll({
-        where: {
-          publicInbox: { [Op.eq]: null },
-          blocked: false
+      [Op.or]: [
+        {
+          literal: sequelize.literal(
+            `id in (SELECT federatedHostId from users where users.id IN (SELECT followerId from follows where followedId = '${like.userId}') and federatedHostId is not NULL)`
+          )
         },
-        include: [
-          {
-            model: User,
-            attributes: ['remoteInbox'],
-            where: {
-              banned: false
-            }
-          }
-        ]
-      })
+        {
+          friendServer: true
+        }
+      ]
     }
-  }
+  })
+  // for servers with no shared inbox
+  let usersToSendThePost = [await User.findByPk(likedPost.userId)]
 
   try {
     const ownerOfPostLikeResponse = await ownerOfPostLikePromise
