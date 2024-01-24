@@ -15,8 +15,8 @@ const sendPostQueue = new Queue('sendPostToInboxes', {
     removeOnComplete: true,
     attempts: 3,
     backoff: {
-      type: 'exponential',
-      delay: 1000
+      type: 'fixed',
+      delay: 25000
     },
     removeOnFail: 25000
   }
@@ -124,11 +124,17 @@ async function prepareSendRemotePostWorker(job: Job) {
     logger.debug(`Preparing send post. ${inboxes.length} inboxes`)
     for (const inboxChunk of _.chunk(inboxes, 30)) {
       addSendPostToQueuePromises.push(
-        sendPostQueue.add('sencChunk', {
-          objectToSend: objectToSendComplete,
-          petitionBy: localUser.dataValues,
-          inboxList: inboxChunk
-        })
+        sendPostQueue.add(
+          'sencChunk',
+          {
+            objectToSend: objectToSendComplete,
+            petitionBy: localUser.dataValues,
+            inboxList: inboxChunk
+          },
+          {
+            priority: 1
+          }
+        )
       )
     }
     await Promise.allSettled(addSendPostToQueuePromises)

@@ -158,7 +158,7 @@ async function likePostRemote(like: any, dislike = false) {
     usersToSendThePost?.forEach((server: any) => {
       inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
     })
-    for await (const inboxChunk of _.chunk(inboxes, 10)) {
+    for await (const inboxChunk of _.chunk(inboxes, 50)) {
       await sendPostQueue.add(
         'sencChunk',
         {
@@ -167,7 +167,7 @@ async function likePostRemote(like: any, dislike = false) {
           inboxList: inboxChunk
         },
         {
-          priority: 50000
+          priority: Number.MAX_SAFE_INTEGER
         }
       )
     }
