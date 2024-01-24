@@ -95,7 +95,7 @@ async function likePostRemote(like: any, dislike = false) {
     }
   })
   // for servers with no shared inbox
-  let usersToSendThePost = [await User.findByPk(likedPost.userId)]
+  const usersToSendThePost = [await User.findByPk(likedPost.userId)]
 
   try {
     const ownerOfPostLikeResponse = await ownerOfPostLikePromise
@@ -105,14 +105,11 @@ async function likePostRemote(like: any, dislike = false) {
 
   await Promise.all([serversToSendThePost, usersToSendThePost])
   serversToSendThePost = await serversToSendThePost
-  usersToSendThePost = await usersToSendThePost
   // TODO convert this into a function. Code is repeated and a better thing should be made
   if (serversToSendThePost?.length > 0 || usersToSendThePost?.length > 0) {
     let inboxes: string[] = []
     inboxes = inboxes.concat(serversToSendThePost.map((elem: any) => elem.publicInbox))
-    usersToSendThePost?.forEach((server: any) => {
-      inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
-    })
+    inboxes = inboxes.concat(usersToSendThePost.map((elem: any) => (elem.remoteInbox ? elem.remoteInbox : '')))
     for await (const inboxChunk of _.chunk(inboxes, 50)) {
       await sendPostQueue.add(
         'sencChunk',
