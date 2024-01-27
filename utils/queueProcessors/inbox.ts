@@ -132,8 +132,8 @@ async function inboxWorker(job: Job) {
           const userToBeFollowed = await getRemoteActor(req.body.object, user)
           let remoteFollow = await Follows.findOne({
             where: {
-              followedId: remoteUser.id,
-              followerId: userToBeFollowed.id
+              followerId: remoteUser.id,
+              followedId: userToBeFollowed.id
             }
           })
           if (!remoteFollow) {
