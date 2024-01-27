@@ -122,7 +122,7 @@ async function prepareSendRemotePostWorker(job: Job) {
     })
     const addSendPostToQueuePromises: Promise<any>[] = []
     logger.debug(`Preparing send post. ${inboxes.length} inboxes`)
-    for (const inboxChunk of _.chunk(inboxes, 30)) {
+    for (const inboxChunk of _.chunk(inboxes, 10)) {
       addSendPostToQueuePromises.push(
         sendPostQueue.add(
           'sencChunk',

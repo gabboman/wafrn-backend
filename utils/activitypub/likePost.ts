@@ -110,7 +110,7 @@ async function likePostRemote(like: any, dislike = false) {
     let inboxes: string[] = []
     inboxes = inboxes.concat(serversToSendThePost.map((elem: any) => elem.publicInbox))
     inboxes = inboxes.concat(usersToSendThePost.map((elem: any) => (elem.remoteInbox ? elem.remoteInbox : '')))
-    for await (const inboxChunk of _.chunk(inboxes, 50)) {
+    for await (const inboxChunk of _.chunk(inboxes, 10)) {
       await sendPostQueue.add(
         'sencChunk',
         {

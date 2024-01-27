@@ -84,7 +84,7 @@ export default function deletePost(app: Application) {
         usersToSendThePost?.forEach((server: any) => {
           inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
         })
-        for await (const inboxChunk of _.chunk(inboxes, 25)) {
+        for await (const inboxChunk of _.chunk(inboxes, 10)) {
           await sendPostQueue.add(
             'sencChunk',
             {
