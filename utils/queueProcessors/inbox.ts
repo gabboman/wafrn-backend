@@ -34,8 +34,10 @@ async function inboxWorker(job: Job) {
     const req = { body: body }
     const remoteUser = await getRemoteActor(req.body.actor, user)
     if (remoteUser == null) {
-      logger.debug('Error geting user in inbox ' + req.body.actor)
-      logger.debug(req.body)
+      if (!req.body.id?.toLowerCase().endsWith('deleted')) {
+        logger.debug('Error geting user in inbox ' + req.body.actor)
+        logger.debug(req.body)
+      }
       return null
     }
     const host = await FederatedHost.findOne({
@@ -370,6 +372,13 @@ async function inboxWorker(job: Job) {
               emojiId: emojiToAdd?.id
             })
           }
+          await signAndAccept(req, remoteUser, user)
+          break
+        }
+        case 'Add': {
+          const postToFeature = await getPostThreadRecursive(user, req.body.object)
+          postToFeature.featured = true
+          await postToFeature.save()
           await signAndAccept(req, remoteUser, user)
           break
         }

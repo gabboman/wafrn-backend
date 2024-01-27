@@ -239,7 +239,12 @@ const Post = sequelize.define(
     content_warning: Sequelize.STRING,
     content: Sequelize.TEXT,
     remotePostId: Sequelize.TEXT,
-    privacy: Sequelize.INTEGER
+    privacy: Sequelize.INTEGER,
+    featured: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+      defaultValue: false
+    }
   },
   {
     indexes: [
