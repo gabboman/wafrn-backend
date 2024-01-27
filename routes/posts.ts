@@ -207,18 +207,13 @@ export default function postsRoutes(app: Application) {
             return false
           }
         }
-        const content = req.body.content ? req.body.content.trim() : ''
+        let content = req.body.content ? req.body.content.trim() : ''
         const content_warning = req.body.content_warning ? req.body.content_warning.trim() : ''
-        const post = await Post.create({
-          content,
-          content_warning,
-          userId: posterId,
-          privacy: req.body.privacy ? req.body.privacy : 0,
-          parentId: req.body.parent
-        })
+        const mediaToAdd: string[] = []
+        const mentionsToAdd: string[] = []
 
         // post content as html
-        const parsedAsHTML = cheerio.load(req.body.content)
+        const parsedAsHTML = cheerio.load(content)
 
         // detect media in posts using regexes
         // eslint-disable-next-line max-len
@@ -231,7 +226,6 @@ export default function postsRoutes(app: Application) {
         const mediaInPost = req.body.content.match(wafrnMediaRegex)
         const mentionsInPost = parsedAsHTML('a.mention')
         if (mediaInPost) {
-          const mediaToAdd: string[] = []
           mediaInPost.forEach((element: string) => {
             const mediaUUIDs = element.match(uuidRegex)
             if (mediaUUIDs != null) {
@@ -241,12 +235,9 @@ export default function postsRoutes(app: Application) {
               }
             }
           })
-
-          post.addMedias(mediaToAdd)
         }
 
         if (mentionsInPost && mentionsInPost.length > 0) {
-          const mentionsToAdd: string[] = []
           for (let index = 0; index < mentionsInPost.length; index++) {
             const elem = mentionsInPost[index]
             if (elem.attribs['data-id'] && !mentionsToAdd.includes(elem.attribs['data-id'])) {
@@ -279,20 +270,27 @@ export default function postsRoutes(app: Application) {
         })*/
           if (blocksExisting + blocksServers > 0) {
             res.status(500)
-            post.destroy()
             res.send({
               error: true,
               message: 'You can not mention an user that you have blocked or has blocked you'
             })
             return null
           }
-          mentionsToAdd.forEach((mention) => {
-            PostMentionsUserRelation.create({
-              userId: mention,
-              postId: post.id
-            })
-          })
         }
+        const post = await Post.create({
+          content,
+          content_warning,
+          userId: posterId,
+          privacy: req.body.privacy ? req.body.privacy : 0,
+          parentId: req.body.parent
+        })
+        post.addMedias(mediaToAdd)
+        mentionsToAdd.forEach((mention) => {
+          PostMentionsUserRelation.create({
+            userId: mention,
+            postId: post.id
+          })
+        })
         success = !req.body.tags
         if (req.body.tags) {
           const tagListString = req.body.tags
