@@ -307,7 +307,8 @@ const Emoji = sequelize.define('emojis', {
 
 const EmojiReaction = sequelize.define('emojiReaction', {
   id: {
-    type: Sequelize.STRING,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
     allowNull: false,
     primaryKey: true
   },
@@ -629,5 +630,6 @@ export {
   SilencedPost,
   QuestionPoll,
   QuestionPollAnswer,
-  QuestionPollQuestion
+  QuestionPollQuestion,
+  EmojiReaction
 }

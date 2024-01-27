@@ -2,6 +2,8 @@ import { Job } from 'bullmq'
 import { logger } from '../logger'
 import {
   Blocks,
+  Emoji,
+  EmojiReaction,
   FederatedHost,
   Follows,
   Media,
@@ -342,6 +344,33 @@ async function inboxWorker(job: Job) {
               petition: req.body
             })
           }
+          break
+        }
+        case 'EmojiReact': {
+          const postToReact = await getPostThreadRecursive(user, req.body.object)
+          let emojiToAdd: any
+          if (req.body.tag && req.body.tag.length === 1 && req.body.tag[0]?.icon) {
+            const emojiRemote = req.body.tag[0]
+            const existingEmoji = await Emoji.findByPk(emojiRemote.id)
+            emojiToAdd = existingEmoji
+              ? existingEmoji
+              : await Emoji.create({
+                  id: emojiRemote.id,
+                  name: emojiRemote.name,
+                  url: emojiRemote.icon.url,
+                  external: true
+                })
+          }
+          if (postToReact) {
+            await EmojiReaction.create({
+              remoteId: req.body.id,
+              userId: remoteUser.id,
+              content: req.body.content,
+              postId: postToReact.id,
+              emojiId: emojiToAdd?.id
+            })
+          }
+          await signAndAccept(req, remoteUser, user)
           break
         }
         default: {
