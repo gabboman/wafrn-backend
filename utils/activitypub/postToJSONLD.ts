@@ -77,31 +77,26 @@ async function postToJSONLD(post: any) {
   })
 
   const usersToSend = getToAndCC(post.privacy, mentionedUsers, stringMyFollowers)
-
+  const actorUrl = `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`
   let postAsJSONLD: activityPubObject = {
     '@context': ['https://www.w3.org/ns/activitystreams', `${environment.frontendUrl}/contexts/litepub-0.1.jsonld`],
     id: `${environment.frontendUrl}/fediverse/activity/post/${post.id}`,
     type: 'Create',
-    actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
+    actor: actorUrl,
     published: post.createdAt.toISOString(),
     to: usersToSend.to,
     cc: usersToSend.cc,
     object: {
       id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
-      actor: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
+      actor: actorUrl,
       type: 'Note',
       summary: post.content_warning ? post.content_warning : '',
       inReplyTo: parentPostString,
       published: post.createdAt.toISOString(),
       url: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       attributedTo: `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`,
-      to:
-        post.privacy / 1 === 10
-          ? mentionedUsers
-          : post.privacy / 1 === 0
-          ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
-          : [stringMyFollowers],
-      cc: post.privacy / 1 !== 10 ? [...mentionedUsers] : [],
+      to: usersToSend.to,
+      cc: usersToSend.cc,
       sensitive: !!post.content_warning || contentWarning,
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
