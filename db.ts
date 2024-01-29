@@ -466,9 +466,6 @@ Post.hasMany(EmojiReaction)
 EmojiReaction.belongsTo(Post)
 User.hasMany(EmojiReaction)
 EmojiReaction.belongsTo(User)
-Emoji.belongsToMany(EmojiReaction, {
-  through: 'emojiReactionToEmojiRelation'
-})
 EmojiReaction.belongsTo(Emoji)
 
 User.hasMany(QuestionPollAnswer),
