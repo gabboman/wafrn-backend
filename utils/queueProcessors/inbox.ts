@@ -414,7 +414,7 @@ async function inboxWorker(job: Job) {
             }
           })
           if (followsToMove && newUser) {
-            const newFollows = followsToMove.map((elem) => {
+            const newFollows = followsToMove.map((elem: any) => {
               return follow(elem.followerId, newUser.id)
             })
             await Promise.allSettled(newFollows)
