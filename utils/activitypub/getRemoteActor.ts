@@ -30,7 +30,8 @@ async function getUserFromCache(remoteId: string) {
 }
 
 async function getHostFromCache(displayName: string): Promise<any> {
-  await FederatedHost.findByPk(await getFederatedHostIdFromUrl(displayName))
+  const res = await FederatedHost.findByPk(await getFederatedHostIdFromUrl(displayName))
+  return res
 }
 
 // TODO refactor this thing?
