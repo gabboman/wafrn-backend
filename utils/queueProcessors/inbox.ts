@@ -32,14 +32,19 @@ async function inboxWorker(job: Job) {
     const user = await User.findByPk(job.data.petitionBy)
     const body = job.data.petition
     const req = { body: body }
-    const remoteUser = await getRemoteActor(req.body.actor, user)
-    if (remoteUser == null) {
-      if (!req.body.id?.toLowerCase().endsWith('deleted')) {
-        logger.debug('Error geting user in inbox ' + req.body.actor)
-        logger.debug(req.body)
+    // little hack that should be fixed later
+    if (req.body.type === 'Delete' && req.body.id.endsWith('#delete')) {
+      const userToRemove = await User.findOne({
+        where: {
+          remoteId: req.body.id.split('#')[0].toLowerCase()
+        }
+      })
+      if (userToRemove) {
+        await removeUser(userToRemove.id)
       }
-      return null
+      return
     }
+    const remoteUser = await getRemoteActor(req.body.actor, user)
     const host = await FederatedHost.findOne({
       where: {
         displayName: new URL(req.body.actor).host
@@ -382,6 +387,24 @@ async function inboxWorker(job: Job) {
           await signAndAccept(req, remoteUser, user)
           break
         }
+        // WIP move
+        // TODO get list of users who where following old account
+        // then make them follow the new one, sending petition
+        /*case 'Move': {
+          const newUser = await getRemoteActor(req.body.object, user)
+          Follows.findAll({
+            where: {
+              followedId: remoteUser.id,
+              accepted:  true,
+              followerId: { [Op.notIn]: await Follows.findAll({where: {
+                followedId: newUser.id
+              }, attributes: ['followerId']}) }
+            }
+          })
+          break;
+        }
+                  */
+
         default: {
           logger.info(`NOT IMPLEMENTED: ${req.body.type}`)
           logger.info(req.body)
