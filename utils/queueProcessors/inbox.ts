@@ -26,6 +26,7 @@ import getBlockedIds from '../cacheGetters/getBlockedIds'
 import getUserBlockedServers from '../cacheGetters/getUserBlockedServers'
 import { object } from 'underscore'
 import { getUserIdFromRemoteId } from '../cacheGetters/getUserIdFromRemoteId'
+import { follow } from '../follow'
 
 async function inboxWorker(job: Job) {
   try {
@@ -390,20 +391,37 @@ async function inboxWorker(job: Job) {
         // WIP move
         // TODO get list of users who where following old account
         // then make them follow the new one, sending petition
-        /*case 'Move': {
+        case 'Move': {
           const newUser = await getRemoteActor(req.body.object, user)
-          Follows.findAll({
+          const followsToMove = await Follows.findAll({
             where: {
               followedId: remoteUser.id,
-              accepted:  true,
-              followerId: { [Op.notIn]: await Follows.findAll({where: {
-                followedId: newUser.id
-              }, attributes: ['followerId']}) }
+              accepted: true,
+              [Op.and]: [
+                {
+                  followerId: {
+                    [Op.notIn]: await Follows.findAll({
+                      where: {
+                        followedId: newUser.id
+                      }
+                    })
+                  }
+                },
+                {
+                  followerId: { [Op.in]: await getAllLocalUserIds() }
+                }
+              ]
             }
           })
-          break;
+          if (followsToMove && newUser) {
+            const newFollows = followsToMove.map((elem) => {
+              return follow(elem.followerId, newUser.id)
+            })
+            await Promise.allSettled(newFollows)
+          }
+          await signAndAccept(req, remoteUser, user)
+          break
         }
-                  */
 
         default: {
           logger.info(`NOT IMPLEMENTED: ${req.body.type}`)
@@ -418,3 +436,6 @@ async function inboxWorker(job: Job) {
 }
 
 export { inboxWorker }
+function getAllLocalUserIds() {
+  throw new Error('Function not implemented.')
+}
