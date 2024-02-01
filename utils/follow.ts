@@ -45,15 +45,18 @@ async function follow(followerId: string, followedId: string, petition?: Respons
     })
     res = true
     if (userFollowed.remoteId) {
+      res = true
       const localUser = await User.findOne({ where: { id: followerId } })
-      const followPetition = await remoteFollow(localUser, userFollowed).catch((error) => {
-        logger.info('error following remote user')
-        res = false
-      })
-      res = followPetition != undefined
-      if (!res) {
-        await follow.destroy()
-      }
+      remoteFollow(localUser, userFollowed)
+        .then((response) => {
+          redisCache.del('follows:full:' + followerId)
+          redisCache.del('follows:local:' + followerId)
+        })
+        .catch(async (error) => {
+          logger.info('error following remote user')
+          await follow.destroy()
+          // TODO INFORM USER ABOUT THE ISSUE
+        })
     }
     redisCache.del('follows:full:' + followerId)
     redisCache.del('follows:local:' + followerId)
