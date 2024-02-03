@@ -74,6 +74,7 @@ async function inboxWorker(job: Job) {
                 followToUpdate.accepted = true
                 await followToUpdate.save()
                 redisCache.del('follows:full:' + followToUpdate.followerId)
+                redisCache.del('follows:notYetAcceptedFollows:' + followToUpdate.followerId)
               }
             }
           }

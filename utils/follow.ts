@@ -51,6 +51,7 @@ async function follow(followerId: string, followedId: string, petition?: Respons
         .then((response) => {
           redisCache.del('follows:full:' + followerId)
           redisCache.del('follows:local:' + followerId)
+          redisCache.del('follows:notYetAcceptedFollows:' + followerId)
         })
         .catch(async (error) => {
           logger.info('error following remote user')
@@ -60,6 +61,7 @@ async function follow(followerId: string, followedId: string, petition?: Respons
     }
     redisCache.del('follows:full:' + followerId)
     redisCache.del('follows:local:' + followerId)
+    redisCache.del('follows:notYetAcceptedFollows:' + followerId)
   } catch (error) {
     logger.error(error)
     res = false
