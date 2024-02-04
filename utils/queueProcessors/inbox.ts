@@ -27,6 +27,7 @@ import getUserBlockedServers from '../cacheGetters/getUserBlockedServers'
 import { object } from 'underscore'
 import { getUserIdFromRemoteId } from '../cacheGetters/getUserIdFromRemoteId'
 import { follow } from '../follow'
+import { getAllLocalUserIds } from '../cacheGetters/getAllLocalUserIds'
 
 async function inboxWorker(job: Job) {
   try {
@@ -180,7 +181,7 @@ async function inboxWorker(job: Job) {
                 ]
               })
               if (postToEdit) {
-                const medias = []
+                const medias: any[] = []
                 if (body.attachment && body.attachment.length > 0) {
                   for await (const remoteFile of body.attachment) {
                     const wafrnMedia = await Media.create({
@@ -437,6 +438,3 @@ async function inboxWorker(job: Job) {
 }
 
 export { inboxWorker }
-function getAllLocalUserIds() {
-  throw new Error('Function not implemented.')
-}
