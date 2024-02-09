@@ -365,7 +365,7 @@ const UserReport = sequelize.define('userReports', {
   description: Sequelize.TEXT
 })
 
-const UserEmojiRelation = sequelize.define('userEmojiRelation', {})
+const UserEmojiRelation = sequelize.define('userEmojiRelations', {})
 
 const PostEmojiRelations = sequelize.define('postEmojiRelations', {})
 
