@@ -24,64 +24,47 @@ export default function listRoutes(app: Application) {
             .map((elem) => elem.split(',')[0])
             .slice(1)
           const okUsers: string[] = []
-          let localUsers = lines
+          const localUsersUrls = lines
             .filter((elem) => elem.endsWith('@' + environment.instanceUrl))
             .map((elem) => elem.split('@')[0].toLowerCase())
-            .map((elem) =>
-              User.findOne({
-                where: {
-                  [Op.and]: [
-                    sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', elem),
-                    {
-                      banned: false
-                    }
-                  ]
-                }
-              })
-            )
-          const remoteUsersPromises = lines
+          const remoteUsersUrls = lines
             .filter((elem) => !elem.endsWith('@' + environment.instanceUrl))
-            .map((elem) => searchRemoteUser('@' + elem, petitionBy))
-          await Promise.allSettled(remoteUsersPromises.flat().concat(localUsers))
-          localUsers = await Promise.allSettled(localUsers)
-          const remoteUsers: { id: string; url: string }[] = (await Promise.allSettled(remoteUsersPromises.flat()))
-            .filter((elem) => elem.status === 'fulfilled' && elem.value && elem.value.length > 0)
-            .map((elem) => (elem.status === 'fulfilled' ? elem.value : []))
-            .flat()
-            .filter((elem) => elem != null)
-            .map((elem) => {
-              return { id: elem.id, url: elem.url }
-            })
-          const localUsersData: { id: string; url: string }[] = localUsers
-            .filter((elem) => elem.status === 'fulfilled')
-            .filter((elem) => elem.value != undefined)
-            .map((elem) => {
-              return { id: elem.value.id, url: elem.value.url }
-            })
-          const foundUrls = remoteUsers
-            .map((elem) => elem.url)
-            .concat(localUsersData.map((elem) => `@${elem.url}@${environment.instanceUrl}`))
-          const errors = lines.filter((elem) => !foundUrls.includes('@' + elem))
-          let idsToFollow = remoteUsers.map((elem) => elem.id).concat(localUsersData.map((elem) => elem.id))
-          const alreadyFollowing = await Follows.findAll({
+            .map((url) => '@' + url)
+          const allUsers = localUsersUrls.concat(remoteUsersUrls)
+          let foundUsers = await User.findAll({
             where: {
-              followerId: petitionBy.id,
-              followedId: {
-                [Op.in]: idsToFollow
+              url: {
+                [Op.in]: allUsers
               }
             }
           })
-          const alreadyFollowingIds: string[] = alreadyFollowing.map((elem: any) => elem.followedId)
-          idsToFollow = idsToFollow.filter((elem) => !alreadyFollowingIds.includes(elem))
-          const followPetitions = idsToFollow.map((elem) => follow(petitionBy.id, elem))
-          const followResults = await Promise.allSettled(followPetitions)
-          res.send({
-            success: true,
-            newFollows: followResults.filter((elem) => elem.status === 'fulfilled' && elem.value === true).length,
-            alreadyFollowing: alreadyFollowing.length,
-            errors: errors
+          let foundUsersUrls = foundUsers.map((elem: any) => elem.url)
+          let notFoundUsersUrls = allUsers.filter((elem) => !foundUsersUrls.includes(elem))
+          const notFoundUsersToFetch = notFoundUsersUrls.filter((elem) => !localUsersUrls.includes(elem))
+          // try to get all users
+          const userFetchPromise = await Promise.allSettled(
+            notFoundUsersToFetch.map((usr) => searchRemoteUser(`@${usr}`, petitionBy))
+          )
+          foundUsers = await User.findAll({
+            where: {
+              url: {
+                [Op.in]: allUsers
+              }
+            }
           })
-          await fs.unlink(req.file.path)
+          foundUsersUrls = foundUsers.map((elem: any) => elem.url)
+          notFoundUsersUrls = allUsers.filter((elem) => !foundUsersUrls.includes(elem))
+          res.send({
+            foundUsers: foundUsers.map((elem: any) => {
+              return {
+                url: elem.url,
+                avatar: elem.avatar,
+                name: elem.name,
+                id: elem.id
+              }
+            }),
+            notFoundUsers: notFoundUsersUrls
+          })
         } catch (error: any) {
           res.send({
             success: false,

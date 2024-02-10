@@ -11,6 +11,7 @@ import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { follow } from '../utils/follow'
 import { redisCache } from '../utils/redis'
 import getFollowedsIds from '../utils/cacheGetters/getFollowedsIds'
+import { getNotYetAcceptedFollowedids } from '../utils/cacheGetters/getNotYetAcceptedFollowedIds'
 
 export default function followsRoutes(app: Application) {
   app.post('/api/follow', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
@@ -53,6 +54,7 @@ export default function followsRoutes(app: Application) {
         userUnfollowed.removeFollower(posterId)
         redisCache.del('follows:full:' + posterId)
         redisCache.del('follows:local:' + posterId)
+        redisCache.del('follows:notYetAcceptedFollows:' + posterId)
         success = true
       }
     } catch (error) {
@@ -67,17 +69,19 @@ export default function followsRoutes(app: Application) {
   app.get('/api/getFollowedUsers', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const followedUsers = getFollowedsIds(req.jwtData?.userId as string)
     const blockedUsers = getBlockedIds(req.jwtData?.userId as string)
+    const notAcceptedFollows = await getNotYetAcceptedFollowedids(req.jwtData?.userId as string)
     let user = await User.findByPk(req.jwtData?.userId, {
       attributes: ['banned']
     })
-    Promise.all([followedUsers, blockedUsers, user])
+    Promise.all([followedUsers, blockedUsers, user, notAcceptedFollows])
     user = await user
     if (!user || user.banned) {
       res.sendStatus(401)
     } else {
       res.send({
         followedUsers: await followedUsers,
-        blockedUsers: await blockedUsers
+        blockedUsers: await blockedUsers,
+        notAcceptedFollows: await notAcceptedFollows
       })
     }
   })

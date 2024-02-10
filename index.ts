@@ -41,6 +41,7 @@ import getNonFollowedLocalUsersIds from './utils/cacheGetters/getNotFollowedLoca
 import { getAllLocalUserIds } from './utils/cacheGetters/getAllLocalUserIds'
 import { IncomingMessage } from 'http'
 import statusRoutes from './routes/status'
+import dashboardRoutes from './routes/dashboard'
 
 const swaggerJSON = require('./swagger.json')
 // rest of the code remains same
@@ -207,6 +208,7 @@ likeRoutes(app)
 adminRoutes(app)
 muteRoutes(app)
 blockUserServerRoutes(app)
+dashboardRoutes(app)
 listRoutes(app)
 frontend(app)
 statusRoutes(app)

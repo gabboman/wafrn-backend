@@ -38,7 +38,7 @@ async function searchRemoteUser(searchTerm: string, user: any) {
         }
       }
     } catch (error) {
-      logger.info('webfinger petition failed')
+      logger.trace(`webfinger petition failed: ${searchTerm}`)
     }
   }
   return users

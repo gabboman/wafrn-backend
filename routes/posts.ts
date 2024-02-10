@@ -44,61 +44,71 @@ const prepareSendPostQueue = new Queue('prepareSendPost', {
   }
 })
 export default function postsRoutes(app: Application) {
-  app.get('/api/singlePost/:id', checkIpBlocked, async (req: Request, res: Response) => {
-    let success = false
-    if (req.params?.id) {
-      const query: any = getPostBaseQuery(req)
-      query.include.push({
-        model: Post,
-        as: 'descendents',
-        required: false,
-        order: [['createdAt']],
-        where: {
-          privacy: {
-            [Op.in]: [0, 2]
-          }
-        },
-        include: [
-          {
-            model: User,
-            as: 'user',
-            attributes: ['avatar', 'url', 'description', 'id']
+  app.get(
+    '/api/singlePost/:id',
+    optionalAuthentication,
+    checkIpBlocked,
+    async (req: AuthorizedRequest, res: Response) => {
+      let success = false
+      if (req.params?.id) {
+        const query: any = getPostBaseQuery(req)
+        query.include.push({
+          model: Post,
+          as: 'descendents',
+          required: false,
+          order: [['createdAt']],
+          where: {
+            privacy: { [Op.ne]: 10 }
           },
-          {
-            model: UserLikesPostRelations,
-            attributes: ['userId'],
-            include: [
-              {
-                model: User,
-                as: 'user',
-                attributes: ['avatar', 'url', 'description', 'id']
-              }
-            ]
-          },
-          {
-            model: PostTag,
-            attributes: ['tagName']
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['avatar', 'url', 'description', 'id']
+            },
+            {
+              model: UserLikesPostRelations,
+              attributes: ['userId'],
+              include: [
+                {
+                  model: User,
+                  as: 'user',
+                  attributes: ['avatar', 'url', 'description', 'id']
+                }
+              ]
+            },
+            {
+              model: PostTag,
+              attributes: ['tagName']
+            }
+          ]
+        })
+        const post = await Post.findOne({
+          ...query,
+          where: {
+            id: req.params.id
           }
-        ]
-      })
-      const post = await Post.findOne({
-        ...query,
-        where: {
-          id: req.params.id,
-          privacy: { [Op.ne]: 10 }
+        })
+        if (post) {
+          const postResponse = (await getPosstGroupDetails([post]))[0]
+          const mentionedUserIds = post.mentionPost ? post.mentionPost.map((elem: any) => elem.id) : []
+          const userId = req.jwtData?.userId
+          if (
+            post.userId === userId ||
+            (post.privacy === 10 && mentionedUserIds.includes(userId)) ||
+            post.privacy !== 10
+          ) {
+            res.send(postResponse)
+            success = true
+          }
         }
-      })
-      if (post) {
-        const postResponse = (await getPosstGroupDetails([post]))[0]
-        res.send(postResponse)
-        success = true
+      }
+
+      if (!success) {
+        res.send({ success: false })
       }
     }
-
-    if (!success) {
-      res.send({ success: false })
-    }
-  })
+  )
 
   app.get('/api/blog', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
     let success = false

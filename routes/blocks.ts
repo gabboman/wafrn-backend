@@ -26,6 +26,7 @@ export default function blockRoutes(app: Application) {
         redisCache.del('follows:local:' + posterId)
         redisCache.del('follows:full:' + req.body.userId)
         redisCache.del('follows:local:' + req.body.userId)
+        redisCache.del('follows:notYetAcceptedFollows:' + req.body.userId)
       }
     } catch (error) {
       logger.error(error)
@@ -54,6 +55,7 @@ export default function blockRoutes(app: Application) {
     redisCache.del('follows:local:' + posterId)
     redisCache.del('follows:full:' + req.body.userId)
     redisCache.del('follows:local:' + req.body.userId)
+    redisCache.del('follows:notYetAcceptedFollows:' + req.body.userId)
   })
 
   async function myBlocks(id: string) {
