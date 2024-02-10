@@ -35,8 +35,8 @@ export default function dashboardRoutes(app: Application) {
     const posterId = req.jwtData?.userId ? req.jwtData?.userId : 'NOT-LOGGED-IN'
     const POSTS_PER_PAGE = environment.postsPerPage
 
-    // level: 1 localExplore, 2 dashboard, 3 explore, 4 dms
-    if (level !== 1 && posterId === 'NOT-LOGGED-IN') {
+    // level: 0 explore 1 dashboard 2 localExplore 10 dms
+    if (level !== 2 && posterId === 'NOT-LOGGED-IN') {
       res.sendStatus(403)
       return
     }
@@ -45,7 +45,7 @@ export default function dashboardRoutes(app: Application) {
       privacy: 0
     }
     switch (level) {
-      case 1: {
+      case 2: {
         const followedUsers = getFollowedsIds(posterId, true)
         const nonFollowedUsers = getNonFollowedLocalUsersIds(posterId)
         whereObject = {
@@ -71,42 +71,44 @@ export default function dashboardRoutes(app: Application) {
         }
         break
       }
-      case 2: {
+      case 1: {
         whereObject = {
           privacy: { [Op.in]: [0, 1, 2, 3] },
           userId: { [Op.in]: await getFollowedsIds(posterId) }
         }
         break
       }
-      case 3: {
+      case 0: {
         whereObject = {
           privacy: 0
         }
         break
       }
-      case 4: {
+      case 10: {
         // we get the list of posts twice woopsie. Should fix but this way is not going to be "that much"
-        const latestMentionedPosts = await Post.findAll({
-          order: [['createdAt', 'DESC']],
-          limit: POSTS_PER_PAGE,
+        const dms = await Post.findAll({
+          attributes: ['id'],
           include: [
             {
               model: User,
               as: 'mentionPost',
               where: {
-                id: {
-                  [Op.in]: posterId
-                }
-              }
+                id: posterId
+              },
+              attributes: ['id']
             }
-          ]
+          ],
+          where: {
+            privacy: 10
+          }
         })
+
         whereObject = {
           privacy: 10,
           [Op.or]: [
             {
               id: {
-                [Op.in]: latestMentionedPosts.map((elem: any) => elem.id)
+                [Op.in]: dms.map((pst: any) => pst.id) //latestMentionedPosts.map((elem: any) => elem.id)
               },
               userId: {
                 [Op.notIn]: await getBlockedIds(posterId)
@@ -155,7 +157,7 @@ export default function dashboardRoutes(app: Application) {
     userIds.concat(mentions.usersMentioned)
 
     const users = User.findAll({
-      attributes: ['url', 'avatar', 'id'],
+      attributes: ['url', 'avatar', 'id', 'name', 'remoteId'],
       where: {
         id: {
           [Op.in]: userIds
@@ -221,7 +223,7 @@ async function getEmojis(input: { userIds: string[]; postIds: string[] }): Promi
     attributes: ['emojiId', 'userId'],
     where: {
       userId: {
-        [Op.in]: input.postIds
+        [Op.in]: input.userIds
       }
     }
   })
@@ -237,7 +239,7 @@ async function getEmojis(input: { userIds: string[]; postIds: string[] }): Promi
     userEmojiRelation: await userEmojiId,
     postEmojiRelation: await postEmojisIds,
     emojis: await Emoji.findAll({
-      attributes: ['id', 'url', 'external'],
+      attributes: ['id', 'url', 'external', 'name'],
       where: {
         id: {
           [Op.in]: emojiIds
