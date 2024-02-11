@@ -139,7 +139,7 @@ export default function dashboardRoutes(app: Application) {
     })
 
     // we need a list of all the userId we just got from the post
-    const userIds: string[] = []
+    let userIds: string[] = []
     const postIds: string[] = []
     posts.forEach((post: any) => {
       userIds.push(post.userId)
@@ -154,7 +154,7 @@ export default function dashboardRoutes(app: Application) {
       postIds
     })
     const mentions = await getMentionedUserIds(postIds)
-    userIds.concat(mentions.usersMentioned)
+    userIds = userIds.concat(mentions.usersMentioned)
 
     const users = User.findAll({
       attributes: ['url', 'avatar', 'id', 'name', 'remoteId'],
