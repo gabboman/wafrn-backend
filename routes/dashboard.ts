@@ -8,6 +8,7 @@ import optionalAuthentication from '../utils/optionalAuthentication'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import {
   Emoji,
+  EmojiReaction,
   Media,
   Post,
   PostEmojiRelations,
@@ -208,10 +209,19 @@ export default function dashboardRoutes(app: Application) {
 async function getEmojis(input: { userIds: string[]; postIds: string[] }): Promise<{
   userEmojiRelation: any[]
   postEmojiRelation: any[]
+  postEmojiReactions: any[]
   emojis: []
 }> {
   let postEmojisIds = PostEmojiRelations.findAll({
     attributes: ['emojiId', 'postid'],
+    where: {
+      postId: {
+        [Op.in]: input.postIds
+      }
+    }
+  })
+
+  let postEmojiReactions = EmojiReaction.findAll({
     where: {
       postId: {
         [Op.in]: input.postIds
@@ -228,16 +238,19 @@ async function getEmojis(input: { userIds: string[]; postIds: string[] }): Promi
     }
   })
 
-  await Promise.all([postEmojisIds, userEmojiId])
+  await Promise.all([postEmojisIds, userEmojiId, postEmojiReactions])
   postEmojisIds = await postEmojisIds
   userEmojiId = await userEmojiId
+  postEmojiReactions = await postEmojiReactions
 
   const emojiIds = []
     .concat(postEmojisIds.map((elem: any) => elem.emojiId))
     .concat(userEmojiId.map((elem: any) => elem.emojiId))
+    .concat(postEmojiReactions.map((reaction: any) => reaction.emojiId))
   return {
     userEmojiRelation: await userEmojiId,
     postEmojiRelation: await postEmojisIds,
+    postEmojiReactions: await postEmojiReactions,
     emojis: await Emoji.findAll({
       attributes: ['id', 'url', 'external', 'name'],
       where: {
