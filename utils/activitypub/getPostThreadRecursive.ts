@@ -280,13 +280,16 @@ async function processEmojis(post: any, fediEmojis: any[]) {
         emojiToAdd.url = emoji.icon.url
         await emojiToAdd.save()
       }
-      if (!emojiToAdd) {
+      if (!emojiToAdd && emoji && emoji.id) {
         emojiToAdd = await Emoji.create({
           id: emoji.id,
           name: emoji.name,
           url: emoji.icon.url,
           external: true
         })
+      } else {
+        logger.debug('Emoji problem')
+        logger.debug(emoji)
       }
       emojis.push(emojiToAdd)
     }
