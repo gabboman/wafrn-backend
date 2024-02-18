@@ -270,29 +270,23 @@ async function processMentions(post: any, userIds: string[]) {
 }
 
 async function processEmojis(post: any, fediEmojis: any[]) {
-  const emojis: any[] = []
-  if (fediEmojis) {
-    for await (const emoji of fediEmojis) {
-      let emojiToAdd = await Emoji.findByPk(emoji.id)
-      if (emojiToAdd && new Date(emojiToAdd.updatedAt).getTime() < new Date(emoji.updated).getTime()) {
-        emojiToAdd.name = emoji.name
-        emojiToAdd.updatedAt = new Date()
-        emojiToAdd.url = emoji.icon.url
-        await emojiToAdd.save()
+  let emojis: any[] = []
+  const emojiIds: string[] = fediEmojis.map((emoji: any) => emoji.id)
+  const foundEmojis = await Emoji.findAll({
+    where: {
+      id: {
+        [Op.in]: emojiIds
       }
-      if (!emojiToAdd && emoji && emoji.id) {
-        emojiToAdd = await Emoji.create({
-          id: emoji.id,
-          name: emoji.name,
-          url: emoji.icon.url,
-          external: true
-        })
-      } else {
-        logger.debug('Emoji problem')
-        logger.debug(emoji)
-      }
-      emojis.push(emojiToAdd)
     }
+  })
+  emojis = emojis.concat(foundEmojis)
+  const notFoundEmojisIds = emojiIds.filter((emojiId) => !foundEmojis.find((found: any) => found.id === emojiId))
+  // TODO add missing emojis
+  //let newEmojiPetitions = notFoundEmojisIds.map()
+
+  if (fediEmojis && notFoundEmojisIds) {
+    logger.debug('FediEmojis')
+    logger.debug(fediEmojis)
   }
 
   return post.addEmojis(emojis)
