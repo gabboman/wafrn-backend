@@ -291,21 +291,35 @@ async function inboxWorker(job: Job) {
           break
         }
         case 'Like': {
-          logger.debug('like reaction')
-          logger.debug(body)
-          const fullUrlPostToBeLiked = req.body.object
-          const partToRemove = `${environment.frontendUrl}/fediverse/post/`
-          const localPost = await Post.findOne({
-            where: {
-              id: fullUrlPostToBeLiked.substring(partToRemove.length)
+          const postToBeLiked = await getPostThreadRecursive(user, req.body.object)
+          if (postToBeLiked) {
+            if (body.content || body._misskey_reaction || body.tag) {
+              // GOD DAMMIT MISSKEY emojireact from misskey
+              const reaction = await EmojiReaction.create({
+                remoteId: body.id,
+                content: body.content
+              })
+              if (body.tag) {
+                const emojiRemote = req.body.tag[0]
+                const existingEmoji = await Emoji.findByPk(emojiRemote.id)
+                const emojiToAdd = existingEmoji
+                  ? existingEmoji
+                  : await Emoji.create({
+                      id: emojiRemote.id,
+                      name: emojiRemote.name,
+                      url: emojiRemote.icon.url,
+                      external: true
+                    })
+                reaction.emojiId = emojiToAdd.id
+                await reaction.save()
+              }
+            } else {
+              const like = await UserLikesPostRelations.create({
+                userId: remoteUser.id,
+                postId: postToBeLiked.id,
+                remoteId: req.body.id
+              })
             }
-          })
-          if (localPost && req.body.object.startsWith(environment.frontendUrl)) {
-            const like = await UserLikesPostRelations.create({
-              userId: remoteUser.id,
-              postId: localPost.id,
-              remoteId: req.body.id
-            })
             await signAndAccept(req, remoteUser, user)
           }
           break
