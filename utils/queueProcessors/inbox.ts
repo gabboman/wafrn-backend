@@ -339,8 +339,7 @@ async function inboxWorker(job: Job) {
               const likeExisting = await UserLikesPostRelations.findOne({
                 where: {
                   userId: remoteUser.id,
-                  postId: postToBeLiked.id,
-                  remoteId: req.body.id
+                  postId: postToBeLiked.id
                 }
               })
               if (!likeExisting) {
