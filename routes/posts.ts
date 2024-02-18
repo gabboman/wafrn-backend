@@ -139,6 +139,7 @@ export default function postsRoutes(app: Application) {
     optionalAuthentication,
     checkIpBlocked,
     async (req: AuthorizedRequest, res: Response) => {
+      /*
       const userId = req.jwtData?.userId ? req.jwtData.userId : 'NOT-LOGGED-IN'
       if (req.params?.id) {
         const result = await Post.findOne({
@@ -181,7 +182,8 @@ export default function postsRoutes(app: Application) {
           ]
         })
         res.send(result)
-      }
+      }*/
+      res.send({ descendents: [] })
     }
   )
   app.get('/api/blog', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
