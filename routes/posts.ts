@@ -29,6 +29,7 @@ import { getPetitionSigned } from '../utils/activitypub/getPetitionSigned'
 import { getPostThreadRecursive } from '../utils/activitypub/getPostThreadRecursive'
 import * as htmlparser2 from 'htmlparser2'
 import checkIpBlocked from '../utils/checkIpBlocked'
+import { getUnjointedPosts } from '../utils/baseQueryNew'
 const cheerio = require('cheerio')
 
 const prepareSendPostQueue = new Queue('prepareSendPost', {
@@ -109,6 +110,28 @@ export default function postsRoutes(app: Application) {
       }
     }
   )
+
+  app.get('/api/v2/post/:id', optionalAuthentication, checkIpBlocked, async (req: AuthorizedRequest, res: Response) => {
+    let success = false
+    const userId = req.jwtData?.userId
+    if (req.params?.id) {
+      const unjointedPost = await getUnjointedPosts([req.params.id], userId ? userId : 'NOT-LOGGED-IN')
+      const post = unjointedPost.posts[0]
+      if (post) {
+        const mentions = unjointedPost.mentions
+          .filter((elem: any) => elem.postId === post[post.length - 1])
+          .map((elem: any) => elem.userId)
+        if (post.userId === userId || (post.privacy === 10 && mentions.includes(userId)) || post.privacy !== 10) {
+          res.send(unjointedPost)
+          success = true
+        }
+      }
+    }
+
+    if (!success) {
+      res.send({ success: false })
+    }
+  })
 
   app.get('/api/blog', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
     let success = false
