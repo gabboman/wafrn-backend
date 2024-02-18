@@ -318,6 +318,20 @@ async function inboxWorker(job: Job) {
               break
             } else {
               switch (body.type) {
+                case 'Block': {
+                  logger.info('Remove block')
+                  logger.debug(body)
+                  const blockToRemove = await Blocks.findOne({
+                    where: {
+                      remoteId: body.id
+                    }
+                  })
+                  if (blockToRemove) {
+                    await blockToRemove.destroy()
+                  }
+                  await signAndAccept(req, remoteUser, user)
+                  break
+                }
                 case 'Tombstone': {
                   const postToDelete = await Post.findOne({
                     where: {
@@ -387,6 +401,15 @@ async function inboxWorker(job: Job) {
           postToFeature.featured = true
           await postToFeature.save()
           await signAndAccept(req, remoteUser, user)
+          break
+        }
+        case 'Block': {
+          const userToBeBlocked = await getRemoteActor(body.object, user)
+          Blocks.create({
+            remoteId: body.id,
+            blockedId: userToBeBlocked.id,
+            blockerId: remoteUser.id
+          })
           break
         }
         // WIP move
