@@ -315,7 +315,7 @@ async function inboxWorker(job: Job) {
         case 'Like': {
           const postToBeLiked = await getPostThreadRecursive(user, req.body.object)
           if (postToBeLiked) {
-            if (body.content || body._misskey_reaction || body.tag) {
+            if ((body.content && body.content) || body._misskey_reaction || body.tag) {
               // GOD DAMMIT MISSKEY emojireact from misskey
               const existingReaction = await EmojiReaction.findOne({
                 where: {
@@ -435,7 +435,7 @@ async function inboxWorker(job: Job) {
                   external: true
                 })
           }
-          if (postToReact) {
+          if (postToReact && req.body.content) {
             await EmojiReaction.create({
               remoteId: req.body.id,
               userId: remoteUser.id,
