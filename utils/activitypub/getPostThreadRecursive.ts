@@ -284,7 +284,7 @@ async function processEmojis(post: any, fediEmojis: any[]) {
   // TODO add missing emojis
   //let newEmojiPetitions = notFoundEmojisIds.map()
 
-  if (fediEmojis && notFoundEmojisIds) {
+  if (fediEmojis && notFoundEmojisIds && notFoundEmojisIds.length > 0) {
     logger.debug('FediEmojis')
     logger.debug(fediEmojis)
   }
