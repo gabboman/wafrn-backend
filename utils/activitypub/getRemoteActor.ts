@@ -72,24 +72,6 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
   if (!remoteUser) {
     try {
       const userPetition = await getPetitionSigned(user, actorUrl)
-      const userToCreate = {
-        url: `@${userPetition.preferredUsername}@${url.host}`,
-        name: userPetition.name,
-        email: null,
-        description: userPetition.summary,
-        avatar: userPetition.icon?.url ? userPetition.icon.url : `${environment.mediaUrl}/uploads/default.webp`,
-        headerImage: userPetition.image?.url ? userPetition.image.url : ``,
-        password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
-        publicKey: userPetition.publicKey?.publicKeyPem,
-        remoteInbox: userPetition.inbox,
-        remoteId: actorUrl,
-        activated: true
-      }
-      remoteUser = await User.create(userToCreate)
-      await processUserEmojis(
-        remoteUser,
-        userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
-      )
       let federatedHost = await FederatedHost.findOne({
         where: {
           displayName: url.host.toLocaleLowerCase()
@@ -102,8 +84,26 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
         }
         federatedHost = await FederatedHost.create(federatedHostToCreate)
       }
+      const userToCreate = {
+        url: `@${userPetition.preferredUsername}@${url.host}`,
+        name: userPetition.name,
+        email: null,
+        description: userPetition.summary,
+        avatar: userPetition.icon?.url ? userPetition.icon.url : `${environment.mediaUrl}/uploads/default.webp`,
+        headerImage: userPetition.image?.url ? userPetition.image.url : ``,
+        password: 'NOT_A_WAFRN_USER_NOT_REAL_PASSWORD',
+        publicKey: userPetition.publicKey?.publicKeyPem,
+        remoteInbox: userPetition.inbox,
+        remoteId: actorUrl,
+        activated: true,
+        federatedHost: federatedHost.id
+      }
+      remoteUser = await User.create(userToCreate)
+      await processUserEmojis(
+        remoteUser,
+        userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
+      )
 
-      await federatedHost.addUser(remoteUser)
     } catch (error) {
       logger.trace({ message: 'error fetching user', error: error })
     }
