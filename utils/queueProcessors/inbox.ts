@@ -317,10 +317,19 @@ async function inboxWorker(job: Job) {
           if (postToBeLiked) {
             if (body.content || body._misskey_reaction || body.tag) {
               // GOD DAMMIT MISSKEY emojireact from misskey
-              const reaction = await EmojiReaction.create({
-                remoteId: body.id,
-                content: body.content
+              const existingReaction = await EmojiReaction.findOne({
+                where: {
+                  userId: remoteUser.id,
+                  postId: postToBeLiked.id,
+                  content: body.content
+                }
               })
+              const reaction = existingReaction
+                ? existingReaction
+                : await EmojiReaction.create({
+                    remoteId: body.id,
+                    content: body.content
+                  })
               if (body.tag) {
                 const emojiRemote = req.body.tag[0]
                 const existingEmoji = await Emoji.findByPk(emojiRemote.id)
