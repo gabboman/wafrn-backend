@@ -31,6 +31,7 @@ import * as htmlparser2 from 'htmlparser2'
 import checkIpBlocked from '../utils/checkIpBlocked'
 import { getUnjointedPosts } from '../utils/baseQueryNew'
 const cheerio = require('cheerio')
+import getFollowedsIds from '../utils/cacheGetters/getFollowedsIds'
 
 const prepareSendPostQueue = new Queue('prepareSendPost', {
   connection: environment.bullmqConnection,
@@ -133,6 +134,53 @@ export default function postsRoutes(app: Application) {
     }
   })
 
+  app.get(
+    '/api/v2/descendents/:id',
+    optionalAuthentication,
+    checkIpBlocked,
+    async (req: AuthorizedRequest, res: Response) => {
+      const userId = req.jwtData?.userId ? req.jwtData.userId : 'NOT-LOGGED-IN'
+      if (req.params?.id) {
+        const result = await Post.findOne({
+          attributes: [],
+          include: [
+            {
+              model: Post,
+              attributes: ['id', 'content'],
+              as: 'descendents',
+              where: {
+                privacy: {
+                  [Op.ne]: 10
+                },
+                [Op.or]: [
+                  {
+                    userId: userId
+                  },
+                  {
+                    privacy: 1,
+                    userId: {
+                      [Op.in]: await getFollowedsIds(userId, false)
+                    }
+                  },
+                  {
+                    privacy: 0
+                  }
+                ]
+              },
+              include: [
+                {
+                  model: User,
+                  as: 'user',
+                  attributes: ['url', 'name', 'avatar']
+                }
+              ]
+            }
+          ]
+        })
+        res.send(result)
+      }
+    }
+  )
   app.get('/api/blog', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     const id = req.query.id
