@@ -142,6 +142,9 @@ export default function postsRoutes(app: Application) {
       const userId = req.jwtData?.userId ? req.jwtData.userId : 'NOT-LOGGED-IN'
       if (req.params?.id) {
         const result = await Post.findOne({
+          where: {
+            id: req.params.id
+          },
           attributes: [],
           include: [
             {
