@@ -345,18 +345,14 @@ async function inboxWorker(job: Job) {
                 await reaction.save()
               }
             } else {
-              const likeExisting = await UserLikesPostRelations.findOne({
-                where: {
-                  userId: remoteUser.id,
-                  postId: postToBeLiked.id
-                }
-              })
-              if (!likeExisting) {
+              try {
                 const like = await UserLikesPostRelations.create({
                   userId: remoteUser.id,
                   postId: postToBeLiked.id,
-                  remoteId: req.body.id
+                  remoteId: body.id
                 })
+              } catch (error) {
+                logger.trace(`Error processing like user ${remoteUser.url} post ${postToBeLiked.id} ${body.id}`)
               }
             }
             await signAndAccept(req, remoteUser, user)
