@@ -336,11 +336,20 @@ async function inboxWorker(job: Job) {
                 await reaction.save()
               }
             } else {
-              const like = await UserLikesPostRelations.create({
-                userId: remoteUser.id,
-                postId: postToBeLiked.id,
-                remoteId: req.body.id
+              const likeExisting = await UserLikesPostRelations.findOne({
+                where: {
+                  userId: remoteUser.id,
+                  postId: postToBeLiked.id,
+                  remoteId: req.body.id
+                }
               })
+              if (!likeExisting) {
+                const like = await UserLikesPostRelations.create({
+                  userId: remoteUser.id,
+                  postId: postToBeLiked.id,
+                  remoteId: req.body.id
+                })
+              }
             }
             await signAndAccept(req, remoteUser, user)
           }
