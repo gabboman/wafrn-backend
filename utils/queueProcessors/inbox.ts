@@ -291,6 +291,8 @@ async function inboxWorker(job: Job) {
           break
         }
         case 'Like': {
+          logger.debug('like reaction')
+          logger.debug(body)
           const fullUrlPostToBeLiked = req.body.object
           const partToRemove = `${environment.frontendUrl}/fediverse/post/`
           const localPost = await Post.findOne({
