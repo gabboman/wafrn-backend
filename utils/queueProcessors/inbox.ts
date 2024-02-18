@@ -291,6 +291,18 @@ async function inboxWorker(job: Job) {
               if (likeToRemove) {
                 likeToRemove.destroy()
               }
+            }
+            // eslint-disable-next-line no-fallthrough
+            case 'EmojiReact': {
+              const reactionToRemove = await EmojiReaction.findOne({
+                where: {
+                  remoteId: body.id
+                }
+              })
+              if (reactionToRemove) {
+                await reactionToRemove.destroy()
+              }
+              await signAndAccept(req, remoteUser, user)
               break
             }
             default: {
