@@ -280,13 +280,22 @@ async function processEmojis(post: any, fediEmojis: any[]) {
     }
   })
   emojis = emojis.concat(foundEmojis)
-  const notFoundEmojisIds = emojiIds.filter((emojiId) => !foundEmojis.find((found: any) => found.id === emojiId))
-  // TODO add missing emojis
-  //let newEmojiPetitions = notFoundEmojisIds.map()
-
-  if (fediEmojis && notFoundEmojisIds && notFoundEmojisIds.length > 0) {
-    logger.debug('FediEmojis')
-    logger.debug(fediEmojis)
+  const notFoundEmojis = fediEmojis.filter((elem: any) => !foundEmojis.find((found: any) => found.id === elem.id))
+  if (fediEmojis && notFoundEmojis && notFoundEmojis.length > 0) {
+    try {
+      const newEmojis = notFoundEmojis.map((newEmoji: any) => {
+        return {
+          id: newEmoji.id,
+          name: newEmoji.name,
+          external: true,
+          url: newEmoji.icon.url
+        }
+      })
+      emojis = emojis.concat(Emoji.bulkCreate(newEmojis))
+    } catch (error) {
+      logger.debug('Error with emojis')
+      logger.debug(error)
+    }
   }
 
   return post.addEmojis(emojis)
