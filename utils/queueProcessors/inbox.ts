@@ -248,6 +248,16 @@ async function inboxWorker(job: Job) {
               if (likeToRemove) {
                 await likeToRemove.destroy()
               }
+              const emojiReactionToRemove = await EmojiReaction.findOne({
+                where: {
+                  remoteId: req.body.object.id
+                }
+              })
+              if (emojiReactionToRemove) {
+                await emojiReactionToRemove.destroy()
+              }
+              await signAndAccept(req, remoteUser, user)
+
               break
             }
             case 'Announce': {
