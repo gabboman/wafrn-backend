@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Follows, Post, PostMentionsUserRelation, User, UserLikesPostRelations } from '../db'
+import { Follows, Post, PostMentionsUserRelation, PostReport, User, UserLikesPostRelations } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import { sequelize } from '../db'
@@ -183,10 +183,34 @@ export default function notificationRoutes(app: Application) {
       }
     })
 
-    await Promise.all([newFollows, postNotifications, newLikes])
+    let reports = 0
+    let awaitingAproval = 0
+
+    if (req.jwtData?.role === 10) {
+      // well the user is an admin!
+      reports = PostReport.count({
+        where: {
+          resolved: false
+        }
+      })
+      awaitingAproval = User.count({
+        where: {
+          activated: false,
+          url: {
+            [Op.notLike]: '%@%'
+          },
+          banned: false
+        },
+        attributes: ['id', 'url', 'avatar', 'description', 'email']
+      })
+    }
+
+    await Promise.all([newFollows, postNotifications, newLikes, reports, awaitingAproval])
 
     res.send({
-      notifications: (await newFollows) + (await postNotifications) + (await newLikes)
+      notifications: (await newFollows) + (await postNotifications) + (await newLikes),
+      reports: await reports,
+      awaitingAproval: await awaitingAproval
     })
   })
 
