@@ -8,5 +8,5 @@
     "esModuleInterop": true,
     "strict": true
   },
-  "files": ["typings/http.d.ts"]
+  "files": ["@types/http.d.ts"]
 }
