@@ -55,7 +55,7 @@ export default function dashboardRoutes(app: Application) {
             {
               //local follows privacy 0 1 2
               privacy: {
-                [Op.in]: [0, 1, 2]
+                [Op.in]: [0, 1, 2, 3]
               },
               userId: {
                 [Op.in]: await followedUsers
@@ -63,7 +63,7 @@ export default function dashboardRoutes(app: Application) {
             },
             {
               privacy: {
-                [Op.in]: [0, 2]
+                [Op.in]: [0, 2, 3]
               },
               userId: {
                 [Op.in]: await nonFollowedUsers
