@@ -139,10 +139,9 @@ export default function postsRoutes(app: Application) {
     optionalAuthentication,
     checkIpBlocked,
     async (req: AuthorizedRequest, res: Response) => {
-      /*
       const userId = req.jwtData?.userId ? req.jwtData.userId : 'NOT-LOGGED-IN'
       if (req.params?.id) {
-        const result = await Post.findOne({
+        const posts = await Post.findOne({
           where: {
             id: req.params.id
           },
@@ -150,7 +149,13 @@ export default function postsRoutes(app: Application) {
           include: [
             {
               model: Post,
-              attributes: ['id', 'content'],
+              attributes: [
+                'id',
+                'userId',
+                [sequelize.fn('LENGTH', sequelize.col('descendents.content')), 'len'],
+                'createdAt',
+                'updatedAt'
+              ],
               as: 'descendents',
               where: {
                 privacy: {
@@ -170,20 +175,27 @@ export default function postsRoutes(app: Application) {
                     privacy: 0
                   }
                 ]
-              },
-              include: [
-                {
-                  model: User,
-                  as: 'user',
-                  attributes: ['url', 'name', 'avatar']
-                }
-              ]
+              }
             }
           ]
         })
-        res.send(result)
-      }*/
-      res.send({ descendents: [] })
+        const users = posts?.descendents?.length
+          ? await User.findAll({
+              attributes: ['url', 'avatar', 'name', 'id'],
+              where: {
+                id: {
+                  [Op.in]: posts?.descendents.map((elem: any) => elem.userId)
+                }
+              }
+            })
+          : []
+        res.send({
+          posts: posts?.descendents?.length ? posts.descendents : [],
+          users: users
+        })
+      } else {
+        res.sendStatus(404)
+      }
     }
   )
   app.get('/api/blog', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
