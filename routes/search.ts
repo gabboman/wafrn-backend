@@ -123,10 +123,14 @@ export default function searchRoutes(app: Application) {
       limit: 20,
       where: {
         activated: true,
-        id: {
-          [Op.in]: await getAllLocalUserIds()
-        },
-        url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)
+        [Op.and]: [
+          {
+            url: {
+              [Op.notLike]: '@%'
+            }
+          },
+          [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
+        ]
       },
       attributes: ['url', 'avatar', 'id', 'remoteId']
     })
