@@ -200,11 +200,11 @@ export default function notificationRoutes(app: Application) {
             [Op.notLike]: '%@%'
           },
           banned: false
-        },
-        attributes: ['id', 'url', 'avatar', 'description', 'email']
+        }
       })
     }
 
+    await awaitingAproval
     await Promise.all([newFollows, postNotifications, newLikes, reports, awaitingAproval])
 
     res.send({
