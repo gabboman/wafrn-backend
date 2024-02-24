@@ -8,6 +8,7 @@ import { environment } from '../environment'
 import { activityPubObject } from '../interfaces/fediverse/activityPubObject'
 import _ from 'underscore'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
+import { LdSignature } from '../utils/activitypub/rsa2017'
 
 const sendPostQueue = new Queue('sendPostToInboxes', {
   connection: environment.bullmqConnection,
@@ -48,10 +49,13 @@ export default function deletePost(app: Application) {
         const objectToSend: activityPubObject = {
           '@context': [`${environment.frontendUrl}/contexts/litepub-0.1.jsonld`],
           actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
-          to: ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers],
-          cc: [],
-          id: `${environment.frontendUrl}/fediverse/delete/post/${postToDelete.id}`,
-          object: `${environment.frontendUrl}/fediverse/post/${postToDelete.id}`,
+          to: ['https://www.w3.org/ns/activitystreams#Public'],
+          id: `${environment.frontendUrl}/fediverse/post/${postToDelete.id}#delete`,
+          object: {
+            atomUri: `${environment.frontendUrl}/fediverse/post/${postToDelete.id}`,
+            id: `${environment.frontendUrl}/fediverse/post/${postToDelete.id}`,
+            type: 'Tombstone'
+          },
           type: 'Delete'
         }
 
@@ -84,11 +88,19 @@ export default function deletePost(app: Application) {
         usersToSendThePost?.forEach((server: any) => {
           inboxes = inboxes.concat(server.users.map((elem: any) => elem.remoteInbox))
         })
+        const ldSignature = new LdSignature()
+        const bodySignature = await ldSignature.signRsaSignature2017(
+          objectToSend,
+          user.privateKey,
+          `${environment.frontendUrl}/fediverse/blog/${user.url.toLocaleLowerCase()}`,
+          environment.instanceUrl,
+          new Date()
+        )
         for await (const inboxChunk of _.chunk(inboxes, 10)) {
           await sendPostQueue.add(
             'sencChunk',
             {
-              objectToSend: objectToSend,
+              objectToSend: { ...objectToSend, signature: bodySignature.signature },
               petitionBy: user.dataValues,
               inboxList: inboxChunk
             },
