@@ -279,12 +279,13 @@ export default function adminRoutes(app: Application) {
     async (req: AuthorizedRequest, res: Response) => {
       if (req.body.id) {
         const userToActivate = await User.findByPk(req.body.id)
-        userToActivate.banned = undefined // little hack, not adding another thing to the db. we set it to null and remove notification
+        userToActivate.activate = undefined // little hack, not adding another thing to the db. we set it to null and remove notification
+        userToActivate.banned = undefined
         const emailPromise = sendActivationEmail(
           userToActivate.email,
           '',
           `Hello ${userToActivate.url}, before we can activate your account at ${environment.frontendUrl} we need you to reply to this email`,
-          `Hello ${userToActivate.url}, you recived this email because something might be off in your account. Please simply reply to this email with some info about you. Or maybe we pressed the big red button on accident who knows. In both cases, feel free to let us know. sorry for the extra hoop`
+          `Hello ${userToActivate.url}, you recived this email because something might be off in your account. Usually is something like the email being in a strange provider or 'wow that email looks weird'. We just need a confirmation. Sorry for this and thanks.`
         )
         Promise.allSettled([userToActivate.save(), emailPromise])
       }
