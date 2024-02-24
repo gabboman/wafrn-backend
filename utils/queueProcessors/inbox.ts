@@ -43,8 +43,8 @@ async function inboxWorker(job: Job) {
       })
       if (userToRemove) {
         await removeUser(userToRemove.id)
+        return
       }
-      return
     }
     const remoteUser = await getRemoteActor(req.body.actor, user)
     const host = await FederatedHost.findOne({
