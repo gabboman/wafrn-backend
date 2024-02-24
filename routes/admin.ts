@@ -279,8 +279,8 @@ export default function adminRoutes(app: Application) {
     async (req: AuthorizedRequest, res: Response) => {
       if (req.body.id) {
         const userToActivate = await User.findByPk(req.body.id)
-        userToActivate.activate = undefined // little hack, not adding another thing to the db. we set it to null and remove notification
-        userToActivate.banned = undefined
+        userToActivate.activate = null // little hack, not adding another thing to the db. we set it to null and remove notification
+        userToActivate.banned = null
         const emailPromise = sendActivationEmail(
           userToActivate.email,
           '',
