@@ -100,20 +100,6 @@ export default function userRoutes(app: Application) {
                   environment.instanceUrl
                 }/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
             const emailSent = sendActivationEmail(req.body.email.toLowerCase(), activationCode, mailHeader, mailBody)
-            if (environment.reviewRegistrations) {
-              sendActivationEmail(
-                environment.adminEmail,
-                '',
-                'new user ask for review',
-                'time to check ' + req.body.url
-              )
-                .then(() => {
-                  logger.trace('sent email to admin for review')
-                })
-                .catch((error) => {
-                  logger.error('failed to send review email')
-                })
-            }
             await Promise.all([userWithEmail, emailSent])
             success = true
             await redisCache.del('allLocalUserIds')
