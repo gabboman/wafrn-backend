@@ -1,5 +1,5 @@
 import { Application, Response } from 'express'
-import { FederatedHost, Post, PostMentionsUserRelation, User, UserLikesPostRelations } from '../db'
+import { FederatedHost, Post, PostMentionsUserRelation, PostTag, User, UserLikesPostRelations } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 import { Op, Sequelize } from 'sequelize'
 import { logger } from '../utils/logger'
@@ -39,13 +39,16 @@ export default function deletePost(app: Application) {
         })
         const children = await postToDelete.getDescendents()
         postToDelete.removeMedias(await postToDelete.getMedias())
-        postToDelete.removePostTags()
+        await PostTag.destroy({
+          where: {
+            postId: postToDelete.id
+          }
+        })
         await UserLikesPostRelations.destroy({
           where: {
             postId: postToDelete.id
           }
         })
-        const stringMyFollowers = `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}/followers`
         const objectToSend: activityPubObject = {
           '@context': [`${environment.frontendUrl}/contexts/litepub-0.1.jsonld`],
           actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
