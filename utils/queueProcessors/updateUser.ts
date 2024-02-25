@@ -5,6 +5,7 @@ import { environment } from '../../environment'
 import { logger } from '../logger'
 import { processUserEmojis } from '../activitypub/processUserEmojis'
 import { fediverseTag } from '../../interfaces/fediverse/tags'
+import { getFederatedHostIdFromUrl } from '../cacheGetters/getHostIdFromUrl'
 
 async function updateUserWorker(job: Job) {
   try {
@@ -14,25 +15,25 @@ async function updateUserWorker(job: Job) {
         remoteId: job.data.userToUpdate
       }
     })
-    remoteUser.description = userPetition.summary
-    remoteUser.name = userPetition.name
-    remoteUser.headerImage = userPetition.image?.url ? userPetition.image.url : ''
-    remoteUser.avatar = userPetition.icon?.url ? userPetition.icon.url : `${environment.mediaUrl}/uploads/default.webp`
-    remoteUser.updatedAt = new Date()
-    const hostUrl = remoteUser.url.split('@')[3]
-    if (hostUrl) {
-      const federatedHost = await FederatedHost.findOne({
-        where: {
-          displayName: hostUrl.toLowerCase
-        }
-      })
-      remoteUser.federatedHostId = federatedHost.id
+    if (userPetition && remoteUser) {
+      remoteUser.description = userPetition.summary
+      remoteUser.name = userPetition.name
+      remoteUser.headerImage = userPetition.image?.url ? userPetition.image.url : ''
+      remoteUser.avatar = userPetition.icon?.url
+        ? userPetition.icon.url
+        : `${environment.mediaUrl}/uploads/default.webp`
+      remoteUser.updatedAt = new Date()
+      const hostUrl = remoteUser.url.split('@')[2]
+      if (hostUrl) {
+        remoteUser.federatedHostId = await getFederatedHostIdFromUrl(hostUrl)
+      }
+
+      await processUserEmojis(
+        remoteUser,
+        userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
+      )
+      await remoteUser.save()
     }
-    await processUserEmojis(
-      remoteUser,
-      userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
-    )
-    await remoteUser.save()
   } catch (error) {
     logger.trace(`Failed to update user ${job.data.userToUpdate}`)
     logger.trace(error)
