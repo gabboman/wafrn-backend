@@ -1,6 +1,6 @@
 import { Job, Worker } from 'bullmq'
 import { getPetitionSigned } from '../activitypub/getPetitionSigned'
-import { User } from '../../db'
+import { FederatedHost, User } from '../../db'
 import { environment } from '../../environment'
 import { logger } from '../logger'
 import { processUserEmojis } from '../activitypub/processUserEmojis'
@@ -19,6 +19,15 @@ async function updateUserWorker(job: Job) {
     remoteUser.headerImage = userPetition.image?.url ? userPetition.image.url : ''
     remoteUser.avatar = userPetition.icon?.url ? userPetition.icon.url : `${environment.mediaUrl}/uploads/default.webp`
     remoteUser.updatedAt = new Date()
+    const hostUrl = remoteUser.url.split('@')[3]
+    if (hostUrl) {
+      const federatedHost = await FederatedHost.findOne({
+        where: {
+          displayName: hostUrl.toLowerCase
+        }
+      })
+      remoteUser.federatedHostId = federatedHost.id
+    }
     await processUserEmojis(
       remoteUser,
       userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
