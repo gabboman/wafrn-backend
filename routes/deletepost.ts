@@ -99,7 +99,7 @@ export default function deletePost(app: Application) {
           environment.instanceUrl,
           new Date()
         )
-        for await (const inboxChunk of _.chunk(inboxes, 10)) {
+        for await (const inboxChunk of _.chunk(inboxes, 50)) {
           await sendPostQueue.add(
             'sencChunk',
             {
