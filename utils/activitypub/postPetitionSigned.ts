@@ -38,7 +38,7 @@ async function postPetitionSigned(message: object, user: any, target: string): P
       Host: url.host,
       Date: sendDate.toUTCString(),
       Digest: `SHA-256=${digest}`,
-      signature: header
+      Signature: header
     }
 
     res = await axios.post(target, message, { headers: headers })

@@ -40,7 +40,7 @@ async function getPetitionSigned(user: any, target: string): Promise<any> {
       Host: url.host,
       Date: sendDate.toUTCString(),
       Digest: `SHA-256=${digest}`,
-      signature: header
+      Signature: header
     }
     const axiosResponse = await axios.get(target, { headers: headers })
     /*
