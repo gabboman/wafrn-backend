@@ -38,6 +38,8 @@ async function prepareSendRemotePostWorker(job: Job) {
 
   // servers with shared inbox
   let serversToSendThePost
+  const localUserFollowers = await localUser.getFollower()
+  const followersServers = localUserFollowers.map((el: any) => el.federatedHostId)
   // for servers with no shared inbox
   let usersToSendThePost = await FederatedHost.findAll({
     where: {
@@ -46,21 +48,23 @@ async function prepareSendRemotePostWorker(job: Job) {
     },
     include: [
       {
+        required: true,
         model: User,
         attributes: ['remoteInbox'],
         where: {
           banned: false,
-          literal: Sequelize.literal(`users.id IN (SELECT followerId from follows where followedId = "${post.userId}")`)
+          id: {
+            [Op.in]: (await localUser.getFollower()).map((usr: any) => usr.id)
+          }
         }
       }
     ]
   })
   // mentioned users
-  const mentionedUsers = await User.findAll({
+  const mentionedUsers = await post.getMentionPost({
     attributes: ['remoteInbox'],
     where: {
-      federatedHostId: { [Op.ne]: null },
-      literal: Sequelize.literal(`id IN (SELECT userId FROM postMentionsUserRelations WHERE postId = "${post.id}")`)
+      federatedHostId: { [Op.ne]: null }
     }
   })
   switch (post.privacy) {
@@ -77,12 +81,11 @@ async function prepareSendRemotePostWorker(job: Job) {
         where: {
           publicInbox: { [Op.ne]: null },
           blocked: { [Op.ne]: true },
-
           [Op.or]: [
             {
-              literal: sequelize.literal(
-                `id in (SELECT federatedHostId from users where users.id IN (SELECT followerId from follows where followedId = '${post.userId}') and federatedHostId is not NULL)`
-              )
+              id: {
+                [Op.in]: followersServers
+              }
             },
             {
               friendServer: true
