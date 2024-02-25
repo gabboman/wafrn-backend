@@ -19,7 +19,9 @@ async function updateAllUsers() {
   })
   const allRemoteUsers = await User.findAll({
     where: {
-      remoteId: { [Op.ne]: null }
+      url: {
+        [Op.like]: '@%@%'
+      }
     }
   })
   allRemoteUsers.forEach((actor: any) => {
