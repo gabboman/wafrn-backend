@@ -74,7 +74,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
       const userPetition = await getPetitionSigned(user, actorUrl)
       let federatedHost = await FederatedHost.findOne({
         where: {
-          displayName: url.host.toLocaleLowerCase()
+          displayName: url.host.toLowerCase()
         }
       })
       if (!federatedHost) {
@@ -96,14 +96,13 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
         remoteInbox: userPetition.inbox,
         remoteId: actorUrl,
         activated: true,
-        federatedHost: federatedHost.id
+        federatedHostId: federatedHost.id
       }
       remoteUser = await User.create(userToCreate)
       await processUserEmojis(
         remoteUser,
         userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
       )
-
     } catch (error) {
       logger.trace({ message: 'error fetching user', error: error })
     }
