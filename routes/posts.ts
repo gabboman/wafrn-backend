@@ -32,6 +32,7 @@ import checkIpBlocked from '../utils/checkIpBlocked'
 import { getUnjointedPosts } from '../utils/baseQueryNew'
 const cheerio = require('cheerio')
 import getFollowedsIds from '../utils/cacheGetters/getFollowedsIds'
+import { federatePostHasBeenEdited } from '../utils/activitypub/editPost'
 
 const prepareSendPostQueue = new Queue('prepareSendPost', {
   connection: environment.bullmqConnection,
@@ -413,6 +414,180 @@ export default function postsRoutes(app: Application) {
             { postId: post.id, petitionBy: posterId },
             { jobId: post.id }
           )
+        }
+      } catch (error) {
+        logger.error(error)
+      }
+      if (!success) {
+        res.statusCode = 400
+        res.send({ success: false })
+      }
+    }
+  )
+
+  app.post(
+    '/api/v2/createPost',
+    checkIpBlocked,
+    authenticateToken,
+    createPostLimiter,
+    async (req: AuthorizedRequest, res: Response) => {
+      let success = false
+      const posterId = req.jwtData?.userId
+      try {
+        if (req.body.parent) {
+          const parent = await Post.findOne({
+            where: {
+              id: req.body.parent
+            },
+            include: [
+              {
+                model: Post,
+                as: 'ancestors'
+              }
+            ]
+          })
+          if (!parent) {
+            success = false
+            res.status(500)
+            res.send({ success: false, message: 'non existent parent' })
+            return false
+          }
+          // we check that the user is not reblogging a post by someone who blocked them or the other way arround
+          const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId)
+          postParentsUsers.push(parent.userId)
+          const bannedUsers = await User.count({
+            where: {
+              id: {
+                [Op.in]: postParentsUsers
+              },
+              banned: true
+            }
+          })
+          const blocksExistingOnParents = await Blocks.count({
+            where: {
+              [Op.or]: [
+                {
+                  blockerId: posterId,
+                  blockedId: { [Op.in]: postParentsUsers }
+                },
+                {
+                  blockedId: posterId,
+                  blockerId: { [Op.in]: postParentsUsers }
+                }
+              ]
+            }
+          })
+          if (blocksExistingOnParents + bannedUsers > 0) {
+            success = false
+            res.status(500)
+            res.send({ success: false, message: 'You have no permission to reblog this post' })
+            return false
+          }
+        }
+        const content = req.body.content ? req.body.content.trim() : ''
+        const content_warning = req.body.content_warning ? req.body.content_warning.trim() : ''
+        const mentionsToAdd: string[] = []
+        let mediaToAdd: string[] = []
+
+        // post content as html
+        const parsedAsHTML = cheerio.load(content)
+        const mentionsInPost = parsedAsHTML('a.mention')
+        if (req.body.medias && req.body.medias.length) {
+          mediaToAdd = req.body.medias
+        }
+
+        if (mentionsInPost && mentionsInPost.length > 0) {
+          for (let index = 0; index < mentionsInPost.length; index++) {
+            const elem = mentionsInPost[index]
+            if (elem.attribs['data-id'] && !mentionsToAdd.includes(elem.attribs['data-id'])) {
+              mentionsToAdd.push(elem.attribs['data-id'])
+            }
+          }
+          const blocksExisting = await Blocks.count({
+            where: {
+              [Op.or]: [
+                {
+                  blockerId: posterId,
+                  blockedId: { [Op.in]: mentionsToAdd }
+                },
+                {
+                  blockedId: posterId,
+                  blockerId: { [Op.in]: mentionsToAdd }
+                }
+              ]
+            }
+          })
+          const blocksServers = 0 /*await ServerBlock.count({
+          where: {
+            userBlockerId: posterId,
+            literal: Sequelize.literal(
+              `blockedServerId IN (SELECT federatedHostId from users where id IN (${  mentionsToAdd.map(
+                (elem) => '"' + elem + '"'
+              )}))`
+            )
+          }
+        })*/
+          if (blocksExisting + blocksServers > 0) {
+            res.status(500)
+            res.send({
+              error: true,
+              message: 'You can not mention an user that you have blocked or has blocked you'
+            })
+            return null
+          }
+        }
+        let post: any
+        if (req.body.idPostToEdit) {
+          post = await Post.findByPk(req.body.idPostToEdit)
+          post.content = content
+          post.content_warning = content_warning
+          post.privacy = req.body.privacy ? req.body.privacy : 0
+          await post.save()
+        } else {
+          post = await Post.create({
+            content,
+            content_warning,
+            userId: posterId,
+            privacy: req.body.privacy ? req.body.privacy : 0,
+            parentId: req.body.parent
+          })
+        }
+
+        post.setMedias(mediaToAdd)
+        post.setMentionPost(mentionsToAdd)
+        success = !req.body.tags
+        if (req.body.tags) {
+          const tagListString = req.body.tags
+          let tagList: string[] = tagListString.split(',')
+          tagList = tagList.map((s: string) => s.trim())
+          await PostTag.destroy({
+            where: {
+              postId: post.id
+            }
+          })
+          await PostTag.bulkCreate(
+            tagList.map((tag) => {
+              return {
+                tagName: tag,
+                postId: post.id
+              }
+            })
+          )
+
+          success = true
+        }
+        res.send(post)
+        await post.save()
+        if (post.privacy.toString() !== '2') {
+          if (req.body.idPostToEdit) {
+            await federatePostHasBeenEdited(post)
+          } else {
+            await prepareSendPostQueue.add(
+              'prepareSendPost',
+              { postId: post.id, petitionBy: posterId },
+              { jobId: post.id }
+            )
+          }
         }
       } catch (error) {
         logger.error(error)
