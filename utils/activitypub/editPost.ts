@@ -19,6 +19,7 @@ const sendPostQueue = new Queue('sendPostToInboxes', {
   }
 })
 async function federatePostHasBeenEdited(postToEdit: any) {
+  return
   const user = await User.findByPk(postToEdit.userId)
 
   const postAsJSONLD = await postToJSONLD(postToEdit)
@@ -27,8 +28,82 @@ async function federatePostHasBeenEdited(postToEdit: any) {
     actor: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
     to: postAsJSONLD.to,
     cc: postAsJSONLD.cc,
-    id: `${environment.frontendUrl}/fediverse/edit/post/${postToEdit.id}/${new Date().getTime()}`,
-    object: postAsJSONLD.object,
+    published: new Date().toString(),
+    id: `${environment.frontendUrl}/fediverse/post/${postToEdit.id}/update/${new Date().getTime()}`,
+    object: {
+      actor: postAsJSONLD.actor,
+      attachment: [],
+      attributedTo: 'https://akkoma.dev.wafrn.net/users/gabboman',
+      cc: ['https://akkoma.dev.wafrn.net/users/gabboman/followers'],
+      content: 'testingtttggg',
+      contentMap: { en: 'testingtttggg' },
+      context: 'https://akkoma.dev.wafrn.net/contexts/4bccba1e-11c4-4570-93f1-d505ac917b30',
+      conversation: 'https://akkoma.dev.wafrn.net/contexts/4bccba1e-11c4-4570-93f1-d505ac917b30',
+      /*"formerRepresentations": {
+        "orderedItems": [
+          {
+            "actor": "https://akkoma.dev.wafrn.net/users/gabboman",
+            "attachment": [],
+            "attributedTo": "https://akkoma.dev.wafrn.net/users/gabboman",
+            "cc": ["https://akkoma.dev.wafrn.net/users/gabboman/followers"],
+            "content": "testingttt",
+            "contentMap": { "en": "testingttt" },
+            "context": "https://akkoma.dev.wafrn.net/contexts/4bccba1e-11c4-4570-93f1-d505ac917b30",
+            "conversation": "https://akkoma.dev.wafrn.net/contexts/4bccba1e-11c4-4570-93f1-d505ac917b30",
+            "published": "2024-02-25T23:31:05.550628Z",
+            "source": { "content": "testingttt", "mediaType": "text/plain" },
+            "summary": "",
+            "tag": [],
+            "to": ["https://www.w3.org/ns/activitystreams#Public"],
+            "type": "Note",
+            "updated": "2024-02-26T19:24:58.568615Z"
+          },
+          {
+            "actor": "https://akkoma.dev.wafrn.net/users/gabboman",
+            "attachment": [],
+            "attributedTo": "https://akkoma.dev.wafrn.net/users/gabboman",
+            "cc": ["https://akkoma.dev.wafrn.net/users/gabboman/followers"],
+            "content": "testing",
+            "contentMap": { "en": "testing" },
+            "context": "https://akkoma.dev.wafrn.net/contexts/4bccba1e-11c4-4570-93f1-d505ac917b30",
+            "conversation": "https://akkoma.dev.wafrn.net/contexts/4bccba1e-11c4-4570-93f1-d505ac917b30",
+            "published": "2024-02-25T23:31:05.550628Z",
+            "source": { "content": "testing", "mediaType": "text/plain" },
+            "summary": "",
+            "tag": [],
+            "to": ["https://www.w3.org/ns/activitystreams#Public"],
+            "type": "Note",
+            "updated": "2024-02-25T23:31:22.105545Z"
+          },
+          {
+            "actor": "https://akkoma.dev.wafrn.net/users/gabboman",
+            "attachment": [],
+            "attributedTo": "https://akkoma.dev.wafrn.net/users/gabboman",
+            "cc": ["https://akkoma.dev.wafrn.net/users/gabboman/followers"],
+            "content": "test",
+            "contentMap": { "en": "test" },
+            "context": "https://akkoma.dev.wafrn.net/contexts/4bccba1e-11c4-4570-93f1-d505ac917b30",
+            "conversation": "https://akkoma.dev.wafrn.net/contexts/4bccba1e-11c4-4570-93f1-d505ac917b30",
+            "published": "2024-02-25T23:31:05.550628Z",
+            "source": { "content": "test", "mediaType": "text/plain" },
+            "summary": "",
+            "tag": [],
+            "to": ["https://www.w3.org/ns/activitystreams#Public"],
+            "type": "Note"
+          }
+        ],
+        "totalItems": 3,
+        "type": "OrderedCollection"
+      },*/
+      id: 'https://akkoma.dev.wafrn.net/objects/f8455914-579e-4a34-b74b-efa8e7d579fe',
+      published: '2024-02-25T23:31:05.550628Z',
+      source: { content: 'testingtttggg', mediaType: 'text/plain' },
+      summary: '',
+      tag: [],
+      to: ['https://www.w3.org/ns/activitystreams#Public'],
+      type: 'Note',
+      updated: '2024-02-26T19:25:25.066768Z'
+    },
     type: 'Update'
   }
 
@@ -100,7 +175,7 @@ async function federatePostHasBeenEdited(postToEdit: any) {
         inboxList: inboxChunk
       },
       {
-        priority: 50
+        priority: 500
       }
     )
   }
