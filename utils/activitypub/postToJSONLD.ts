@@ -127,7 +127,7 @@ async function postToJSONLD(post: any) {
       */
     }
   }
-  if (post.content === '' && (await post.getPostTags()).length === 0 && (await post.getMedias().length) === 0) {
+  if (post.content === '' && (await post.getPostTags()).length === 0 && (await post.getMedias()).length === 0) {
     postAsJSONLD = {
       '@context': 'https://www.w3.org/ns/activitystreams',
       id: `${environment.frontendUrl}/fediverse/post/${post.id}`,
