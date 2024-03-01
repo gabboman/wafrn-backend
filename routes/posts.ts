@@ -376,11 +376,15 @@ export default function postsRoutes(app: Application) {
             return null
           }
         }
+        const parentPrivacy = req.body.parent
+          ? (await Post.findByPk(req.body.parentId, { attributes: ['privacy'] })).privacy
+          : 0
+        const bodyPrivacy = req.body.privacy ? req.body.privacy : 0
         const post = await Post.create({
           content,
           content_warning,
           userId: posterId,
-          privacy: req.body.privacy ? req.body.privacy : 0,
+          privacy: parentPrivacy > bodyPrivacy ? parentPrivacy : bodyPrivacy,
           parentId: req.body.parent
         })
         post.addMedias(mediaToAdd)
