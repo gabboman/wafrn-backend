@@ -255,56 +255,56 @@ export default function postsRoutes(app: Application) {
       let success = false
       const posterId = req.jwtData?.userId
       try {
-        if (req.body.parent) {
-          const parent = await Post.findOne({
-            where: {
-              id: req.body.parent
+        const parent = await Post.findByPk(req.body.parent, {
+          include: [
+            {
+              model: Post,
+              as: 'ancestors'
+            }
+          ]
+        })
+        if (!parent) {
+          success = false
+          res.status(500)
+          res.send({ success: false, message: 'non existent parent' })
+          return false
+        }
+
+        // we get the privacy of the parent
+        const parentPrivacy = parent ? parent.privacy : 0
+        const bodyPrivacy = req.body.privacy ? req.body.privacy : 0
+        // we check that the user is not reblogging a post by someone who blocked them or the other way arround
+        const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId)
+        postParentsUsers.push(parent.userId)
+        const bannedUsers = await User.count({
+          where: {
+            id: {
+              [Op.in]: postParentsUsers
             },
-            include: [
+            banned: true
+          }
+        })
+        const blocksExistingOnParents = await Blocks.count({
+          where: {
+            [Op.or]: [
               {
-                model: Post,
-                as: 'ancestors'
+                blockerId: posterId,
+                blockedId: { [Op.in]: postParentsUsers }
+              },
+              {
+                blockedId: posterId,
+                blockerId: { [Op.in]: postParentsUsers }
               }
             ]
-          })
-          if (!parent) {
-            success = false
-            res.status(500)
-            res.send({ success: false, message: 'non existent parent' })
-            return false
           }
-          // we check that the user is not reblogging a post by someone who blocked them or the other way arround
-          const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId)
-          postParentsUsers.push(parent.userId)
-          const bannedUsers = await User.count({
-            where: {
-              id: {
-                [Op.in]: postParentsUsers
-              },
-              banned: true
-            }
-          })
-          const blocksExistingOnParents = await Blocks.count({
-            where: {
-              [Op.or]: [
-                {
-                  blockerId: posterId,
-                  blockedId: { [Op.in]: postParentsUsers }
-                },
-                {
-                  blockedId: posterId,
-                  blockerId: { [Op.in]: postParentsUsers }
-                }
-              ]
-            }
-          })
-          if (blocksExistingOnParents + bannedUsers > 0) {
-            success = false
-            res.status(500)
-            res.send({ success: false, message: 'You have no permission to reblog this post' })
-            return false
-          }
+        })
+        if (blocksExistingOnParents + bannedUsers > 0) {
+          success = false
+          res.status(500)
+          res.send({ success: false, message: 'You have no permission to reblog this post' })
+          return false
         }
+
         const content = req.body.content ? req.body.content.trim() : ''
         const content_warning = req.body.content_warning ? req.body.content_warning.trim() : ''
         const mentionsToAdd: string[] = []
@@ -362,7 +362,7 @@ export default function postsRoutes(app: Application) {
           post = await Post.findByPk(req.body.idPostToEdit)
           post.content = content
           post.content_warning = content_warning
-          post.privacy = req.body.privacy ? req.body.privacy : 0
+          post.privacy = parentPrivacy > bodyPrivacy ? parentPrivacy : bodyPrivacy
           await post.save()
         } else {
           post = await Post.create({
