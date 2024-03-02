@@ -263,7 +263,7 @@ export default function postsRoutes(app: Application) {
             }
           ]
         })
-        if (!parent) {
+        if (!parent && req.body.parent) {
           success = false
           res.status(500)
           res.send({ success: false, message: 'non existent parent' })
@@ -274,35 +274,37 @@ export default function postsRoutes(app: Application) {
         const parentPrivacy = parent ? parent.privacy : 0
         const bodyPrivacy = req.body.privacy ? req.body.privacy : 0
         // we check that the user is not reblogging a post by someone who blocked them or the other way arround
-        const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId)
-        postParentsUsers.push(parent.userId)
-        const bannedUsers = await User.count({
-          where: {
-            id: {
-              [Op.in]: postParentsUsers
-            },
-            banned: true
-          }
-        })
-        const blocksExistingOnParents = await Blocks.count({
-          where: {
-            [Op.or]: [
-              {
-                blockerId: posterId,
-                blockedId: { [Op.in]: postParentsUsers }
+        if (parent) {
+          const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId)
+          postParentsUsers.push(parent.userId)
+          const bannedUsers = await User.count({
+            where: {
+              id: {
+                [Op.in]: postParentsUsers
               },
-              {
-                blockedId: posterId,
-                blockerId: { [Op.in]: postParentsUsers }
-              }
-            ]
+              banned: true
+            }
+          })
+          const blocksExistingOnParents = await Blocks.count({
+            where: {
+              [Op.or]: [
+                {
+                  blockerId: posterId,
+                  blockedId: { [Op.in]: postParentsUsers }
+                },
+                {
+                  blockedId: posterId,
+                  blockerId: { [Op.in]: postParentsUsers }
+                }
+              ]
+            }
+          })
+          if (blocksExistingOnParents + bannedUsers > 0) {
+            success = false
+            res.status(500)
+            res.send({ success: false, message: 'You have no permission to reblog this post' })
+            return false
           }
-        })
-        if (blocksExistingOnParents + bannedUsers > 0) {
-          success = false
-          res.status(500)
-          res.send({ success: false, message: 'You have no permission to reblog this post' })
-          return false
         }
 
         const content = req.body.content ? req.body.content.trim() : ''
