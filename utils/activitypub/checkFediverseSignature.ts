@@ -46,6 +46,11 @@ export default async function checkFediverseSignature(req: any, res: Response, n
       if (bannedHostInCache === 'true') {
         return res.sendStatus(401)
       }
+      const fediData = {
+        fediHost: hostUrl,
+        fediUser: remoteUserUrl
+      }
+      req.fediData = fediData
       const remoteKey = await getKey(remoteUserUrl, await adminUser)
       success = verifyDigest(req.rawBody, req.headers.digest) || httpSignature.verifySignature(sigHead, remoteKey)
     } catch (error: any) {

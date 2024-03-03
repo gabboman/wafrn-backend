@@ -8,6 +8,7 @@ import { return404 } from '../../utils/return404'
 import { postToJSONLD } from '../../utils/activitypub/postToJSONLD'
 import { Queue } from 'bullmq'
 import { getLocalUserId } from '../../utils/cacheGetters/getLocalUserId'
+import { SignedRequest } from '../../interfaces/fediverse/signedRequest'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Cacher = require('cacher')
 const cacher = new Cacher()
@@ -38,7 +39,7 @@ function activityPubRoutes(app: Application) {
   app.get(
     ['/fediverse/post/:id', '/fediverse/activity/post/:id'],
     checkFediverseSignature,
-    async (req: Request, res: Response) => {
+    async (req: SignedRequest, res: Response) => {
       if (req.params?.id) {
         const post = await Post.findOne({
           where: {
@@ -68,7 +69,7 @@ function activityPubRoutes(app: Application) {
     }
   )
   // Get blog for fediverse
-  app.get('/fediverse/blog/:url', checkFediverseSignature, async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url', checkFediverseSignature, async (req: SignedRequest, res: Response) => {
     if (!req.params.url?.startsWith('@')) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -131,7 +132,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/following', checkFediverseSignature, async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/following', checkFediverseSignature, async (req: SignedRequest, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -194,7 +195,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/followers', checkFediverseSignature, async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/followers', checkFediverseSignature, async (req: SignedRequest, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -257,7 +258,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/featured', checkFediverseSignature, async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/featured', checkFediverseSignature, async (req: SignedRequest, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -285,7 +286,7 @@ function activityPubRoutes(app: Application) {
   app.post(
     ['/fediverse/blog/:url/inbox', '/fediverse/sharedInbox'],
     checkFediverseSignature,
-    async (req: Request, res: Response) => {
+    async (req: SignedRequest, res: Response) => {
       const urlToSearch = req.params?.url ? req.params.url : environment.adminUser
       const url = urlToSearch.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -299,7 +300,7 @@ function activityPubRoutes(app: Application) {
     }
   )
 
-  app.get('/fediverse/blog/:url/outbox', checkFediverseSignature, async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/outbox', checkFediverseSignature, async (req: SignedRequest, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
@@ -318,7 +319,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/accept/:id', (req: Request, res: Response) => {
+  app.get('/fediverse/accept/:id', (req: SignedRequest, res: Response) => {
     res.sendStatus(200)
   })
 }
