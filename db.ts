@@ -170,6 +170,32 @@ const User = sequelize.define(
   }
 )
 
+const UserOptions = sequelize.define(
+  'userOptions',
+  {
+    userId: {
+      type: Sequelize.UUID,
+      defaultValue: Sequelize.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    optionName: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      primaryKey: true
+    },
+    optionValue: Sequelize.TEXT
+  },
+  {
+    indexes: [
+      {
+        unique: true,
+        fields: ['userId', 'optionName']
+      }
+    ]
+  }
+)
+
 const Follows = sequelize.define(
   'follows',
   {
@@ -474,6 +500,9 @@ User.hasMany(EmojiReaction)
 EmojiReaction.belongsTo(User)
 EmojiReaction.belongsTo(Emoji)
 
+User.hasMany(UserOptions)
+UserOptions.belongsTo(User)
+
 User.hasMany(QuestionPollAnswer),
   User.belongsToMany(Emoji, {
     through: UserEmojiRelation
@@ -622,6 +651,7 @@ sequelize
 export {
   sequelize,
   User,
+  UserOptions,
   Blocks,
   Mutes,
   Post,
