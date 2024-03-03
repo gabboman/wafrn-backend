@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Blocks, Emoji, FederatedHost, Mutes, ServerBlock, User } from '../db'
+import { Blocks, Emoji, FederatedHost, Mutes, ServerBlock, User, UserOptions } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import generateRandomString from '../utils/generateRandomString'
@@ -158,7 +158,7 @@ export default function userRoutes(app: Application) {
     async (req: AuthorizedRequest, res: Response) => {
       let success = false
       try {
-        const posterId = (req as any).jwtData.userId
+        const posterId = req.jwtData?.userId as string
         const user = await User.findOne({
           where: {
             id: posterId
@@ -167,6 +167,28 @@ export default function userRoutes(app: Application) {
         if (req.body) {
           if (req.body.description) {
             user.description = req.body.description
+          }
+
+          if (req.body.defaultPostEditorPrivacy) {
+            const defaultPostEditorPrivacyKey = 'wafrn.defaultPostEditorPrivacy'
+            const defaultPostEditorPrivacy = req.body.defaultPostEditorPrivacy
+            let dbDefaultPostEditorPrivacy = await UserOptions.findOne({
+              where: {
+                userId: posterId,
+                optionName: defaultPostEditorPrivacyKey
+              }
+            })
+            if (dbDefaultPostEditorPrivacy) {
+              dbDefaultPostEditorPrivacy.optionValue = defaultPostEditorPrivacy
+              await dbDefaultPostEditorPrivacy.save()
+            } else {
+              dbDefaultPostEditorPrivacy = await UserOptions.create({
+                userId: posterId,
+                optionName: defaultPostEditorPrivacyKey,
+                optionValue: defaultPostEditorPrivacy
+              })
+            }
+            redisCache.del(`userOptions:${posterId}`)
           }
 
           if (req.body.name) {
