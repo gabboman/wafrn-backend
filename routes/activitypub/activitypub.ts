@@ -35,36 +35,40 @@ const inboxQueue = new Queue('inbox', {
 
 function activityPubRoutes(app: Application) {
   // get post
-  app.get(['/fediverse/post/:id', '/fediverse/activity/post/:id'], async (req: Request, res: Response) => {
-    if (req.params?.id) {
-      const post = await Post.findOne({
-        where: {
-          id: req.params.id,
-          privacy: {
-            [Op.notIn]: [2, 10]
+  app.get(
+    ['/fediverse/post/:id', '/fediverse/activity/post/:id'],
+    checkFediverseSignature,
+    async (req: Request, res: Response) => {
+      if (req.params?.id) {
+        const post = await Post.findOne({
+          where: {
+            id: req.params.id,
+            privacy: {
+              [Op.notIn]: [2, 10]
+            }
           }
+        })
+        if (post) {
+          // TODO corregir esto seguramente
+          res.set({
+            'content-type': 'application/activity+json'
+          })
+          const response = await postToJSONLD(post)
+          res.send({
+            ...response.object,
+            '@context': response['@context']
+          })
+        } else {
+          res.sendStatus(404)
         }
-      })
-      if (post) {
-        // TODO corregir esto seguramente
-        res.set({
-          'content-type': 'application/activity+json'
-        })
-        const response = await postToJSONLD(post)
-        res.send({
-          ...response.object,
-          '@context': response['@context']
-        })
       } else {
         res.sendStatus(404)
       }
-    } else {
-      res.sendStatus(404)
+      res.end()
     }
-    res.end()
-  })
+  )
   // Get blog for fediverse
-  app.get('/fediverse/blog/:url', async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url', checkFediverseSignature, async (req: Request, res: Response) => {
     if (!req.params.url?.startsWith('@')) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -88,16 +92,24 @@ function activityPubRoutes(app: Application) {
           endpoints: {
             sharedInbox: `${environment.frontendUrl}/fediverse/sharedInbox`
           },
-          ...(user.avatar? {icon: {
-            type: 'Image',
-            mediaType: 'image/webp',
-            url: environment.mediaUrl + user.avatar
-          }} : undefined),
-          ...(user.headerImage? {image: {
-            type: 'Image',
-            mediaType: 'image/webp',
-            url: environment.mediaUrl + user.headerImage
-          }} : undefined),
+          ...(user.avatar
+            ? {
+                icon: {
+                  type: 'Image',
+                  mediaType: 'image/webp',
+                  url: environment.mediaUrl + user.avatar
+                }
+              }
+            : undefined),
+          ...(user.headerImage
+            ? {
+                image: {
+                  type: 'Image',
+                  mediaType: 'image/webp',
+                  url: environment.mediaUrl + user.headerImage
+                }
+              }
+            : undefined),
           publicKey: {
             id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}#main-key`,
             owner: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
@@ -119,7 +131,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/following', async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/following', checkFediverseSignature, async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -182,7 +194,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/followers', async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/followers', checkFediverseSignature, async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -245,7 +257,7 @@ function activityPubRoutes(app: Application) {
     res.end()
   })
 
-  app.get('/fediverse/blog/:url/featured', async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/featured', checkFediverseSignature, async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
@@ -287,7 +299,7 @@ function activityPubRoutes(app: Application) {
     }
   )
 
-  app.get('/fediverse/blog/:url/outbox', async (req: Request, res: Response) => {
+  app.get('/fediverse/blog/:url/outbox', checkFediverseSignature, async (req: Request, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await User.findOne({
