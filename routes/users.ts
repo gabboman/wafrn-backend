@@ -169,6 +169,27 @@ export default function userRoutes(app: Application) {
             user.description = req.body.description
           }
 
+          if (req.body.federateWithThreads) {
+            const federateWithThreadsKey = 'wafrn.federateWithThreads'
+            const federateWithThreads = req.body.federateWithThreads
+            let federateWithThreadsOption = await UserOptions.findOne({
+              where: {
+                userId: posterId,
+                optionName: federateWithThreadsKey
+              }
+            })
+            if (federateWithThreadsOption) {
+              federateWithThreadsOption.optionValue = federateWithThreads
+              await federateWithThreadsOption.save()
+            } else {
+              federateWithThreadsOption = await UserOptions.create({
+                userId: posterId,
+                optionName: federateWithThreadsKey,
+                optionValue: federateWithThreads
+              })
+            }
+          }
+
           if (req.body.defaultPostEditorPrivacy) {
             const defaultPostEditorPrivacyKey = 'wafrn.defaultPostEditorPrivacy'
             const defaultPostEditorPrivacy = req.body.defaultPostEditorPrivacy
