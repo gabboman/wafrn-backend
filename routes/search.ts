@@ -23,6 +23,8 @@ export default function searchRoutes(app: Application) {
     // eslint-disable-next-line max-len
     const searchTerm: string = (req.query.term || '').toString().toLowerCase().trim()
     let users: any = []
+    let localUsers: any = []
+
     let postIds: string[] = []
     let remoteUsers: any = []
     let remotePost: any
@@ -43,23 +45,38 @@ export default function searchRoutes(app: Application) {
         offset: page * environment.postsPerPage
       })
       promises.push(taggedPostsId)
-      users = User.findAll({
-        limit: 20,
-        offset: Number(req.query.page || 0) * 20,
+      localUsers = User.findAll({
+        limit: environment.postsPerPage,
+        offset: page * environment.postsPerPage,
         where: {
           activated: true,
+          [Op.and]: [
+            {
+              url: {
+                [Op.notLike]: '@%'
+              }
+            },
+            [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
+          ]
+        },
+        attributes: ['url', 'avatar', 'id', 'remoteId', 'description']
+      })
+      users = User.findAll({
+        limit: environment.postsPerPage,
+        offset: page * environment.postsPerPage,
+        where: {
+          activated: true,
+          url: { [Op.like]: '@%' },
           federatedHostId: {
             [Op.notIn]: await getallBlockedServers()
           },
           banned: false,
-          [Op.or]: [
-            sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`),
-            sequelize.where(sequelize.fn('LOWER', sequelize.col('description')), 'LIKE', `%${searchTerm}%`)
-          ]
+          [Op.or]: [sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', `%${searchTerm}%`)]
         },
-        attributes: ['id', 'url', 'name', 'description', 'avatar', 'remoteId']
+        attributes: ['url', 'avatar', 'id', 'remoteId', 'description']
       })
       promises.push(users)
+      promises.push(localUsers)
       const usr = await User.findByPk(posterId)
 
       // remote user search time
@@ -86,10 +103,11 @@ export default function searchRoutes(app: Application) {
 
     const posts = await getUnjointedPosts(postIds, posterId)
     remoteUsers = await remoteUsers
+    localUsers = await localUsers
     users = await users
 
     res.send({
-      foundUsers: remoteUsers.concat(users),
+      foundUsers: remoteUsers.concat(localUsers).concat(users),
       posts: posts
     })
   })
