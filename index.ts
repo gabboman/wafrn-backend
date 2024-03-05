@@ -5,7 +5,6 @@ import { Op, Sequelize } from 'sequelize'
 import cors from 'cors'
 import bodyParser from 'body-parser'
 import { authenticateToken } from './utils/authenticateToken'
-import getPostBaseQuery from './utils/getPostBaseQuery'
 
 import userRoutes from './routes/users'
 import notificationRoutes from './routes/notifications'
@@ -75,123 +74,6 @@ app.get('/api/', (req, res) =>
 app.use('/api/uploads', express.static('uploads'))
 
 app.use('/contexts', express.static('contexts'))
-
-app.get('/api/dashboard', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-  const posterId = req.jwtData?.userId
-  const rawPostsByFollowed = await Post.findAll({
-    ...getPostBaseQuery(req),
-    where: {
-      createdAt: { [Op.lt]: getStartScrollParam(req) },
-      privacy: { [Op.in]: [0, 1, 2] },
-      userId: { [Op.in]: await getFollowedsIds(posterId ? posterId : '') }
-    }
-  })
-  const responseWithNotes = await getPosstGroupDetails(rawPostsByFollowed)
-  res.send(responseWithNotes)
-})
-
-app.get('/api/exploreLocal', optionalAuthentication, async (req: AuthorizedRequest, res) => {
-  let rawPosts
-  if (req.jwtData) {
-    const followedUsers = getFollowedsIds(req.jwtData.userId, true)
-    const nonFollowedUsers = getNonFollowedLocalUsersIds(req.jwtData.userId)
-    await Promise.all([followedUsers, nonFollowedUsers])
-    rawPosts = await Post.findAll({
-      ...getPostBaseQuery(req),
-      where: {
-        createdAt: { [Op.lt]: getStartScrollParam(req) },
-        [Op.or]: [
-          {
-            //local follows privacy 0 1 2
-            privacy: {
-              [Op.in]: [0, 1, 2]
-            },
-            userId: {
-              [Op.in]: await followedUsers
-            }
-          },
-          {
-            privacy: {
-              [Op.in]: [0, 2]
-            },
-            userId: {
-              [Op.in]: await nonFollowedUsers
-            }
-          }
-        ]
-      }
-    })
-  } else {
-    // its a lot easier if we leave this as another query, the one with the user logged in is complex enough
-    const localUsers: string[] = await getAllLocalUserIds()
-    rawPosts = await Post.findAll({
-      ...getPostBaseQuery(req),
-      where: {
-        createdAt: { [Op.lt]: getStartScrollParam(req) },
-        privacy: { [Op.in]: [0, 2] },
-        userId: {
-          [Op.in]: localUsers
-        }
-      }
-    })
-  }
-
-  const responseWithNotes = await getPosstGroupDetails(rawPosts)
-  res.send(responseWithNotes)
-})
-
-app.get('/api/explore', authenticateToken, async (req: AuthorizedRequest, res) => {
-  const rawPosts = await Post.findAll({
-    where: {
-      // date the user has started scrolling
-      createdAt: { [Op.lt]: getStartScrollParam(req) },
-      privacy: {
-        [Op.in]: [0, 2]
-      },
-      content: {
-        [Op.notLike]: ''
-      }
-    },
-    ...getPostBaseQuery(req)
-  })
-  const responseWithNotes = await getPosstGroupDetails(rawPosts)
-  res.send(responseWithNotes)
-})
-
-app.get('/api/private', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-  const posterId = req.jwtData?.userId
-  const mentionedPostIds = (
-    await PostMentionsUserRelation.findAll({
-      attributes: ['postId'],
-      where: {
-        userId: posterId
-      }
-    })
-  ).map((mention: any) => mention.postId)
-  const rawPostsByFollowed = await Post.findAll({
-    where: {
-      // date the user has started scrolling
-      createdAt: { [Op.lt]: getStartScrollParam(req) },
-      privacy: 10,
-      [Op.or]: [
-        {
-          id: {
-            [Op.in]: mentionedPostIds
-          },
-          userId: {
-            [Op.notIn]: await getBlockedIds(posterId ? posterId : '')
-          }
-        },
-        {
-          userId: posterId
-        }
-      ]
-    },
-    ...getPostBaseQuery(req)
-  })
-  const responseWithNotes = await getPosstGroupDetails(rawPostsByFollowed)
-  res.send(responseWithNotes)
-})
 
 userRoutes(app)
 followsRoutes(app)
