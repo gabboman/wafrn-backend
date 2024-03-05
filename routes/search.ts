@@ -63,7 +63,7 @@ export default function searchRoutes(app: Application) {
       const usr = await User.findByPk(posterId)
 
       // remote user search time
-      if (posterId !== 'NOT-LOGGED-IN' && page !== 0) {
+      if (posterId !== 'NOT-LOGGED-IN' && page === 0) {
         if (searchTerm.split('@').length === 3) {
           remoteUsers = searchRemoteUser(searchTerm, usr)
           promises.push(remoteUsers)
