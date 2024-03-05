@@ -16,23 +16,22 @@ import { getPostThreadRecursive } from '../utils/activitypub/getPostThreadRecurs
 import checkIpBlocked from '../utils/checkIpBlocked'
 import { getAllLocalUserIds } from '../utils/cacheGetters/getAllLocalUserIds'
 import { getallBlockedServers } from '../utils/cacheGetters/getAllBlockedServers'
-
+import { getUnjointedPosts } from '../utils/baseQueryNew'
 export default function searchRoutes(app: Application) {
-  app.get('/api/search/', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
-    const posterId = req.jwtData?.userId
+  app.get('/api/v2/search/', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
     // const success = false;
     // eslint-disable-next-line max-len
     const searchTerm: string = (req.query.term || '').toString().toLowerCase().trim()
     let users: any = []
-    let posts: any = []
-    let remoteUsers: any[] = []
-    const remotePosts: any[] = []
-    let responseWithNotes: any = []
+    let postIds: string[] = []
+    let remoteUsers: any = []
+    let remotePost: any
     const promises: Array<Promise<any>> = []
+    const posterId = req.jwtData ? req.jwtData.userId : 'NOT-LOGGED-IN'
 
     if (searchTerm) {
       const page = Number(req?.query.page) || 0
-      const postIds = await PostTag.findAll({
+      let taggedPostsId = PostTag.findAll({
         where: {
           tagName: {
             [Op.like]: `%${searchTerm}%`
@@ -43,22 +42,7 @@ export default function searchRoutes(app: Application) {
         limit: environment.postsPerPage,
         offset: page * environment.postsPerPage
       })
-      posts = Post.findAll({
-        where: {
-          // date the user has started scrolling
-          createdAt: { [Op.lt]: getStartScrollParam(req) },
-          id: {
-            [Op.in]: postIds.map((elem: any) => elem.postId)
-          },
-          privacy: {
-            [Op.in]: [0, 2]
-          }
-        },
-        ...getPostBaseQuery(req)
-      })
-      responseWithNotes = getPosstGroupDetails(await posts)
-      promises.push(responseWithNotes)
-
+      promises.push(taggedPostsId)
       users = User.findAll({
         limit: 20,
         offset: Number(req.query.page || 0) * 20,
@@ -76,27 +60,37 @@ export default function searchRoutes(app: Application) {
         attributes: ['id', 'url', 'name', 'description', 'avatar', 'remoteId']
       })
       promises.push(users)
+      const usr = await User.findByPk(posterId)
+
       // remote user search time
-      if (posterId) {
-        const usr = await User.findOne({ where: { id: posterId } })
-        remoteUsers = await searchRemoteUser(searchTerm, usr)
-        const remotePost = await getPostThreadRecursive(usr, searchTerm)
-        if (remotePost) {
-          const remotePostResult = await Post.findOne({
-            ...getPostBaseQuery(req),
-            where: {
-              id: remotePost.id
-            }
-          })
-          remotePosts.push({ ...remotePostResult?.dataValues, notes: '???' })
+      if (posterId !== 'NOT-LOGGED-IN' && page !== 0) {
+        if (searchTerm.split('@').length === 3) {
+          remoteUsers = searchRemoteUser(searchTerm, usr)
+          promises.push(remoteUsers)
+        }
+        const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/
+        if (searchTerm.match(urlPattern)) {
+          remotePost = getPostThreadRecursive(usr, searchTerm)
+          promises.push(remotePost)
         }
       }
+
+      await Promise.all(promises)
+      remotePost = await remotePost
+      if (remotePost && remotePost.id) {
+        postIds.push(remotePost.id)
+      }
+      taggedPostsId = await taggedPostsId
+      postIds = postIds.concat(taggedPostsId.map((elem: any) => elem.postId))
     }
 
-    await Promise.all(promises)
+    const posts = await getUnjointedPosts(postIds, posterId)
+    remoteUsers = await remoteUsers
+    users = await users
+
     res.send({
-      users: (await users).concat(remoteUsers),
-      posts: remotePosts.concat(await responseWithNotes)
+      foundUsers: remoteUsers.concat(users),
+      posts: posts
     })
   })
 
@@ -105,7 +99,7 @@ export default function searchRoutes(app: Application) {
     // const success = false;
     let users: any = []
     const searchTerm = req.params.term.toLowerCase().trim()
-    users = await User.findAll({
+    users = User.findAll({
       limit: 20,
       where: {
         activated: true,
@@ -119,7 +113,7 @@ export default function searchRoutes(app: Application) {
       attributes: ['url', 'avatar', 'id', 'remoteId']
     })
 
-    const localUsers = await User.findAll({
+    let localUsers = User.findAll({
       limit: 20,
       where: {
         activated: true,
@@ -134,6 +128,9 @@ export default function searchRoutes(app: Application) {
       },
       attributes: ['url', 'avatar', 'id', 'remoteId']
     })
+    await Promise.all([localUsers, users])
+    users = await users
+    localUsers = await localUsers
     const result = localUsers
       .concat(users)
       .concat(await searchRemoteUser(searchTerm, await User.findOne({ where: { id: posterId } })))
