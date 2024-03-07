@@ -164,7 +164,10 @@ export default function postsRoutes(app: Application) {
           attributes: ['id'],
           where: {
             createdAt: { [Op.lt]: getStartScrollParam(req) },
-            userId: blogId
+            userId: blogId,
+            privacy: {
+              [Op.in]: privacyArray
+            }
           }
         })
         const postsByBlog = await getUnjointedPosts(
