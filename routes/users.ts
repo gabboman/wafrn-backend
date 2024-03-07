@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Blocks, Emoji, FederatedHost, Mutes, ServerBlock, User, UserOptions } from '../db'
+import { Blocks, Emoji, FederatedHost, Follows, Mutes, ServerBlock, User, UserOptions } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import generateRandomString from '../utils/generateRandomString'
@@ -397,6 +397,18 @@ export default function userRoutes(app: Application) {
           banned: false
         }
       })
+      let followed = Follows.count({
+        where: {
+          followedId: blog.id,
+          accepted: true
+        }
+      })
+      let followers = Follows.count({
+        where: {
+          followerId: blog.id,
+          accepted: true
+        }
+      })
       let muted = false
       let blocked = false
       let serverBlocked = false || blog?.federatedHost?.blocked
@@ -419,14 +431,19 @@ export default function userRoutes(app: Application) {
             blockedServerId: blog.federatedHostId
           }
         })
-        await Promise.all([mutedQuery, blockedQuery, serverBlockedQuery])
+        await Promise.all([mutedQuery, blockedQuery, serverBlockedQuery, followed, followers])
         muted = (await mutedQuery) === 1
         blocked = (await blockedQuery) === 1
         serverBlocked = serverBlocked || (await serverBlockedQuery) === 1
+      } else {
+        await Promise.all([followed, followers])
       }
+
+      followed = await followed
+      followers = await followers
       success = blog
       if (success) {
-        res.send({ ...blog.dataValues, muted, blocked, serverBlocked })
+        res.send({ ...blog.dataValues, muted, blocked, serverBlocked, followed, followers })
       }
     }
 

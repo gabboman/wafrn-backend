@@ -1,7 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
 import { Post, PostTag, User } from '../db'
-import getPostBaseQuery from '../utils/getPostBaseQuery'
 import { sequelize } from '../db'
 
 import getStartScrollParam from '../utils/getStartScrollParam'

@@ -14,7 +14,6 @@ import {
 } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
-import getPostBaseQuery from '../utils/getPostBaseQuery'
 import { sequelize } from '../db'
 
 import getStartScrollParam from '../utils/getStartScrollParam'
@@ -47,7 +46,6 @@ const prepareSendPostQueue = new Queue('prepareSendPost', {
   }
 })
 export default function postsRoutes(app: Application) {
-
   app.get('/api/v2/post/:id', optionalAuthentication, checkIpBlocked, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     const userId = req.jwtData?.userId
@@ -134,7 +132,7 @@ export default function postsRoutes(app: Application) {
       }
     }
   )
-  app.get('/api/blog', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
+  app.get('/api/v2/blog', checkIpBlocked, optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     const id = req.query.id
 
@@ -150,7 +148,7 @@ export default function postsRoutes(app: Application) {
         if (
           req.jwtData?.userId === blogId ||
           (req.jwtData?.userId &&
-            (await Follows.findOne({
+            (await Follows.count({
               where: {
                 followedId: blogId,
                 followerId: req.jwtData?.userId,
@@ -160,19 +158,21 @@ export default function postsRoutes(app: Application) {
         ) {
           privacyArray.push(1)
         }
-        const postsByBlog = await Post.findAll({
+        const postIds = await Post.findAll({
+          order: [['createdAt', 'DESC']],
+          limit: environment.postsPerPage,
+          attributes: ['id'],
           where: {
-            userId: blogId,
-            // date the user has started scrolling
             createdAt: { [Op.lt]: getStartScrollParam(req) },
-            privacy: {
-              [Op.in]: privacyArray
-            }
-          },
-          ...getPostBaseQuery(req)
+            userId: blogId
+          }
         })
+        const postsByBlog = await getUnjointedPosts(
+          postIds.map((post: any) => post.id),
+          req.jwtData?.userId ? req.jwtData.userId : 'NOT-LOGGED-IN'
+        )
         success = true
-        res.send(await getPosstGroupDetails(postsByBlog))
+        res.send(postsByBlog)
       }
     }
 
