@@ -399,13 +399,13 @@ export default function userRoutes(app: Application) {
       })
       let followed = Follows.count({
         where: {
-          followedId: blog.id,
+          followerId: blog.id,
           accepted: true
         }
       })
       let followers = Follows.count({
         where: {
-          followerId: blog.id,
+          followedId: blog.id,
           accepted: true
         }
       })
