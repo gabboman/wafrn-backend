@@ -102,16 +102,18 @@ async function postToJSONLD(post: any) {
       inReplyToAtomUri: parentPostString,
       // conversation: conversationString,
       content: (processedContent + finalTags).replaceAll('<br>', ''),
-      attachment: postMedias.map((media: any) => {
-        const extension = media.url.split('.')[media.url.split('.').length - 1].toLowerCase()
-        return {
-          type: 'Document',
-          mediaType: extension === 'mp4' ? 'video/mp4' : 'image/webp',
-          url: environment.mediaUrl + media.url,
-          sensitive: media.NSFW ? `Marked as NSFW: ${media.description}` : '',
-          name: media.description
-        }
-      }),
+      attachment: postMedias
+        ?.sort((a: any, b: any) => a.order - b.order)
+        .map((media: any) => {
+          const extension = media.url.split('.')[media.url.split('.').length - 1].toLowerCase()
+          return {
+            type: 'Document',
+            mediaType: extension === 'mp4' ? 'video/mp4' : 'image/webp',
+            url: environment.mediaUrl + media.url,
+            sensitive: media.NSFW ? `Marked as NSFW: ${media.description}` : '',
+            name: media.description
+          }
+        }),
       tag: fediMentions.concat(fediTags)
       /*
       replies: {
