@@ -18,7 +18,7 @@ import getPosstGroupDetails from './getPostGroupDetails'
 
 async function getMedias(postIds: string[]) {
   return await Media.findAll({
-    attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external'],
+    attributes: ['id', 'NSFW', 'description', 'url', 'adultContent', 'external', 'order'],
     include: [
       {
         model: Post,
