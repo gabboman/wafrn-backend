@@ -367,6 +367,10 @@ const Media = sequelize.define('medias', {
     allowNull: false,
     primaryKey: true
   },
+  order: {
+    type: Sequelize.INTEGER,
+    defaultValue: 0
+  },
   NSFW: Sequelize.BOOLEAN,
   description: Sequelize.TEXT,
   url: Sequelize.TEXT,

@@ -248,13 +248,33 @@ export default function postsRoutes(app: Application) {
         const content = req.body.content ? req.body.content.trim() : ''
         const content_warning = req.body.content_warning ? req.body.content_warning.trim() : ''
         const mentionsToAdd: string[] = []
-        let mediaToAdd: string[] = []
+        let mediaToAdd: any[] = []
 
         // post content as html
         const parsedAsHTML = cheerio.load(content)
         const mentionsInPost = parsedAsHTML('a.mention')
         if (req.body.medias && req.body.medias.length) {
           mediaToAdd = req.body.medias
+          // "not important" we update the media order
+          const updateMediasPromises: Array<Promise<any>> = []
+          Media.findAll({
+            where: {
+              id: {
+                [Op.in]: mediaToAdd.map((media: any) => media.id)
+              }
+            }
+          }).then((mediasToUpdate: Array<any>) => {
+            mediaToAdd.forEach(async (media, index) => {
+              const mediaToUpdate = mediasToUpdate.find((el: any) => el.id === media.id)
+              if (mediaToUpdate) {
+                mediaToUpdate.order = index
+                mediaToUpdate.description = media.description
+                mediaToUpdate.NSFW = media.NSFW
+                mediaToUpdate.adultContent = media.adultContent
+                await mediaToUpdate.save()
+              }
+            })
+          })
         }
 
         if (mentionsInPost && mentionsInPost.length > 0) {
@@ -314,7 +334,7 @@ export default function postsRoutes(app: Application) {
           })
         }
 
-        post.setMedias(mediaToAdd)
+        post.setMedias(mediaToAdd.map((media: any) => media.id))
         post.setMentionPost(mentionsToAdd)
         success = !req.body.tags
         if (req.body.tags) {

@@ -68,7 +68,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       const remoteUserServerBaned = remoteUser.federatedHostId
         ? (await FederatedHost.findByPk(remoteUser.federatedHostId)).blocked
         : false
-      const medias = []
+      const medias: any[] = []
       const fediTags: fediverseTag[] = [
         ...new Set<fediverseTag>(
           postPetition.tag
@@ -113,6 +113,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
               userId: remoteUser.id,
               description: remoteFile.name,
               ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
+              order: postPetition.attachment.indexOf(remoteFile), // could be non consecutive but its ok
               external: true
             })
             medias.push(wafrnMedia)
@@ -183,7 +184,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         } catch (error) {
           logger.debug('Problem processing emojis')
         }
-        newPost.addMedias(medias)
+        newPost.setMedias(medias)
         await newPost.save()
         try {
           if (!remoteUser.banned && !remoteUserServerBaned) {

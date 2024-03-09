@@ -190,6 +190,7 @@ async function inboxWorker(job: Job) {
                       userId: remoteUser.id,
                       description: remoteFile.name,
                       ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
+                      order: body.attachment.indexOf(remoteFile),
                       external: true
                     })
                     medias.push(wafrnMedia)
