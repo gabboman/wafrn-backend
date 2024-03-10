@@ -16,91 +16,6 @@
         }
       }
     },
-    "/api/dashboard": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          }
-        }
-      }
-    },
-    "/api/exploreLocal": {
-      "get": {
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/explore": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          }
-        }
-      }
-    },
-    "/api/private": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          }
-        }
-      }
-    },
     "/api/block": {
       "post": {
         "description": "",
@@ -487,7 +402,7 @@
         }
       }
     },
-    "/api/singlePost/{id}": {
+    "/api/v2/post/{id}": {
       "get": {
         "description": "",
         "parameters": [
@@ -507,7 +422,30 @@
         }
       }
     },
-    "/api/blog": {
+    "/api/v2/descendents/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v2/blog": {
       "get": {
         "description": "",
         "parameters": [
@@ -526,7 +464,7 @@
         }
       }
     },
-    "/api/createPost": {
+    "/api/v2/createPost": {
       "post": {
         "description": "",
         "parameters": [
@@ -561,13 +499,19 @@
                   "parent": {
                     "example": "any"
                   },
+                  "privacy": {
+                    "example": "any"
+                  },
                   "content": {
                     "example": "any"
                   },
                   "content_warning": {
                     "example": "any"
                   },
-                  "privacy": {
+                  "medias": {
+                    "example": "any"
+                  },
+                  "idPostToEdit": {
                     "example": "any"
                   },
                   "tags": {
@@ -657,19 +601,12 @@
         }
       }
     },
-    "/api/search/": {
+    "/api/v2/search/": {
       "get": {
         "description": "",
         "parameters": [
           {
             "name": "term",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
             "in": "query",
             "schema": {
               "type": "string"
@@ -830,6 +767,12 @@
                 "type": "object",
                 "properties": {
                   "description": {
+                    "example": "any"
+                  },
+                  "federateWithThreads": {
+                    "example": "any"
+                  },
+                  "defaultPostEditorPrivacy": {
                     "example": "any"
                   },
                   "name": {

@@ -49,8 +49,8 @@ async function likePostRemote(like: any, dislike = false) {
           likedPost.privacy / 1 === 10
             ? [ownerOfLikedPost]
             : likedPost.privacy / 1 === 0
-            ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
-            : [stringMyFollowers],
+              ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
+              : [stringMyFollowers],
         cc: likedPost.privacy / 1 === 0 ? [ownerOfLikedPost] : [],
         id: `${environment.frontendUrl}/fediverse/likes/${like.userId}/${like.postId}`,
         object: likedPost.remotePostId
@@ -65,8 +65,8 @@ async function likePostRemote(like: any, dislike = false) {
           likedPost.privacy / 1 === 10
             ? [ownerOfLikedPost]
             : likedPost.privacy / 1 === 0
-            ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
-            : [stringMyFollowers],
+              ? ['https://www.w3.org/ns/activitystreams#Public', stringMyFollowers]
+              : [stringMyFollowers],
         cc: likedPost.privacy / 1 === 0 ? [ownerOfLikedPost] : [],
         id: `${environment.frontendUrl}/fediverse/undo/likes/${like.userId}/${like.postId}`,
         object: `${environment.frontendUrl}/fediverse/likes/${like.userId}/${like.postId}`,

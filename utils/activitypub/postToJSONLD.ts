@@ -140,8 +140,8 @@ async function postToJSONLD(post: any) {
         post.privacy / 1 === 10
           ? mentionedUsers
           : post.privacy / 1 === 0
-          ? ['https://www.w3.org/ns/activitystreams#Public']
-          : [stringMyFollowers],
+            ? ['https://www.w3.org/ns/activitystreams#Public']
+            : [stringMyFollowers],
       cc: [`${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`, stringMyFollowers],
       object: parentPostString
     }

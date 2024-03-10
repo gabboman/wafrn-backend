@@ -4,45 +4,39 @@
   // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-  {
+    {
       "name": "Attach",
       "port": 9229,
       "request": "attach",
-      "skipFiles": [
-          "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "type": "node"
-  },
-  {
+    },
+    {
       "name": "Attach by Process ID",
       "processId": "${command:PickProcess}",
       "request": "attach",
-      "skipFiles": [
-          "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "type": "pwa-node"
-  },
-      {
-          "type": "pwa-node",
-          "request": "launch",
-          "name": "Launch Program",
-          "skipFiles": [
-              "<node_internals>/**"
-          ],
-          "program": "${workspaceFolder}/index.ts"
-      },
-      {
-        "name": "launch ts-node file",
-        "type": "node",
-        "request": "launch",
-        "runtimeExecutable": "node",
-        "runtimeArgs": ["--nolazy", "-r", "ts-node/register/transpile-only"],
-  
-        // "args": ["updateDatabase/regenerateKeys.ts"],
-        
-        "cwd": "${workspaceRoot}",
-        "internalConsoleOptions": "openOnSessionStart",
-        "skipFiles": ["<node_internals>/**", "node_modules/**"]
-      }
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Launch Program",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/index.ts"
+    },
+    {
+      "name": "launch ts-node file",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--nolazy", "-r", "ts-node/register/transpile-only"],
+
+      // "args": ["updateDatabase/regenerateKeys.ts"],
+
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": ["<node_internals>/**", "node_modules/**"]
+    }
   ]
 }
