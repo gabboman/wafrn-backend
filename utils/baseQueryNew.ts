@@ -195,7 +195,6 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
   const likes = getLikes(postIds)
   const postWithNotes = getPosstGroupDetails(posts)
   await Promise.all([emojis, users, polls, medias, tags, likes, postWithNotes])
-
   return {
     posts: await postWithNotes,
     emojiRelations: await emojis,

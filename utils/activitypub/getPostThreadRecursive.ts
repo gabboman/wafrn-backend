@@ -19,7 +19,12 @@ import { fediverseTag } from '../../interfaces/fediverse/tags'
 import { toHtml } from '@opera7133/mfmp'
 import * as mfm from 'mfm-js'
 import { loadPoll } from './loadPollFromPost'
-async function getPostThreadRecursive(user: any, remotePostId: string, remotePostObject?: any) {
+async function getPostThreadRecursive(
+  user: any,
+  remotePostId: string,
+  remotePostObject?: any,
+  localPostToForceUpdate?: string
+) {
   try {
     remotePostId.startsWith(`${environment.frontendUrl}/fediverse/post/`)
   } catch (error) {
@@ -41,7 +46,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       remotePostId: remotePostId
     }
   })
-  if (postInDatabase) {
+  if (postInDatabase && !localPostToForceUpdate) {
     const parentPostPetition = await getPetitionSigned(user, postInDatabase.remotePostId)
     if (parentPostPetition) {
       await loadPoll(parentPostPetition, postInDatabase, user)
@@ -50,7 +55,7 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
   } else {
     try {
       const postPetition = remotePostObject ? remotePostObject : await getPetitionSigned(user, remotePostId)
-      if (postPetition) {
+      if (postPetition && !localPostToForceUpdate) {
         const remotePostInDatabase = await Post.findOne({
           where: {
             remotePostId: postPetition.id
@@ -130,10 +135,10 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
         content_warning: postPetition.sensitive
           ? postPetition.summary
           : remoteUser.NSFW
-            ? 'User is marked as NSFW by this instance staff. Possible NSFW without tagging'
-            : '',
+          ? 'User is marked as NSFW by this instance staff. Possible NSFW without tagging'
+          : '',
         createdAt: new Date(postPetition.published),
-        updatedAt: new Date(postPetition.published),
+        updatedAt: new Date(),
         userId: remoteUser.id,
         remotePostId: postPetition.id,
         privacy: privacy
@@ -175,44 +180,34 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
       if (postPetition.inReplyTo) {
         const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
         postToCreate.parentId = parent?.id
-        const newPost = await Post.create(postToCreate)
-        await newPost.setParent(parent)
-        try {
-          if (!remoteUser.banned && !remoteUserServerBaned) {
-            processEmojis(newPost, fediEmojis)
-          }
-        } catch (error) {
-          logger.debug('Problem processing emojis')
-        }
-        newPost.setMedias(medias)
-        await newPost.save()
-        try {
-          if (!remoteUser.banned && !remoteUserServerBaned) {
-            await addTagsToPost(newPost.id, fediTags)
-          }
-        } catch (error) {
-          logger.info('problem processing tags')
-        }
-        await processMentions(newPost, mentionedUsersIds)
-        await loadPoll(remotePostObject, newPost, user)
-        return newPost
-      } else {
-        const post = await Post.create(postToCreate)
-        post.addMedias(medias)
-        if (!remoteUser.banned && !remoteUserServerBaned) {
-          await addTagsToPost(post.id, fediTags)
-        }
-        try {
-          if (!remoteUser.banned && !remoteUserServerBaned) {
-            processEmojis(post, fediEmojis)
-          }
-        } catch (error) {
-          logger.debug('Problem processing emojis')
-        }
-        await processMentions(post, mentionedUsersIds)
-        await loadPoll(remotePostObject, post, user)
-        return post
       }
+
+      const existingPost = localPostToForceUpdate ? await Post.findByPk(localPostToForceUpdate) : undefined
+
+      if (existingPost) {
+        existingPost.update(postToCreate)
+      }
+
+      const newPost = existingPost ? existingPost : await Post.create(postToCreate)
+      try {
+        if (!remoteUser.banned && !remoteUserServerBaned) {
+          processEmojis(newPost, fediEmojis)
+        }
+      } catch (error) {
+        logger.debug('Problem processing emojis')
+      }
+      newPost.setMedias(medias)
+      await newPost.save()
+      try {
+        if (!remoteUser.banned && !remoteUserServerBaned) {
+          await addTagsToPost(newPost, fediTags)
+        }
+      } catch (error) {
+        logger.info('problem processing tags')
+      }
+      await processMentions(newPost, mentionedUsersIds)
+      await loadPoll(remotePostObject, newPost, user)
+      return newPost
     } catch (error) {
       logger.trace({
         message: 'error getting remote post',
@@ -225,18 +220,20 @@ async function getPostThreadRecursive(user: any, remotePostId: string, remotePos
   }
 }
 
-async function addTagsToPost(postId: string, tags: fediverseTag[]) {
+async function addTagsToPost(post: any, tags: fediverseTag[]) {
+  const res = await post.setPostTags([])
   return await PostTag.bulkCreate(
     tags.map((elem) => {
       return {
         tagName: elem.name.replace('#', ''),
-        postId: postId
+        postId: post.id
       }
     })
   )
 }
 
 async function processMentions(post: any, userIds: string[]) {
+  await post.setMentionPost([])
   const blocks = await Blocks.findAll({
     where: {
       blockerId: {

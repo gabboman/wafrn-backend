@@ -168,42 +168,12 @@ async function inboxWorker(job: Job) {
             }
             // eslint-disable-next-line no-fallthrough
             case 'Note': {
-              const postToEdit = await Post.findOne({
+              const localPost = await Post.findOne({
                 where: {
                   remotePostId: body.id
-                },
-                include: [
-                  {
-                    model: Media,
-                    attributes: ['id']
-                  }
-                ]
-              })
-              if (postToEdit) {
-                const medias: any[] = []
-                if (body.attachment && body.attachment.length > 0) {
-                  for await (const remoteFile of body.attachment) {
-                    const wafrnMedia = await Media.create({
-                      url: remoteFile.url,
-                      NSFW: body?.sensitive,
-                      adultContent: !!body?.sensitive,
-                      userId: remoteUser.id,
-                      description: remoteFile.name,
-                      ipUpload: 'IMAGE_FROM_OTHER_FEDIVERSE_INSTANCE',
-                      order: body.attachment.indexOf(remoteFile),
-                      external: true
-                    })
-                    medias.push(wafrnMedia)
-                    await postToEdit.setMedias(medias)
-                  }
                 }
-                const postUpdateTime = body.updated ? body.updated : new Date()
-                postToEdit.updatedAt = postUpdateTime
-                await postToEdit.save()
-              } else {
-                await getPostThreadRecursive(user, body.id)
-              }
-
+              })
+              await getPostThreadRecursive(user, body.id, body.object, localPost ? localPost.id : undefined)
               await signAndAccept(req, remoteUser, user)
               break
             }
@@ -394,7 +364,7 @@ async function inboxWorker(job: Job) {
                     if (children && children.length > 0) {
                       postToDelete.content = 'Post has been deleted in' + new Date().toString()
                       postToDelete.setMedias([])
-                      postToDelete.setTags([])
+                      postToDelete.setPostTags([])
                       await postToDelete.save()
                     } else {
                       await postToDelete.destroy()
