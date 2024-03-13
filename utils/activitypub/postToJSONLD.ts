@@ -5,11 +5,14 @@ import { fediverseTag } from '../../interfaces/fediverse/tags'
 import { activityPubObject } from '../../interfaces/fediverse/activityPubObject'
 
 async function postToJSONLD(post: any) {
-  const localUser = await User.findOne({
-    where: {
-      id: post.userId
-    }
-  })
+  const tmpUser = await User.findByPk(post.userId)
+  const localUser = tmpUser
+    ? tmpUser
+    : await User.findOne({
+        where: {
+          url: environment.deletedUser
+        }
+      })
   const stringMyFollowers = `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}/followers`
   const dbMentions = await post.getMentionPost()
   let mentionedUsers: string[] = []
@@ -38,8 +41,6 @@ async function postToJSONLD(post: any) {
   let processedContent = post.content
   const wafrnMediaRegex =
     /\[wafrnmediaid="[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"\]/gm
-
-  const uuidRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/
 
   // we remove the wafrnmedia from the post for the outside world, as they get this on the attachments
   processedContent = processedContent.replaceAll(wafrnMediaRegex, '')
@@ -140,8 +141,8 @@ async function postToJSONLD(post: any) {
         post.privacy / 1 === 10
           ? mentionedUsers
           : post.privacy / 1 === 0
-            ? ['https://www.w3.org/ns/activitystreams#Public']
-            : [stringMyFollowers],
+          ? ['https://www.w3.org/ns/activitystreams#Public']
+          : [stringMyFollowers],
       cc: [`${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`, stringMyFollowers],
       object: parentPostString
     }
