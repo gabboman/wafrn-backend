@@ -18,10 +18,7 @@ export default async function getPosstGroupDetails(postGroup: any[]) {
       return id
     }
   }
-  // eslint-disable-next-line max-len
-  let postIds: string[] = postGroup.map((elem) => getPostFirstParentId(elem))
-  postIds = [...new Set(postIds)]
-  // eslint-disable-next-line max-len
+  const postIds: string[] = postGroup.map((elem) => getPostFirstParentId(elem))
   // TODO optimize this! I feel like this might be more optimizable. This is one of those things
   const fullPostTree = await Post.findAll({
     where: {
@@ -32,7 +29,12 @@ export default async function getPosstGroupDetails(postGroup: any[]) {
       {
         model: Post,
         as: 'descendents',
-        attributes: ['id']
+        attributes: ['id'],
+        where: {
+          privacy: {
+            [Op.ne]: 10
+          }
+        }
       }
     ]
   })
