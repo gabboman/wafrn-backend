@@ -149,39 +149,17 @@ export default function notificationRoutes(app: Application) {
     })
   })
 
-  app.get('/api/notificationsCount', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+  app.get('/api/v2/notificationsCount', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const userId = req.jwtData?.userId ? req.jwtData?.userId : ''
     //const blockedUsers = await getBlockedIds(userId)
     const startCountDate = (await User.findByPk(userId)).lastTimeNotificationsCheck
 
-    const postNotifications = Post.count(await getQueryReblogsMentions(userId, startCountDate))
+    const postMentions = Post.count(await getQueryMentions(userId, startCountDate))
+    const newPostReblogs = Post.count(await getReblogQuery(userId, startCountDate))
 
-    const newFollows = Follows.count({
-      where: {
-        followerId: {
-          [Op.notIn]: await getBlockedIds(userId)
-        },
-        createdAt: {
-          [Op.gt]: startCountDate
-        },
-        followedId: userId
-      }
-    })
+    const newFollows = Follows.count(await getNewFollows(userId, startCountDate))
 
-    const newLikes = UserLikesPostRelations.count({
-      where: {
-        postId: {
-          [Op.notIn]: await getMutedPosts(userId)
-        },
-        createdAt: {
-          [Op.gt]: startCountDate
-        },
-        userId: {
-          [Op.notIn]: await getBlockedIds(userId)
-        },
-        literal: sequelize.literal(`postId in (select id from posts where userId like "${userId}")`)
-      }
-    })
+    const newLikes = UserLikesPostRelations.count(await getQueryLikes(userId, startCountDate))
 
     let reports = 0
     let awaitingAproval = 0
@@ -204,21 +182,33 @@ export default function notificationRoutes(app: Application) {
       })
     }
 
-    await awaitingAproval
-    await Promise.all([newFollows, postNotifications, newLikes, reports, awaitingAproval])
+    await Promise.all([newFollows, postMentions, newLikes, reports, awaitingAproval, newPostReblogs])
 
     res.send({
-      notifications: (await newFollows) + (await postNotifications) + (await newLikes),
+      notifications: (await newFollows) + (await postMentions) + (await newLikes) + (await newPostReblogs),
       reports: await reports,
       awaitingAproval: await awaitingAproval
     })
   })
-
-  async function getQueryReblogsMentions(userId: string, date: Date) {
+  async function getQueryMentions(userId: string, date: Date) {
+    const latestMentionsIds = (
+      await PostMentionsUserRelation.findAll({
+        attributes: ['postId'],
+        where: {
+          userId: userId,
+          createdAt: {
+            [Op.gt]: date
+          }
+        },
+        limit: environment.postsPerPage,
+        order: [['createdAt', 'DESC']]
+      })
+    ).map((elem: any) => elem.postId)
     return {
       where: {
         id: {
-          [Op.notIn]: await getMutedPosts(userId)
+          [Op.notIn]: await getMutedPosts(userId),
+          [Op.in]: latestMentionsIds
         },
         parentId: {
           [Op.notIn]: await getMutedPosts(userId)
@@ -227,20 +217,90 @@ export default function notificationRoutes(app: Application) {
           [Op.gt]: date
         },
         userId: {
+          [Op.notIn]: (await getBlockedIds(userId)).push(userId)
+        }
+      }
+    }
+  }
+
+  async function getQueryLikes(userId: string, startCountDate: Date) {
+    return {
+      include: [
+        {
+          model: Post,
+          required: true,
+          attributes: ['userId'],
+          where: {
+            userId: userId
+          }
+        }
+      ],
+      where: {
+        postId: {
+          [Op.notIn]: await getMutedPosts(userId)
+        },
+        createdAt: {
+          [Op.gt]: startCountDate
+        },
+        userId: {
+          [Op.notIn]: await getBlockedIds(userId)
+        }
+      }
+    }
+  }
+
+  async function getNewFollows(userId: string, startCountDate: Date) {
+    return {
+      where: {
+        followerId: {
           [Op.notIn]: await getBlockedIds(userId)
         },
-        [Op.or]: [
-          {
-            literal: Sequelize.literal(
-              `posts.id IN (select id from posts where parentId in (select id from posts where userId = "${userId}")) AND posts.userId NOT LIKE "${userId}"`
-            )
-          },
-          {
-            literal: Sequelize.literal(
-              `posts.id in (select postId from postMentionsUserRelations where userId = "${userId}")`
-            )
+        createdAt: {
+          [Op.gt]: startCountDate
+        },
+        followedId: userId
+      }
+    }
+  }
+
+  // TODO optimize this in a way that a reblog reply only counts as a mention
+  async function getReblogQuery(userId: string, startCountDate: Date) {
+    const mentions = await PostMentionsUserRelation.findAll({
+      attributes: ['postId'],
+      where: {
+        userId: userId,
+        createdAt: {
+          [Op.gt]: startCountDate
+        }
+      }
+    })
+    return {
+      include: [
+        {
+          model: Post,
+          as: 'ancestors',
+          required: true,
+          where: {
+            userId: userId
           }
-        ]
+        }
+      ],
+      where: {
+        id: {
+          [Op.notIn]: mentions.push(await getMutedPosts(userId))
+        },
+        parentId: {
+          [Op.notIn]: await getMutedPosts(userId)
+        },
+        privacy: {
+          [Op.ne]: 10
+        },
+        createdAt: {
+          [Op.gt]: startCountDate
+        },
+        userId: {
+          [Op.notIn]: (await getBlockedIds(userId)).push(userId)
+        }
       }
     }
   }
