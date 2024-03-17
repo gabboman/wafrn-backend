@@ -88,6 +88,7 @@ async function getEmojis(input: { userIds: string[]; postIds: string[] }): Promi
   })
 
   let postEmojiReactions = EmojiReaction.findAll({
+    attributes: ['emojiId', 'postid'],
     where: {
       postId: {
         [Op.in]: input.postIds
@@ -108,6 +109,7 @@ async function getEmojis(input: { userIds: string[]; postIds: string[] }): Promi
   postEmojisIds = await postEmojisIds
   userEmojiId = await userEmojiId
   postEmojiReactions = await postEmojiReactions
+
 
   const emojiIds = []
     .concat(postEmojisIds.map((elem: any) => elem.emojiId))
