@@ -166,9 +166,17 @@ export default function notificationRoutes(app: Application) {
       limit: environment.postsPerPage,
       order: [['createdAt', 'DESC']]
     })
-    const follows = Follows.findAll(await getNewFollows(userId, followsDate))
+    const follows = Follows.findAll({
+      ...(await getNewFollows(userId, followsDate)),
+      limit: environment.postsPerPage,
+      order: [['createdAt', 'DESC']]
+    })
 
-    const likes = getQueryLikes(userId, likesDate)
+    const likes = UserLikesPostRelations.findAll({
+      ...(await getQueryLikes(userId, likesDate)),
+      limit: environment.postsPerPage,
+      order: [['createdAt', 'DESC']]
+    })
     await Promise.all([reblogs, mentions, follows, likes])
     res.send({
       reblogs: await reblogs,
