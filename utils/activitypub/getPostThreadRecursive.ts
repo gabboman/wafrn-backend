@@ -269,6 +269,7 @@ async function processMentions(post: any, userIds: string[]) {
 
 async function processEmojis(post: any, fediEmojis: any[]) {
   let emojis: any[] = []
+  let res: any
   const emojiIds: string[] = fediEmojis.map((emoji: any) => emoji.id)
   const foundEmojis = await Emoji.findAll({
     where: {
@@ -289,14 +290,14 @@ async function processEmojis(post: any, fediEmojis: any[]) {
           url: newEmoji.icon.url
         }
       })
-      emojis = emojis.concat(Emoji.bulkCreate(newEmojis))
+      emojis = emojis.concat(await Emoji.bulkCreate(newEmojis))
     } catch (error) {
       logger.debug('Error with emojis')
       logger.debug(error)
     }
   }
 
-  return post.addEmojis(emojis)
+  return post.setEmojis(emojis)
 }
 
 export { getPostThreadRecursive }
