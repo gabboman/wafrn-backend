@@ -149,6 +149,35 @@ export default function notificationRoutes(app: Application) {
     })
   })
 
+  app.get('/api/v2/notificationsScroll', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+    const userId = req.jwtData?.userId ? req.jwtData?.userId : ''
+    // MULTIPLE DATES ON SAME ENDPOINT SO
+    const likesDate = req.query?.likesDate ? new Date(req.query.likesDate as string) : new Date()
+    const followsDate = req.query?.followsDate ? new Date(req.query.followsDate as string) : new Date()
+    const reblogsDate = req.query?.reblogsDate ? new Date(req.query.reblogsDate as string) : new Date()
+    const mentionsDate = req.query?.mentionsDate ? new Date(req.query.mentionsDate as string) : new Date()
+    const reblogs = Post.findAll({
+      ...getReblogQuery(userId, reblogsDate),
+      limit: environment.postsPerPage,
+      order: [['createdAt', 'DESC']]
+    })
+    const mentions = Post.findAll({
+      ...getQueryMentions(userId, mentionsDate),
+      limit: environment.postsPerPage,
+      order: [['createdAt', 'DESC']]
+    })
+    const follows = Follows.findAll(await getNewFollows(userId, followsDate))
+
+    const likes = getQueryLikes(userId, likesDate)
+    await Promise.all([reblogs, mentions, follows, likes])
+    res.send({
+      reblogs: await reblogs,
+      likes: await likes,
+      mentions: await mentions,
+      follows: await follows
+    })
+  })
+
   app.get('/api/v2/notificationsCount', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const userId = req.jwtData?.userId ? req.jwtData?.userId : ''
     //const blockedUsers = await getBlockedIds(userId)
@@ -199,9 +228,7 @@ export default function notificationRoutes(app: Application) {
           createdAt: {
             [Op.gt]: date
           }
-        },
-        limit: environment.postsPerPage,
-        order: [['createdAt', 'DESC']]
+        }
       })
     ).map((elem: any) => elem.postId)
     return {
