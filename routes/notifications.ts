@@ -13,6 +13,12 @@ import getBlockedIds from '../utils/cacheGetters/getBlockedIds'
 export default function notificationRoutes(app: Application) {
   app.get('/api/v2/notificationsScroll', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const userId = req.jwtData?.userId ? req.jwtData?.userId : ''
+    User.findByPk(userId).then(async (usr: any) => {
+      if (usr) {
+        usr.lastTimeNotificationsCheck = new Date()
+        await usr.save()
+      }
+    })
     // MULTIPLE DATES ON SAME ENDPOINT SO
     const likesDate = req.query?.likesDate ? new Date(req.query.likesDate as string) : new Date()
     const followsDate = req.query?.followsDate ? new Date(req.query.followsDate as string) : new Date()
