@@ -278,6 +278,20 @@ async function processEmojis(post: any, fediEmojis: any[]) {
       }
     }
   })
+  foundEmojis.forEach((emoji: any) => {
+    const newData = fediEmojis.find((foundEmoji: any) => foundEmoji.id === emoji.id)
+    if (newData && newData.url && newData.name) {
+      emoji.update({
+        url: newData.url,
+        name: newData.name
+      })
+      emoji.save()
+    } else {
+      logger.debug('issue with emoji')
+      logger.debug(emoji)
+      logger.debug(newData)
+    }
+  })
   emojis = emojis.concat(foundEmojis)
   const notFoundEmojis = fediEmojis.filter((elem: any) => !foundEmojis.find((found: any) => found.id === elem.id))
   if (fediEmojis && notFoundEmojis && notFoundEmojis.length > 0) {
