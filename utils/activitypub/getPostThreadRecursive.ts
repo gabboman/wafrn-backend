@@ -280,9 +280,9 @@ async function processEmojis(post: any, fediEmojis: any[]) {
   })
   foundEmojis.forEach((emoji: any) => {
     const newData = fediEmojis.find((foundEmoji: any) => foundEmoji.id === emoji.id)
-    if (newData && newData.url) {
+    if (newData && newData.icon?.url) {
       emoji.update({
-        url: newData.url
+        url: newData.icon.url
       })
       emoji.save()
     } else {
