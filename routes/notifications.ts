@@ -119,6 +119,13 @@ export default function notificationRoutes(app: Application) {
     })
   })
   async function getQueryMentions(userId: string) {
+    const mentions = await PostMentionsUserRelation.findAll({
+      order: [['createdAt', 'DESC']],
+      limit: environment.postsPerPage,
+      where: {
+        userId: userId
+      }
+    })
     return {
       order: [['createdAt', 'DESC']],
       include: [
@@ -126,18 +133,12 @@ export default function notificationRoutes(app: Application) {
           model: User,
           as: 'user',
           attributes: ['url', 'name', 'id', 'avatar']
-        },
-        {
-          model: User,
-          as: 'mentionPost',
-          attributes: ['id'],
-          where: {
-            id: userId
-          },
-          required: true
         }
       ],
       where: {
+        id: {
+          [Op.in]: mentions.map((mention: any) => mention.postId)
+        },
         parentId: {
           [Op.notIn]: await getMutedPosts(userId)
         },
@@ -206,7 +207,7 @@ export default function notificationRoutes(app: Application) {
     // TODO FIX DIRTY HACK AHEAD: lets get A LOT of mentions
     const mentions = await PostMentionsUserRelation.findAll({
       order: [['createdAt', 'DESC']],
-      limit: environment.postsPerPage * 10,
+      limit: environment.postsPerPage * 2,
       where: {
         userId: userId
       }
