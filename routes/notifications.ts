@@ -222,7 +222,7 @@ export default function notificationRoutes(app: Application) {
           model: Post,
           as: 'ancestors',
           required: true,
-          attributes: ['content', 'id'],
+          attributes: ['userId', 'content', 'id'],
           where: {
             userId: userId
           }
@@ -247,7 +247,7 @@ export default function notificationRoutes(app: Application) {
           [Op.gt]: startCountDate
         },
         userId: {
-          [Op.notIn]: (await getBlockedIds(userId)).push(userId)
+          [Op.notIn]: [userId].concat(await getBlockedIds(userId))
         }
       }
     }
