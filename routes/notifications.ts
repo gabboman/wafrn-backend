@@ -1,6 +1,15 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Follows, Post, PostMentionsUserRelation, PostReport, User, UserLikesPostRelations } from '../db'
+import {
+  EmojiReaction,
+  Follows,
+  Post,
+  PostEmojiRelations,
+  PostMentionsUserRelation,
+  PostReport,
+  User,
+  UserLikesPostRelations
+} from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import { sequelize } from '../db'
@@ -28,21 +37,19 @@ export default function notificationRoutes(app: Application) {
     reblogQuery.where.createdAt = {
       [Op.lt]: reblogsDate
     }
-    const reblogs = await Post.findAll({
+    const reblogs = Post.findAll({
       ...reblogQuery,
       limit: environment.postsPerPage
     })
 
-    const mentionsQuery: any = await getQueryMentions(userId)
-    mentionsQuery.where = {
-      ...mentionsQuery.where,
-      createdAt: {
-        [Op.lt]: mentionsDate
+    const mentionedPostsId = (await getMentionedPostsId(userId, mentionsDate, Op.lt, true)).map(
+      (mention: any) => mention.postId
+    )
+
+    const mentions = Post.findAll({
+      where: {
+        id: { [Op.in]: mentionedPostsId }
       }
-    }
-    const mentions = await Post.findAll({
-      ...mentionsQuery,
-      limit: environment.postsPerPage
     })
     const followsQuery: any = await getNewFollows(userId, followsDate)
     followsQuery.where.createdAt = {
@@ -52,16 +59,29 @@ export default function notificationRoutes(app: Application) {
       ...followsQuery,
       limit: environment.postsPerPage
     })
-    const likesQuery: any = await getQueryLikes(userId, likesDate)
-    likesQuery.where.createdAt = {
-      [Op.lt]: likesDate
-    }
-    const likes = UserLikesPostRelations.findAll({
-      ...likesQuery,
-      limit: environment.postsPerPage
+    const likes = getLikedPostsId(userId, likesDate, Op.lt, true)
+    await Promise.all([reblogs, mentions, follows, likes, mentionedPostsId])
+    const postIds = await mentionedPostsId
+    let userIds = (await reblogs).map((rb: any) => rb.userId)
+    const posts = await Post.findAll({
+      where: {
+        id: {
+          [Op.in]: postIds
+        }
+      }
     })
-    await Promise.all([reblogs, mentions, follows, likes])
+    userIds = userIds.concat(posts.map((post: any) => post.userId))
+    const users = User.findAll({
+      attributes: ['name', 'url', 'avatar', 'id'],
+      where: {
+        id: {
+          [Op.in]: userIds
+        }
+      }
+    })
     res.send({
+      users: await users,
+      posts: await posts,
       reblogs: await reblogs,
       likes: await likes,
       mentions: await mentions,
@@ -75,19 +95,13 @@ export default function notificationRoutes(app: Application) {
     const userId = req.jwtData?.userId ? req.jwtData?.userId : ''
     //const blockedUsers = await getBlockedIds(userId)
     const startCountDate = (await User.findByPk(userId)).lastTimeNotificationsCheck
-    const mentionsQuery: any = await getQueryMentions(userId)
-    mentionsQuery.where = {
-      ...mentionsQuery.where,
-      createdAt: {
-        [Op.gt]: startCountDate
-      }
-    }
-    const postMentions = Post.count(mentionsQuery)
+    const mentionIds = await getMentionedPostsId(userId, startCountDate, Op.gt)
+    const postMentions = mentionIds.length
     const newPostReblogs = Post.count(await getReblogQuery(userId, startCountDate))
 
     const newFollows = Follows.count(await getNewFollows(userId, startCountDate))
 
-    const newLikes = UserLikesPostRelations.count(await getQueryLikes(userId, startCountDate))
+    const newLikes = (await getLikedPostsId(userId, startCountDate, Op.gt)).length
 
     let reports = 0
     let awaitingAproval = 0
@@ -118,45 +132,34 @@ export default function notificationRoutes(app: Application) {
       awaitingAproval: await awaitingAproval
     })
   })
-  async function getQueryMentions(userId: string) {
-    const mentions = await PostMentionsUserRelation.findAll({
+  async function getMentionedPostsId(
+    userId: string,
+    startCountDate: Date,
+    operator: any,
+    limit?: boolean
+  ): Promise<any[]> {
+    return await PostMentionsUserRelation.findAll({
       order: [['createdAt', 'DESC']],
-      limit: environment.postsPerPage,
+      attributes: ['postId', 'userId'],
+      limit: limit ? environment.postsPerPage : Number.MAX_SAFE_INTEGER,
       where: {
-        userId: userId
+        userId: userId,
+        createdAt: {
+          [operator]: startCountDate
+        }
       }
     })
-    return {
-      order: [['createdAt', 'DESC']],
-      include: [
-        {
-          model: User,
-          as: 'user',
-          attributes: ['url', 'name', 'id', 'avatar']
-        }
-      ],
-      where: {
-        id: {
-          [Op.in]: mentions.map((mention: any) => mention.postId)
-        },
-        parentId: {
-          [Op.notIn]: await getMutedPosts(userId)
-        },
-        userId: {
-          [Op.notIn]: [userId].concat(await getBlockedIds(userId))
-        }
-      }
-    }
   }
 
-  async function getQueryLikes(userId: string, startCountDate: Date) {
-    return {
+  async function getLikedPostsId(userId: string, startCountDate: Date, operator: any, limit = false) {
+    return await UserLikesPostRelations.findAll({
       order: [['createdAt', 'DESC']],
+      limit: limit ? environment.postsPerPage : Number.MAX_SAFE_INTEGER,
       include: [
         {
           model: Post,
           required: true,
-          attributes: ['userId'],
+          attributes: [],
           where: {
             userId: userId
           }
@@ -171,13 +174,45 @@ export default function notificationRoutes(app: Application) {
           [Op.notIn]: await getMutedPosts(userId)
         },
         createdAt: {
-          [Op.gt]: startCountDate
+          [operator]: startCountDate
         },
         userId: {
           [Op.notIn]: await getBlockedIds(userId)
         }
       }
-    }
+    })
+  }
+
+  async function getEmojiReactedPostsId(userId: string, startCountDate: Date, operator: any, limit = false) {
+    return EmojiReaction.findAll({
+      order: [['createdAt', 'DESC']],
+      limit: limit ? environment.postsPerPage : Number.MAX_SAFE_INTEGER,
+      include: [
+        {
+          model: Post,
+          required: true,
+          attributes: [],
+          where: {
+            userId: userId
+          }
+        },
+        {
+          model: User,
+          attributes: ['url', 'name', 'id', 'avatar']
+        }
+      ],
+      where: {
+        postId: {
+          [Op.notIn]: await getMutedPosts(userId)
+        },
+        createdAt: {
+          [operator]: startCountDate
+        },
+        userId: {
+          [Op.notIn]: await getBlockedIds(userId)
+        }
+      }
+    })
   }
 
   async function getNewFollows(userId: string, startCountDate: Date) {
@@ -202,16 +237,7 @@ export default function notificationRoutes(app: Application) {
     }
   }
 
-  // TODO optimize this in a way that a reblog reply only counts as a mention
   async function getReblogQuery(userId: string, startCountDate: Date) {
-    // TODO FIX DIRTY HACK AHEAD: lets get A LOT of mentions
-    const mentions = await PostMentionsUserRelation.findAll({
-      order: [['createdAt', 'DESC']],
-      limit: environment.postsPerPage * 2,
-      where: {
-        userId: userId
-      }
-    })
     return {
       order: [['createdAt', 'DESC']],
       include: [
@@ -219,21 +245,14 @@ export default function notificationRoutes(app: Application) {
           model: Post,
           as: 'ancestors',
           required: true,
-          attributes: ['userId', 'content', 'id'],
+          attributes: [],
           where: {
             userId: userId
           }
-        },
-        {
-          model: User,
-          as: 'user',
-          attributes: ['url', 'avatar', 'name', 'remoteId']
         }
       ],
       where: {
-        id: {
-          [Op.notIn]: mentions.map((ment: any) => ment.postId)
-        },
+        content: '',
         parentId: {
           [Op.notIn]: await getMutedPosts(userId)
         },
