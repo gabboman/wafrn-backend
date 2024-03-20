@@ -1,6 +1,7 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
 import {
+  Emoji,
   EmojiReaction,
   Follows,
   Post,
@@ -12,8 +13,6 @@ import {
 } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
-import { sequelize } from '../db'
-import getStartScrollParam from '../utils/getStartScrollParam'
 import { environment } from '../environment'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { getMutedPosts } from '../utils/cacheGetters/getMutedPosts'
@@ -33,6 +32,10 @@ export default function notificationRoutes(app: Application) {
     const followsDate = req.query?.followsDate ? new Date(req.query.followsDate as string) : new Date()
     const reblogsDate = req.query?.reblogsDate ? new Date(req.query.reblogsDate as string) : new Date()
     const mentionsDate = req.query?.mentionsDate ? new Date(req.query.mentionsDate as string) : new Date()
+    const emojiReactionDate = req.query?.emojiReactionDate
+      ? new Date(req.query.emojiReactionDate as string)
+      : new Date()
+
     const reblogQuery: any = await getReblogQuery(userId, reblogsDate)
     reblogQuery.where.createdAt = {
       [Op.lt]: reblogsDate
@@ -55,14 +58,19 @@ export default function notificationRoutes(app: Application) {
     followsQuery.where.createdAt = {
       [Op.lt]: followsDate
     }
+
+    const newEmojiReactions = getEmojiReactedPostsId(userId, emojiReactionDate, Op.lt, true)
+
     const follows = Follows.findAll({
       ...followsQuery,
       limit: environment.postsPerPage
     })
     const likes = getLikedPostsId(userId, likesDate, Op.lt, true)
-    await Promise.all([reblogs, mentions, follows, likes, mentionedPostsId])
-    const postIds = await mentionedPostsId
-    let userIds = (await reblogs).map((rb: any) => rb.userId)
+    await Promise.all([reblogs, mentions, follows, likes, mentionedPostsId, newEmojiReactions])
+    const postIds = (await mentionedPostsId).concat((await newEmojiReactions).map((react: any) => react.postId))
+    let userIds = (await reblogs)
+      .map((rb: any) => rb.userId)
+      .concat((await newEmojiReactions).map((react: any) => react.userId))
     const posts = await Post.findAll({
       where: {
         id: {
@@ -80,6 +88,7 @@ export default function notificationRoutes(app: Application) {
       }
     })
     res.send({
+      emojiReactions: await newEmojiReactions,
       users: await users,
       posts: await posts,
       reblogs: await reblogs,
@@ -98,7 +107,7 @@ export default function notificationRoutes(app: Application) {
     const mentionIds = await getMentionedPostsId(userId, startCountDate, Op.gt)
     const postMentions = mentionIds.length
     const newPostReblogs = Post.count(await getReblogQuery(userId, startCountDate))
-
+    const newEmojiReactions = getEmojiReactedPostsId(userId, startCountDate, Op.gt)
     const newFollows = Follows.count(await getNewFollows(userId, startCountDate))
 
     const newLikes = (await getLikedPostsId(userId, startCountDate, Op.gt)).length
@@ -124,10 +133,15 @@ export default function notificationRoutes(app: Application) {
       })
     }
 
-    await Promise.all([newFollows, postMentions, newLikes, reports, awaitingAproval, newPostReblogs])
+    await Promise.all([newFollows, postMentions, newLikes, reports, awaitingAproval, newPostReblogs, newEmojiReactions])
 
     res.send({
-      notifications: (await newFollows) + (await postMentions) + (await newLikes) + (await newPostReblogs),
+      notifications:
+        (await newFollows) +
+        (await postMentions) +
+        (await newLikes) +
+        (await newPostReblogs) +
+        (await newEmojiReactions).length,
       reports: await reports,
       awaitingAproval: await awaitingAproval
     })
@@ -183,7 +197,12 @@ export default function notificationRoutes(app: Application) {
     })
   }
 
-  async function getEmojiReactedPostsId(userId: string, startCountDate: Date, operator: any, limit = false) {
+  async function getEmojiReactedPostsId(
+    userId: string,
+    startCountDate: Date,
+    operator: any,
+    limit = false
+  ): Promise<any[]> {
     return EmojiReaction.findAll({
       order: [['createdAt', 'DESC']],
       limit: limit ? environment.postsPerPage : Number.MAX_SAFE_INTEGER,
@@ -197,8 +216,7 @@ export default function notificationRoutes(app: Application) {
           }
         },
         {
-          model: User,
-          attributes: ['url', 'name', 'id', 'avatar']
+          model: Emoji
         }
       ],
       where: {
