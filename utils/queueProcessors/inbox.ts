@@ -125,17 +125,8 @@ async function inboxWorker(job: Job) {
         case 'Create': {
           // Create new post
           const postRecived = body.object
-          switch (postRecived.type) {
-            case 'Note':
-            case 'ChatMessage':
-            case 'Question': {
-              await getPostThreadRecursive(user, postRecived.id, postRecived)
-              await signAndAccept({ body: body }, remoteUser, user)
-              break
-            }
-            default:
-              logger.info(`post type not implemented: ${postRecived.type}`)
-          }
+          await getPostThreadRecursive(user, postRecived.id, postRecived)
+          await signAndAccept({ body: body }, remoteUser, user)
           break
         }
         case 'Follow': {
