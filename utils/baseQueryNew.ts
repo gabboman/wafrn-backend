@@ -88,7 +88,7 @@ async function getEmojis(input: { userIds: string[]; postIds: string[] }): Promi
   })
 
   let postEmojiReactions = EmojiReaction.findAll({
-    attributes: ['emojiId', 'postid'],
+    attributes: ['emojiId', 'postid', 'userId', 'content'],
     where: {
       postId: {
         [Op.in]: input.postIds
@@ -109,7 +109,6 @@ async function getEmojis(input: { userIds: string[]; postIds: string[] }): Promi
   postEmojisIds = await postEmojisIds
   userEmojiId = await userEmojiId
   postEmojiReactions = await postEmojiReactions
-
 
   const emojiIds = []
     .concat(postEmojisIds.map((elem: any) => elem.emojiId))
@@ -161,7 +160,7 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
   })
   const mentions = await getMentionedUserIds(postIds)
   userIds = userIds.concat(mentions.usersMentioned)
-
+  userIds = userIds.concat((await emojis).postEmojiReactions.map((react: any) => react.userId))
   const users = User.findAll({
     attributes: ['url', 'avatar', 'id', 'name', 'remoteId'],
     where: {
