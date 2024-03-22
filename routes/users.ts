@@ -397,6 +397,10 @@ export default function userRoutes(app: Application) {
           banned: false
         }
       })
+      if (!blog) {
+        res.sendStatus(404)
+        return
+      }
       let followed = Follows.count({
         where: {
           followerId: blog.id,
