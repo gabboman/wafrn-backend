@@ -190,6 +190,23 @@ export default function userRoutes(app: Application) {
             }
           }
 
+          let disableForceAltText = await UserOptions.findOne({
+            where: {
+              userId: posterId,
+              optionName: 'wafrn.disableForceAltText'
+            }
+          })
+          if (disableForceAltText) {
+            disableForceAltText.optionValue = req.body.disableForceAltText
+            await disableForceAltText.save()
+          } else {
+            disableForceAltText = UserOptions.create({
+              userId: posterId,
+              optionName: 'wafrn.disableForceAltText',
+              optionValue: req.body.disableForceAltText
+            })
+          }
+
           if (req.body.defaultPostEditorPrivacy) {
             const defaultPostEditorPrivacyKey = 'wafrn.defaultPostEditorPrivacy'
             const defaultPostEditorPrivacy = req.body.defaultPostEditorPrivacy
