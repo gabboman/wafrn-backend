@@ -258,17 +258,6 @@ export default function notificationRoutes(app: Application) {
   async function getReblogQuery(userId: string, startCountDate: Date) {
     return {
       order: [['createdAt', 'DESC']],
-      include: [
-        {
-          model: Post,
-          as: 'ancestors',
-          required: true,
-          attributes: [],
-          where: {
-            userId: userId
-          }
-        }
-      ],
       where: {
         content: '',
         parentId: {
@@ -282,7 +271,10 @@ export default function notificationRoutes(app: Application) {
         },
         userId: {
           [Op.notIn]: [userId].concat(await getBlockedIds(userId))
-        }
+        },
+        literal: Sequelize.literal(
+          `posts.id IN (select id from posts where parentId in (select id from posts where userId = "${userId}"))`
+        )
       }
     }
   }
