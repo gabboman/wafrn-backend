@@ -41,6 +41,7 @@ import { getAllLocalUserIds } from './utils/cacheGetters/getAllLocalUserIds'
 import { IncomingMessage } from 'http'
 import statusRoutes from './routes/status'
 import dashboardRoutes from './routes/dashboard'
+import forumRoutes from './routes/forum'
 
 const swaggerJSON = require('./swagger.json')
 // rest of the code remains same
@@ -93,6 +94,7 @@ blockUserServerRoutes(app)
 dashboardRoutes(app)
 listRoutes(app)
 frontend(app)
+forumRoutes(app)
 statusRoutes(app)
 
 app.listen(PORT, environment.listenIp, () => {
