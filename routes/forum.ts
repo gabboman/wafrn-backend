@@ -13,7 +13,7 @@ export default function forumRoutes(app: Application) {
     const postId = req.params?.id as string
     const postsToGet = await Post.findOne({
       where: {
-        id: req.params.id
+        id: postId
       },
       attributes: ['id', 'hierarchyLevel'],
       include: [
