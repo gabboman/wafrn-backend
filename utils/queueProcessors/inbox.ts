@@ -464,6 +464,12 @@ async function inboxWorker(job: Job) {
           break
         }
 
+        // activities that we ignore:
+        case 'View': {
+          await signAndAccept(req, remoteUser, user)
+          break
+        }
+
         default: {
           logger.info(`NOT IMPLEMENTED: ${req.body.type}`)
           logger.info(req.body)
