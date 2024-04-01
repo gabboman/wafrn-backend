@@ -161,14 +161,6 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
   const mentions = await getMentionedUserIds(postIds)
   userIds = userIds.concat(mentions.usersMentioned)
   userIds = userIds.concat((await emojis).postEmojiReactions.map((react: any) => react.userId))
-  const users = User.findAll({
-    attributes: ['url', 'avatar', 'id', 'name', 'remoteId'],
-    where: {
-      id: {
-        [Op.in]: userIds
-      }
-    }
-  })
   const polls = QuestionPoll.findAll({
     where: {
       postId: {
@@ -193,9 +185,18 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
 
   const medias = getMedias(postIds)
   const tags = getTags(postIds)
-  const likes = getLikes(postIds)
+  const likes = await getLikes(postIds)
+  userIds = userIds.concat(likes.map((like: any) => like.userId))
+  const users = User.findAll({
+    attributes: ['url', 'avatar', 'id', 'name', 'remoteId'],
+    where: {
+      id: {
+        [Op.in]: userIds
+      }
+    }
+  })
   const postWithNotes = getPosstGroupDetails(posts)
-  await Promise.all([emojis, users, polls, medias, tags, likes, postWithNotes])
+  await Promise.all([emojis, users, polls, medias, tags, postWithNotes])
   return {
     posts: await postWithNotes,
     emojiRelations: await emojis,
@@ -204,7 +205,7 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
     polls: await polls,
     medias: await medias,
     tags: await tags,
-    likes: await likes
+    likes: likes
   }
 }
 

@@ -266,6 +266,11 @@ async function inboxWorker(job: Job) {
               await signAndAccept(req, remoteUser, user)
               break
             }
+            // activities that we ignore:
+            case 'View': {
+              await signAndAccept(req, remoteUser, user)
+              break
+            }
             default: {
               logger.info(`UNDO NOT IMPLEMENTED: ${body.object.type}`)
               logger.info(req.body)
@@ -455,6 +460,12 @@ async function inboxWorker(job: Job) {
             })
             await Promise.allSettled(newFollows)
           }
+          await signAndAccept(req, remoteUser, user)
+          break
+        }
+
+        // activities that we ignore:
+        case 'View': {
           await signAndAccept(req, remoteUser, user)
           break
         }
