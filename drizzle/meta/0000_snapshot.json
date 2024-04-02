@@ -1,0 +1,2481 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "5",
+  "dialect": "mysql",
+  "tables": {
+    "blocks": {
+      "name": "blocks",
+      "columns": {
+        "remoteBlockId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "remoteBlockId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reason": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "blockedId": {
+          "autoincrement": false,
+          "name": "blockedId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "blockerId": {
+          "autoincrement": false,
+          "name": "blockerId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "blocks_blocker_id": {
+          "name": "blocks_blocker_id",
+          "columns": [
+            "blockerId"
+          ],
+          "isUnique": false
+        },
+        "blocks_blocked_id": {
+          "name": "blocks_blocked_id",
+          "columns": [
+            "blockedId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "blocks_ibfk_1": {
+          "name": "blocks_ibfk_1",
+          "tableFrom": "blocks",
+          "tableTo": "users",
+          "columnsFrom": [
+            "blockedId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "blocks_ibfk_2": {
+          "name": "blocks_ibfk_2",
+          "tableFrom": "blocks",
+          "tableTo": "users",
+          "columnsFrom": [
+            "blockerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {
+        "blocks_blocked_id_blocker_id": {
+          "name": "blocks_blocked_id_blocker_id",
+          "columns": [
+            "blockedId",
+            "blockerId"
+          ]
+        }
+      }
+    },
+    "emojiCollections": {
+      "name": "emojiCollections",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {}
+    },
+    "emojiReactions": {
+      "name": "emojiReactions",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "remoteId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "remoteId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "postId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "userId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "userId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "emojiId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "emojiId",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "postId": {
+          "name": "postId",
+          "columns": [
+            "postId"
+          ],
+          "isUnique": false
+        },
+        "userId": {
+          "name": "userId",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "emojiId": {
+          "name": "emojiId",
+          "columns": [
+            "emojiId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "emojiReactions_ibfk_1": {
+          "name": "emojiReactions_ibfk_1",
+          "tableFrom": "emojiReactions",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "postId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "emojiReactions_ibfk_2": {
+          "name": "emojiReactions_ibfk_2",
+          "tableFrom": "emojiReactions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "emojiReactions_ibfk_3": {
+          "name": "emojiReactions_ibfk_3",
+          "tableFrom": "emojiReactions",
+          "tableTo": "emojis",
+          "columnsFrom": [
+            "emojiId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "emojis": {
+      "name": "emojis",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "url": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "external": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "external",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "emojiCollectionId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "emojiCollectionId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "emojiCollectionId": {
+          "name": "emojiCollectionId",
+          "columns": [
+            "emojiCollectionId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "emojis_ibfk_1": {
+          "name": "emojis_ibfk_1",
+          "tableFrom": "emojis",
+          "tableTo": "emojiCollections",
+          "columnsFrom": [
+            "emojiCollectionId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "federatedHosts": {
+      "name": "federatedHosts",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "displayName": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "displayName",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "publicInbox": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "publicInbox",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "publicKey": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "publicKey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "detail": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "detail",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "blocked": {
+          "default": 0,
+          "autoincrement": false,
+          "name": "blocked",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "friendServer": {
+          "default": 0,
+          "autoincrement": false,
+          "name": "friendServer",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {
+        "federated_hosts_display_name": {
+          "name": "federated_hosts_display_name",
+          "columns": [
+            "displayName"
+          ]
+        }
+      }
+    },
+    "follows": {
+      "name": "follows",
+      "columns": {
+        "remoteFollowId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "remoteFollowId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "followerId": {
+          "autoincrement": false,
+          "name": "followerId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "followedId": {
+          "autoincrement": false,
+          "name": "followedId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "accepted": {
+          "default": 0,
+          "autoincrement": false,
+          "name": "accepted",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "follows_followed_id_follower_id": {
+          "name": "follows_followed_id_follower_id",
+          "columns": [
+            "followedId",
+            "followerId"
+          ],
+          "isUnique": false
+        },
+        "follows_follower_id": {
+          "name": "follows_follower_id",
+          "columns": [
+            "followerId"
+          ],
+          "isUnique": false
+        },
+        "follows_followed_id": {
+          "name": "follows_followed_id",
+          "columns": [
+            "followedId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "follows_ibfk_1": {
+          "name": "follows_ibfk_1",
+          "tableFrom": "follows",
+          "tableTo": "users",
+          "columnsFrom": [
+            "followerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "follows_ibfk_2": {
+          "name": "follows_ibfk_2",
+          "tableFrom": "follows",
+          "tableTo": "users",
+          "columnsFrom": [
+            "followedId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "medias": {
+      "name": "medias",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "NSFW": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "NSFW",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "url": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ipUpload": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "ipUpload",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "adultContent": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "adultContent",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "external": {
+          "default": 0,
+          "autoincrement": false,
+          "name": "external",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "userId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order": {
+          "default": 0,
+          "autoincrement": false,
+          "name": "order",
+          "type": "int(32)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "userId": {
+          "name": "userId",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "medias_ibfk_1": {
+          "name": "medias_ibfk_1",
+          "tableFrom": "medias",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "mutes": {
+      "name": "mutes",
+      "columns": {
+        "reason": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mutedId": {
+          "autoincrement": false,
+          "name": "mutedId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "muterId": {
+          "autoincrement": false,
+          "name": "muterId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "muterId": {
+          "name": "muterId",
+          "columns": [
+            "muterId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "mutes_ibfk_1": {
+          "name": "mutes_ibfk_1",
+          "tableFrom": "mutes",
+          "tableTo": "users",
+          "columnsFrom": [
+            "mutedId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "mutes_ibfk_2": {
+          "name": "mutes_ibfk_2",
+          "tableFrom": "mutes",
+          "tableTo": "users",
+          "columnsFrom": [
+            "muterId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "postEmojiRelations": {
+      "name": "postEmojiRelations",
+      "columns": {
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postId": {
+          "autoincrement": false,
+          "name": "postId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "emojiId": {
+          "autoincrement": false,
+          "name": "emojiId",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "emojiId": {
+          "name": "emojiId",
+          "columns": [
+            "emojiId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "postEmojiRelations_ibfk_1": {
+          "name": "postEmojiRelations_ibfk_1",
+          "tableFrom": "postEmojiRelations",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "postId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "postEmojiRelations_ibfk_2": {
+          "name": "postEmojiRelations_ibfk_2",
+          "tableFrom": "postEmojiRelations",
+          "tableTo": "emojis",
+          "columnsFrom": [
+            "emojiId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "postMediaRelations": {
+      "name": "postMediaRelations",
+      "columns": {
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mediaId": {
+          "autoincrement": false,
+          "name": "mediaId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postId": {
+          "autoincrement": false,
+          "name": "postId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "postId": {
+          "name": "postId",
+          "columns": [
+            "postId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "postMediaRelations_ibfk_1": {
+          "name": "postMediaRelations_ibfk_1",
+          "tableFrom": "postMediaRelations",
+          "tableTo": "medias",
+          "columnsFrom": [
+            "mediaId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "postMediaRelations_ibfk_2": {
+          "name": "postMediaRelations_ibfk_2",
+          "tableFrom": "postMediaRelations",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "postId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "postMentionsUserRelations": {
+      "name": "postMentionsUserRelations",
+      "columns": {
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "userId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "postId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "postId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "userId": {
+          "name": "userId",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "postId": {
+          "name": "postId",
+          "columns": [
+            "postId"
+          ],
+          "isUnique": false
+        },
+        "post_mentions_user_relations_post_id": {
+          "name": "post_mentions_user_relations_post_id",
+          "columns": [
+            "postId"
+          ],
+          "isUnique": false
+        },
+        "post_mentions_user_relations_user_id": {
+          "name": "post_mentions_user_relations_user_id",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "postMentionsUserRelations_ibfk_1": {
+          "name": "postMentionsUserRelations_ibfk_1",
+          "tableFrom": "postMentionsUserRelations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "postMentionsUserRelations_ibfk_2": {
+          "name": "postMentionsUserRelations_ibfk_2",
+          "tableFrom": "postMentionsUserRelations",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "postId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "postReports": {
+      "name": "postReports",
+      "columns": {
+        "id": {
+          "autoincrement": true,
+          "name": "id",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resolved": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "resolved",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "severity": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "severity",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "userId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "postId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "postId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "userId": {
+          "name": "userId",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "postId": {
+          "name": "postId",
+          "columns": [
+            "postId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "postReports_ibfk_1": {
+          "name": "postReports_ibfk_1",
+          "tableFrom": "postReports",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "postReports_ibfk_2": {
+          "name": "postReports_ibfk_2",
+          "tableFrom": "postReports",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "postId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "posts": {
+      "name": "posts",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_warning": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "content_warning",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "remotePostId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "remotePostId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "privacy": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "privacy",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "userId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hierarchyLevel": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "hierarchyLevel",
+          "type": "int(10) unsigned",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parentId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "parentId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "featured": {
+          "default": 0,
+          "autoincrement": false,
+          "name": "featured",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "userId": {
+          "name": "userId",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "parentId": {
+          "name": "parentId",
+          "columns": [
+            "parentId"
+          ],
+          "isUnique": false
+        },
+        "posts_remote_post_id": {
+          "name": "posts_remote_post_id",
+          "columns": [
+            "remotePostId"
+          ],
+          "isUnique": false
+        },
+        "posts_parent_id": {
+          "name": "posts_parent_id",
+          "columns": [
+            "parentId"
+          ],
+          "isUnique": false
+        },
+        "posts_user_id": {
+          "name": "posts_user_id",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "posts_created_at": {
+          "name": "posts_created_at",
+          "columns": [
+            "createdAt"
+          ],
+          "isUnique": false
+        },
+        "posts_created_at_user_id": {
+          "name": "posts_created_at_user_id",
+          "columns": [
+            "createdAt",
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "createdAtIndex": {
+          "name": "createdAtIndex",
+          "columns": [
+            "createdAt"
+          ],
+          "isUnique": false
+        },
+        "useridandcreationdate": {
+          "name": "useridandcreationdate",
+          "columns": [
+            "createdAt",
+            "userId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "posts_ibfk_1": {
+          "name": "posts_ibfk_1",
+          "tableFrom": "posts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "posts_ibfk_2": {
+          "name": "posts_ibfk_2",
+          "tableFrom": "posts",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "parentId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {
+        "posts_id": {
+          "name": "posts_id",
+          "columns": [
+            "id"
+          ]
+        }
+      }
+    },
+    "postsancestors": {
+      "name": "postsancestors",
+      "columns": {
+        "postsId": {
+          "autoincrement": false,
+          "name": "postsId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ancestorId": {
+          "autoincrement": false,
+          "name": "ancestorId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ancestorId": {
+          "name": "ancestorId",
+          "columns": [
+            "ancestorId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "postsancestors_ibfk_1": {
+          "name": "postsancestors_ibfk_1",
+          "tableFrom": "postsancestors",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "postsId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "postsancestors_ibfk_2": {
+          "name": "postsancestors_ibfk_2",
+          "tableFrom": "postsancestors",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "ancestorId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {
+        "postsancestors_postsId_ancestorId_unique": {
+          "name": "postsancestors_postsId_ancestorId_unique",
+          "columns": [
+            "postsId",
+            "ancestorId"
+          ]
+        }
+      }
+    },
+    "postTags": {
+      "name": "postTags",
+      "columns": {
+        "id": {
+          "autoincrement": true,
+          "name": "id",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tagName": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "tagName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "postId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "postId": {
+          "name": "postId",
+          "columns": [
+            "postId"
+          ],
+          "isUnique": false
+        },
+        "post_tags_tag_name_post_id": {
+          "name": "post_tags_tag_name_post_id",
+          "columns": [
+            "tagName",
+            "postId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "postTags_ibfk_1": {
+          "name": "postTags_ibfk_1",
+          "tableFrom": "postTags",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "postId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "questionPollAnswers": {
+      "name": "questionPollAnswers",
+      "columns": {
+        "id": {
+          "autoincrement": true,
+          "name": "id",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "remoteId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "remoteId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "questionPollQuestionId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "questionPollQuestionId",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "userId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "userId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "questionPollQuestionId": {
+          "name": "questionPollQuestionId",
+          "columns": [
+            "questionPollQuestionId"
+          ],
+          "isUnique": false
+        },
+        "userId": {
+          "name": "userId",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "questionPollAnswers_ibfk_1": {
+          "name": "questionPollAnswers_ibfk_1",
+          "tableFrom": "questionPollAnswers",
+          "tableTo": "questionPollQuestions",
+          "columnsFrom": [
+            "questionPollQuestionId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "questionPollAnswers_ibfk_2": {
+          "name": "questionPollAnswers_ibfk_2",
+          "tableFrom": "questionPollAnswers",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "questionPollQuestions": {
+      "name": "questionPollQuestions",
+      "columns": {
+        "id": {
+          "autoincrement": true,
+          "name": "id",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "questionText": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "questionText",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "index": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "index",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "remoteReplies": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "remoteReplies",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "questionPollId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "questionPollId",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "questionPollId": {
+          "name": "questionPollId",
+          "columns": [
+            "questionPollId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "questionPollQuestions_ibfk_1": {
+          "name": "questionPollQuestions_ibfk_1",
+          "tableFrom": "questionPollQuestions",
+          "tableTo": "questionPolls",
+          "columnsFrom": [
+            "questionPollId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "questionPolls": {
+      "name": "questionPolls",
+      "columns": {
+        "id": {
+          "autoincrement": true,
+          "name": "id",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "endDate": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "endDate",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "multiChoice": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "multiChoice",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "postId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "postId": {
+          "name": "postId",
+          "columns": [
+            "postId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "questionPolls_ibfk_1": {
+          "name": "questionPolls_ibfk_1",
+          "tableFrom": "questionPolls",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "postId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "serverBlocks": {
+      "name": "serverBlocks",
+      "columns": {
+        "id": {
+          "autoincrement": true,
+          "name": "id",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "blockedServerId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "blockedServerId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "userBlockerId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "userBlockerId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "blockedServerId": {
+          "name": "blockedServerId",
+          "columns": [
+            "blockedServerId"
+          ],
+          "isUnique": false
+        },
+        "userBlockerId": {
+          "name": "userBlockerId",
+          "columns": [
+            "userBlockerId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "serverBlocks_ibfk_1": {
+          "name": "serverBlocks_ibfk_1",
+          "tableFrom": "serverBlocks",
+          "tableTo": "users",
+          "columnsFrom": [
+            "blockedServerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "serverBlocks_ibfk_2": {
+          "name": "serverBlocks_ibfk_2",
+          "tableFrom": "serverBlocks",
+          "tableTo": "federatedHosts",
+          "columnsFrom": [
+            "userBlockerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "silencedPosts": {
+      "name": "silencedPosts",
+      "columns": {
+        "id": {
+          "autoincrement": true,
+          "name": "id",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "userId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "postId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "postId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "userId": {
+          "name": "userId",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "postId": {
+          "name": "postId",
+          "columns": [
+            "postId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "silencedPosts_ibfk_1": {
+          "name": "silencedPosts_ibfk_1",
+          "tableFrom": "silencedPosts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "silencedPosts_ibfk_2": {
+          "name": "silencedPosts_ibfk_2",
+          "tableFrom": "silencedPosts",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "postId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "userEmojiRelations": {
+      "name": "userEmojiRelations",
+      "columns": {
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "autoincrement": false,
+          "name": "userId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "emojiId": {
+          "autoincrement": false,
+          "name": "emojiId",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "emojiId": {
+          "name": "emojiId",
+          "columns": [
+            "emojiId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "userEmojiRelations_ibfk_1": {
+          "name": "userEmojiRelations_ibfk_1",
+          "tableFrom": "userEmojiRelations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "userEmojiRelations_ibfk_2": {
+          "name": "userEmojiRelations_ibfk_2",
+          "tableFrom": "userEmojiRelations",
+          "tableTo": "emojis",
+          "columnsFrom": [
+            "emojiId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "userLikesPostRelations": {
+      "name": "userLikesPostRelations",
+      "columns": {
+        "userId": {
+          "autoincrement": false,
+          "name": "userId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postId": {
+          "autoincrement": false,
+          "name": "postId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "remoteId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "remoteId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "postId": {
+          "name": "postId",
+          "columns": [
+            "postId"
+          ],
+          "isUnique": false
+        },
+        "user_likes_post_relations_post_id": {
+          "name": "user_likes_post_relations_post_id",
+          "columns": [
+            "postId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "userLikesPostRelations_ibfk_1": {
+          "name": "userLikesPostRelations_ibfk_1",
+          "tableFrom": "userLikesPostRelations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "cascade"
+        },
+        "userLikesPostRelations_ibfk_2": {
+          "name": "userLikesPostRelations_ibfk_2",
+          "tableFrom": "userLikesPostRelations",
+          "tableTo": "posts",
+          "columnsFrom": [
+            "postId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {
+        "user_likes_post_relations_remote_id": {
+          "name": "user_likes_post_relations_remote_id",
+          "columns": [
+            "remoteId"
+          ]
+        }
+      }
+    },
+    "userOptions": {
+      "name": "userOptions",
+      "columns": {
+        "userId": {
+          "autoincrement": false,
+          "name": "userId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "optionName": {
+          "autoincrement": false,
+          "name": "optionName",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "optionValue": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "optionValue",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {
+        "userOptions_ibfk_1": {
+          "name": "userOptions_ibfk_1",
+          "tableFrom": "userOptions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {
+        "user_options_user_id_option_name": {
+          "name": "user_options_user_id_option_name",
+          "columns": [
+            "userId",
+            "optionName"
+          ]
+        }
+      }
+    },
+    "userReports": {
+      "name": "userReports",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resolved": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "resolved",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "severity": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "severity",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ReporterId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "ReporterId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ReportedId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "ReportedId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ReporterId": {
+          "name": "ReporterId",
+          "columns": [
+            "ReporterId"
+          ],
+          "isUnique": false
+        },
+        "ReportedId": {
+          "name": "ReportedId",
+          "columns": [
+            "ReportedId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "userReports_ibfk_1": {
+          "name": "userReports_ibfk_1",
+          "tableFrom": "userReports",
+          "tableTo": "users",
+          "columnsFrom": [
+            "ReporterId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
+        "userReports_ibfk_2": {
+          "name": "userReports_ibfk_2",
+          "tableFrom": "userReports",
+          "tableTo": "users",
+          "columnsFrom": [
+            "ReportedId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "users": {
+      "name": "users",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "url": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "url",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "NSFW": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "NSFW",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avatar": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "avatar",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "password": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "password",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "birthDate": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "birthDate",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "activated": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "activated",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "requestedPasswordReset": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "requestedPasswordReset",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "activationCode": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "activationCode",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "registerIp": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "registerIp",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lastLoginIp": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "lastLoginIp",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lastTimeNotificationsCheck": {
+          "default": "''0000-00-00 00:00:00''",
+          "autoincrement": false,
+          "name": "lastTimeNotificationsCheck",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "privateKey": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "privateKey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "publicKey": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "publicKey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "federatedHostId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "federatedHostId",
+          "type": "char(36)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "remoteInbox": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "remoteInbox",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "remoteId": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "remoteId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banned": {
+          "default": 0,
+          "autoincrement": false,
+          "name": "banned",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "autoincrement": false,
+          "name": "createdAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "autoincrement": false,
+          "name": "updatedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "default": 0,
+          "autoincrement": false,
+          "name": "role",
+          "type": "int(11)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "manuallyAcceptsFollows": {
+          "default": 0,
+          "autoincrement": false,
+          "name": "manuallyAcceptsFollows",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "headerImage": {
+          "default": "'NULL'",
+          "autoincrement": false,
+          "name": "headerImage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "federatedHostId": {
+          "name": "federatedHostId",
+          "columns": [
+            "federatedHostId"
+          ],
+          "isUnique": false
+        },
+        "users_remote_inbox": {
+          "name": "users_remote_inbox",
+          "columns": [
+            "remoteInbox"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "users_ibfk_1": {
+          "name": "users_ibfk_1",
+          "tableFrom": "users",
+          "tableTo": "federatedHosts",
+          "columnsFrom": [
+            "federatedHostId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "uniqueConstraints": {
+        "users_remote_id": {
+          "name": "users_remote_id",
+          "columns": [
+            "remoteId"
+          ]
+        },
+        "users_url": {
+          "name": "users_url",
+          "columns": [
+            "url"
+          ]
+        },
+        "users_email": {
+          "name": "users_email",
+          "columns": [
+            "email"
+          ]
+        }
+      }
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}
