@@ -22,6 +22,7 @@ const adminUser = environment.forceSync
 
 export default async function checkFediverseSignature(req: any, res: Response, next: NextFunction) {
   let success = false
+  let hostUrl = 'somewhere non specified'
   const digest = req.headers.digest
   const signature = req.headers.signature
   if (digest && signature) {
@@ -30,7 +31,7 @@ export default async function checkFediverseSignature(req: any, res: Response, n
         headers: ['(request-target)', 'digest', 'host', 'date']
       })
       const remoteUserUrl = sigHead.keyId.split('#')[0]
-      const hostUrl = new URL(remoteUserUrl).host
+      hostUrl = new URL(remoteUserUrl).host
       let bannedHostInCache = await redisCache.get('server:' + hostUrl)
       if (bannedHostInCache === null || bannedHostInCache === undefined) {
         const newResult = await FederatedHost.findOne({
@@ -58,7 +59,7 @@ export default async function checkFediverseSignature(req: any, res: Response, n
     }
   }
   if (!success) {
-    logger.trace(`Failed to verify signature in petition from somewhere`)
+    logger.trace(`Failed to verify signature in petition from ${hostUrl}`)
     return res.sendStatus(401)
   } else {
     next()
