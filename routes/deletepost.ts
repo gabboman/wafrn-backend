@@ -121,6 +121,7 @@ export default function deletePost(app: Application) {
           await postToDelete.destroy()
           success = true
         } else {
+          postToDelete.content_warning = ''
           postToDelete.content = '<p>This post has been deleted</p>'
           await postToDelete.save()
           success = true

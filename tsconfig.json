@@ -6,7 +6,7 @@
     "rootDir": "./",
     "outDir": "./build",
     "esModuleInterop": true,
-    "strict": true
-  },
-  "files": ["@types/http.d.ts"]
+    "strict": true,
+    "typeRoots": ["./types"]
+  }
 }

@@ -104,7 +104,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
         userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
       )
     } catch (error) {
-      logger.trace({ message: 'error fetching user', error: error })
+      logger.trace(`Error fetching user ${actorUrl}`)
     }
   }
   if (remoteUser && remoteUser.banned) {

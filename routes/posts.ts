@@ -54,9 +54,8 @@ export default function postsRoutes(app: Application) {
       const post = unjointedPost.posts[0]
       if (post) {
         const mentions = unjointedPost.mentions
-          .filter((elem: any) => elem.postId === post[post.length - 1])
-          .map((elem: any) => elem.userId)
-        if (post.userId === userId || (post.privacy === 10 && mentions.includes(userId)) || post.privacy !== 10) {
+          .map((elem: any) => elem.userMentioned)
+        if (post.userId === userId || mentions.includes(userId) || post.privacy !== 10) {
           res.send(unjointedPost)
           success = true
         }
@@ -420,7 +419,6 @@ export default function postsRoutes(app: Application) {
         if (postPetition.inReplyTo && remotePost.hierarchyLevel === 1) {
           const lostParent = await getPostThreadRecursive(user, postPetition.inReplyTo)
           await remotePost.setParent(lostParent)
-          console.log(lostParent)
         }
         // next replies to process
         let next = postPetition.replies.first

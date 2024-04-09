@@ -125,7 +125,6 @@ export default function userRoutes(app: Application) {
           })
         }
       } catch (error) {
-        console.log(error)
         logger.error(error)
       }
       if (!success) {
