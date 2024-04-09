@@ -11,7 +11,7 @@ import { Op } from 'sequelize'
 import { createHash } from 'node:crypto'
 import { redisCache } from '../redis'
 import { getKey } from '../cacheGetters/getKey'
-
+import {SignedRequest} from '../../interfaces/fediverse/signedRequest'
 const adminUser = environment.forceSync
   ? null
   : User.findOne({
@@ -20,13 +20,14 @@ const adminUser = environment.forceSync
       }
     })
 
-export default async function checkFediverseSignature(req: any, res: Response, next: NextFunction) {
+export default async function checkFediverseSignature(req: SignedRequest, res: Response, next: NextFunction) {
   let success = false
-  let hostUrl = 'somewhere non specified'
+  let hostUrl = 'somewhere not specified'
   const digest = req.headers.digest
   const signature = req.headers.signature
   if (digest && signature) {
     try {
+      hostUrl = `petition without sighead ${req.header('host')}`
       const sigHead = httpSignature.parseRequest(req, {
         headers: ['(request-target)', 'digest', 'host', 'date']
       })
@@ -49,11 +50,11 @@ export default async function checkFediverseSignature(req: any, res: Response, n
       }
       const fediData = {
         fediHost: hostUrl,
-        fediUser: remoteUserUrl
+        remoteUserUrl: remoteUserUrl
       }
       req.fediData = fediData
       const remoteKey = await getKey(remoteUserUrl, await adminUser)
-      success = verifyDigest(req.rawBody, req.headers.digest) || httpSignature.verifySignature(sigHead, remoteKey)
+      success = verifyDigest(req.rawBody ? req.rawBody : '', req.headers.digest) || httpSignature.verifySignature(sigHead, remoteKey)
     } catch (error: any) {
       success = false
     }

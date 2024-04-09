@@ -419,7 +419,6 @@ export default function postsRoutes(app: Application) {
         if (postPetition.inReplyTo && remotePost.hierarchyLevel === 1) {
           const lostParent = await getPostThreadRecursive(user, postPetition.inReplyTo)
           await remotePost.setParent(lostParent)
-          console.log(lostParent)
         }
         // next replies to process
         let next = postPetition.replies.first
