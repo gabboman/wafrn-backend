@@ -67,10 +67,12 @@ export default function notificationRoutes(app: Application) {
     })
     const likes = getLikedPostsId(userId, likesDate, Op.lt, true)
     await Promise.all([reblogs, mentions, follows, likes, mentionedPostsId, newEmojiReactions])
-    const postIds = (await mentionedPostsId).concat((await newEmojiReactions).map((react: any) => react.postId))
+    const postIds = (await mentionedPostsId).concat((await newEmojiReactions).map((react: any) => react.postId)).concat((await likes).map((like: any) => like.postId))
     let userIds = (await reblogs)
       .map((rb: any) => rb.userId)
       .concat((await newEmojiReactions).map((react: any) => react.userId))
+      .concat((await follows).map((elem:any) => elem.followerId))
+      .concat((await likes).map((like: any) => userId ))
     const posts = await Post.findAll({
       where: {
         id: {
@@ -94,9 +96,7 @@ export default function notificationRoutes(app: Application) {
       reblogs: await reblogs,
       likes: await likes,
       mentions: await mentions,
-      follows: (await follows).map((follow: any) => {
-        return { ...follow.followed.dataValues, createdAt: follow.createdAt }
-      })
+      follows: (await follows)
     })
   })
 
@@ -169,20 +169,6 @@ export default function notificationRoutes(app: Application) {
     return await UserLikesPostRelations.findAll({
       order: [['createdAt', 'DESC']],
       limit: limit ? environment.postsPerPage : Number.MAX_SAFE_INTEGER,
-      include: [
-        {
-          model: Post,
-          required: true,
-          attributes: [],
-          where: {
-            userId: userId
-          }
-        },
-        {
-          model: User,
-          attributes: ['url', 'name', 'id', 'avatar']
-        }
-      ],
       where: {
         postId: {
           [Op.notIn]: await getMutedPosts(userId)
@@ -206,19 +192,6 @@ export default function notificationRoutes(app: Application) {
     return EmojiReaction.findAll({
       order: [['createdAt', 'DESC']],
       limit: limit ? environment.postsPerPage : Number.MAX_SAFE_INTEGER,
-      include: [
-        {
-          model: Post,
-          required: true,
-          attributes: [],
-          where: {
-            userId: userId
-          }
-        },
-        {
-          model: Emoji
-        }
-      ],
       where: {
         postId: {
           [Op.notIn]: await getMutedPosts(userId)
@@ -236,13 +209,6 @@ export default function notificationRoutes(app: Application) {
   async function getNewFollows(userId: string, startCountDate: Date) {
     return {
       order: [['createdAt', 'DESC']],
-      include: [
-        {
-          model: User,
-          as: 'followed',
-          attributes: ['url', 'avatar', 'name', 'remoteId']
-        }
-      ],
       where: {
         followerId: {
           [Op.notIn]: await getBlockedIds(userId)
