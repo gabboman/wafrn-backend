@@ -72,7 +72,7 @@ export default function notificationRoutes(app: Application) {
       .map((rb: any) => rb.userId)
       .concat((await newEmojiReactions).map((react: any) => react.userId))
       .concat((await follows).map((elem:any) => elem.followerId))
-      .concat((await likes).map((like: any) => userId ))
+      .concat((await likes).map((like: any) => like.userId ))
     const posts = await Post.findAll({
       where: {
         id: {
@@ -169,6 +169,16 @@ export default function notificationRoutes(app: Application) {
     return await UserLikesPostRelations.findAll({
       order: [['createdAt', 'DESC']],
       limit: limit ? environment.postsPerPage : Number.MAX_SAFE_INTEGER,
+      include: [
+        {
+          model: Post,
+          required: true,
+          attributes: [],
+          where: {
+            userId: userId
+          }
+        },
+      ],
       where: {
         postId: {
           [Op.notIn]: await getMutedPosts(userId)
@@ -192,6 +202,16 @@ export default function notificationRoutes(app: Application) {
     return EmojiReaction.findAll({
       order: [['createdAt', 'DESC']],
       limit: limit ? environment.postsPerPage : Number.MAX_SAFE_INTEGER,
+      include: [
+        {
+          model: Post,
+          required: true,
+          attributes: [],
+          where: {
+            userId: userId
+          }
+        }
+      ],
       where: {
         postId: {
           [Op.notIn]: await getMutedPosts(userId)
