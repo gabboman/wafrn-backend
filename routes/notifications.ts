@@ -4,8 +4,10 @@ import {
   Emoji,
   EmojiReaction,
   Follows,
+  Media,
   Post,
   PostEmojiRelations,
+  PostMediaRelations,
   PostMentionsUserRelation,
   PostReport,
   User,
@@ -17,6 +19,7 @@ import { environment } from '../environment'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { getMutedPosts } from '../utils/cacheGetters/getMutedPosts'
 import getBlockedIds from '../utils/cacheGetters/getBlockedIds'
+import { getMedias } from '../utils/baseQueryNew'
 
 export default function notificationRoutes(app: Application) {
   app.get('/api/v2/notificationsScroll', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
@@ -73,6 +76,7 @@ export default function notificationRoutes(app: Application) {
       .concat((await newEmojiReactions).map((react: any) => react.userId))
       .concat((await follows).map((elem:any) => elem.followerId))
       .concat((await likes).map((like: any) => like.userId ))
+    const medias = getMedias(postIds)
     const posts = await Post.findAll({
       where: {
         id: {
@@ -89,6 +93,7 @@ export default function notificationRoutes(app: Application) {
         }
       }
     })
+    await Promise.all([medias, users])
     res.send({
       emojiReactions: await newEmojiReactions,
       users: await users,
@@ -96,7 +101,8 @@ export default function notificationRoutes(app: Application) {
       reblogs: await reblogs,
       likes: await likes,
       mentions: await mentions,
-      follows: (await follows)
+      follows: await follows,
+      medias: await medias
     })
   })
 

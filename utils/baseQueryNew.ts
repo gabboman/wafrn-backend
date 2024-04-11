@@ -209,4 +209,4 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
   }
 }
 
-export { getUnjointedPosts }
+export { getUnjointedPosts, getMedias }
