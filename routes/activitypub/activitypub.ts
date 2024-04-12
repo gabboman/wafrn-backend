@@ -50,6 +50,11 @@ function activityPubRoutes(app: Application) {
           }
         })
         if (post) {
+          const user = await User.findByPk(post.userId)
+          if (user && user.banned) {
+            res.sendStatus(410);
+            return;
+          }
           // TODO corregir esto seguramente
           res.set({
             'content-type': 'application/activity+json'
@@ -76,7 +81,11 @@ function activityPubRoutes(app: Application) {
       if (!req.params.url?.startsWith('@')) {
         const url = req.params.url.toLowerCase()
         const user = await getLocalUserByUrl(url)
-        if (user) {
+        if (user && user.banned) {
+          res.sendStatus(410);
+          return;
+        }
+        if (user && !user.banned) {
           const userForFediverse = {
             '@context': ['https://www.w3.org/ns/activitystreams', 'https://w3id.org/security/v1'],
             id: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
@@ -140,6 +149,10 @@ function activityPubRoutes(app: Application) {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
+      if (user && user.banned) {
+        res.sendStatus(410);
+        return;
+      }
       if (user) {
         const followedNumber = await User.count({
           where: {
@@ -206,6 +219,10 @@ function activityPubRoutes(app: Application) {
       if (req.params?.url) {
         const url = req.params.url.toLowerCase()
         const user = await getLocalUserByUrl(url)
+        if (user && user.banned) {
+          res.sendStatus(410);
+          return;
+        }
         if (user) {
           const followersNumber = await User.count({
             where: {
@@ -273,6 +290,10 @@ function activityPubRoutes(app: Application) {
       if (req.params?.url) {
         const url = req.params.url.toLowerCase()
         const user = await getLocalUserByUrl(url)
+        if (user && user.banned) {
+          res.sendStatus(410);
+          return;
+        }
         if (user) {
           res.set({
             'content-type': 'application/activity+json'
@@ -302,6 +323,10 @@ function activityPubRoutes(app: Application) {
       const urlToSearch = req.params?.url ? req.params.url : environment.adminUser
       const url = urlToSearch.toLowerCase()
       const user = await getLocalUserByUrl(url)
+      if (user && user.banned) {
+        res.sendStatus(410);
+        return;
+      }
       if (user) {
         res.sendStatus(200)
         await inboxQueue.add('processInbox', { petition: req.body, petitionBy: user.id }, { jobId: req.body.id })
@@ -315,11 +340,11 @@ function activityPubRoutes(app: Application) {
   app.get('/fediverse/blog/:url/outbox', checkFediverseSignature, async (req: SignedRequest, res: Response) => {
     if (req.params?.url) {
       const url = req.params.url.toLowerCase()
-      const user = await User.findOne({
-        where: {
-          url: url
-        }
-      })
+      const user = await getLocalUserByUrl(url)
+      if (user && user.banned) {
+        res.sendStatus(410);
+        return;
+      }
       if (user) {
         res.sendStatus(200)
       } else {
