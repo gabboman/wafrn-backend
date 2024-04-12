@@ -132,7 +132,7 @@ async function getPostThreadRecursive(
       postTextContent = postTextContent ? postTextContent : `<p>${lemmyName}</p>`
       const postToCreate: any = {
         content: '' + postTextContent,
-        content_warning: postPetition.sensitive
+        content_warning: postPetition.summary
           ? postPetition.summary
           : remoteUser.NSFW
           ? 'User is marked as NSFW by this instance staff. Possible NSFW without tagging'
