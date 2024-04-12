@@ -25,7 +25,7 @@ export default function notificationRoutes(app: Application) {
   app.get('/api/v2/notificationsScroll', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const userId = req.jwtData?.userId ? req.jwtData?.userId : ''
     User.findByPk(userId).then(async (usr: any) => {
-      if (usr) {
+      if (usr && req.query?.page === '0') {
         usr.lastTimeNotificationsCheck = new Date()
         await usr.save()
       }
