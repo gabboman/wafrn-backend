@@ -89,8 +89,8 @@ const User = sequelize.define(
       type: Sequelize.TEXT
     },
     NSFW: Sequelize.BOOLEAN,
-    avatar: Sequelize.STRING,
-    password: Sequelize.STRING,
+    avatar: Sequelize.TEXT,
+    password: Sequelize.TEXT,
     birthDate: Sequelize.DATE,
     activated: Sequelize.BOOLEAN,
     // we see the date that the user asked for a password reset. Valid for 2 hours
