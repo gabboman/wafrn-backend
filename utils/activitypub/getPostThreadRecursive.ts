@@ -186,11 +186,15 @@ async function getPostThreadRecursive(
           }
           const postsToQuotePromise: any[] = []
           postPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Link').forEach((quote: fediverseTag) => {
-            postsToQuotePromise.push(getPostThreadRecursive(user, quote.href))
+            postsToQuotePromise.push(getPostThreadRecursive(user, quote.href));
+            postToCreate.content = postToCreate.content.replace(quote.name, '')
           });
           const quotesToAdd = await Promise.allSettled(postsToQuotePromise);
-          quotesToAdd.filter(elem => elem.status === 'fulfilled' && elem.value?.privacy !== 10).forEach(quot => {
-            quotes.push(quot)
+          const quotesThatWillGetAdded = quotesToAdd.filter(elem => elem.status === 'fulfilled' && elem.value?.privacy !== 10)
+          quotesThatWillGetAdded.forEach(quot => {
+            if(quot.status === 'fulfilled') {
+              quotes.push(quot.value)
+            }
           })
 
         }
