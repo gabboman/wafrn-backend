@@ -147,6 +147,7 @@ async function getPostThreadRecursive(
       const mentionedUsersIds: string[] = []
       const tagsToAdd: any = []
       const emojis: any[] = []
+      const quotes: any[] = [];
       try {
         if (!remoteUser.banned && !remoteUserServerBaned) {
           for await (const mention of fediMentions) {
@@ -177,6 +178,26 @@ async function getPostThreadRecursive(
         logger.info('problem processing mentions')
         logger.info(error)
       }
+      try {
+        if(postPetition.quoteUrl) {
+          const postToQuote = await getPostThreadRecursive(user, postPetition.quoteUrl)
+          if(postToQuote.privacy != 10) {
+            quotes.push(postToQuote)
+          }
+          const postsToQuotePromise: any[] = []
+          postPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Link').forEach((quote: fediverseTag) => {
+            postsToQuotePromise.push(getPostThreadRecursive(user, quote.href))
+          });
+          const quotesToAdd = await Promise.allSettled(postsToQuotePromise);
+          quotesToAdd.filter(elem => elem.status === 'fulfilled' && elem.value?.privacy !== 10).forEach(quot => {
+            quotes.push(quot)
+          })
+
+        }
+      } catch (error) {
+        logger.info('Error processing quotes')
+        logger.debug(error)
+      }
       if (postPetition.inReplyTo) {
         const parent = await getPostThreadRecursive(user, postPetition.inReplyTo)
         postToCreate.parentId = parent?.id
@@ -197,6 +218,7 @@ async function getPostThreadRecursive(
         logger.debug('Problem processing emojis')
       }
       newPost.setMedias(medias)
+      newPost.setQuoted(quotes)
       await newPost.save()
       try {
         if (!remoteUser.banned && !remoteUserServerBaned) {

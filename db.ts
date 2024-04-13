@@ -196,6 +196,8 @@ const UserOptions = sequelize.define(
   }
 )
 
+const Quotes = sequelize.define('quotes', {})
+
 const Follows = sequelize.define(
   'follows',
   {
@@ -262,8 +264,8 @@ const Post = sequelize.define(
       allowNull: false,
       primaryKey: true
     },
-    content_warning: Sequelize.STRING,
-    content: Sequelize.TEXT,
+    content_warning: Sequelize.TEXT,
+    content: Sequelize.TEXT('medium'), // 16mb of data is more than enough
     remotePostId: Sequelize.TEXT,
     privacy: Sequelize.INTEGER,
     featured: {
@@ -595,6 +597,18 @@ ServerBlock.belongsTo(FederatedHost, {
   as: 'blockedServer'
 })
 
+Post.belongsToMany(Post, {
+  through: Quotes,
+  as: 'quoted',
+  foreignKey: 'quoterPostId'
+})
+
+Post.belongsToMany(Post, {
+  through: Quotes,
+  as: 'quoter',
+  foreignKey: 'quotedPostId'
+})
+
 PostReport.belongsTo(User)
 PostReport.belongsTo(Post)
 Post.hasMany(PostReport)
@@ -676,5 +690,6 @@ export {
   EmojiReaction,
   UserEmojiRelation,
   PostEmojiRelations,
-  PostMediaRelations
+  PostMediaRelations,
+  Quotes
 }
