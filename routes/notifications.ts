@@ -10,6 +10,7 @@ import {
   PostMediaRelations,
   PostMentionsUserRelation,
   PostReport,
+  Quotes,
   User,
   UserLikesPostRelations
 } from '../db'
@@ -38,6 +39,9 @@ export default function notificationRoutes(app: Application) {
     const emojiReactionDate = req.query?.emojiReactionDate
       ? new Date(req.query.emojiReactionDate as string)
       : new Date()
+    const quotesDate = req.query?.quotesDate ? new Date(req.query.quotesDate as string) : new Date()
+
+    const newQuotes =  Quotes.findAll(await getQuotedPostsQuery(userId, quotesDate, Op.lt, true))
 
     const reblogQuery: any = await getReblogQuery(userId, reblogsDate)
     reblogQuery.where.createdAt = {
@@ -69,12 +73,14 @@ export default function notificationRoutes(app: Application) {
       limit: environment.postsPerPage
     })
     const likes = getLikedPostsId(userId, likesDate, Op.lt, true)
-    await Promise.all([reblogs, mentions, follows, likes, mentionedPostsId, newEmojiReactions])
+    await Promise.all([reblogs, mentions, follows, likes, mentionedPostsId, newEmojiReactions, newQuotes])
     const postIds = mentionedPostsId
       .concat((await newEmojiReactions).map((react: any) => react.postId))
       .concat((await likes).map((like: any) => like.postId))
       .concat((await reblogs).map((reblog: any) => reblog.parentId))
       .concat((await reblogs).map((reblog: any) => reblog.id))
+      .concat((await newQuotes).map((quote: any) => quote.quoterPostId))
+      .concat((await newQuotes).map((quote: any) => quote.quotedPostId))
     let userIds = (await reblogs)
       .map((rb: any) => rb.userId)
       .concat((await newEmojiReactions).map((react: any) => react.userId))
@@ -107,7 +113,8 @@ export default function notificationRoutes(app: Application) {
       likes: await likes,
       mentions: await mentions,
       follows: await follows,
-      medias: await medias
+      medias: await medias,
+      quotes: await newQuotes
     })
   })
 
@@ -120,7 +127,7 @@ export default function notificationRoutes(app: Application) {
     const newPostReblogs = Post.count(await getReblogQuery(userId, startCountDate))
     const newEmojiReactions = getEmojiReactedPostsId(userId, startCountDate, Op.gt)
     const newFollows = Follows.count(await getNewFollows(userId, startCountDate))
-
+    const newQuotes = Quotes.count(await getQuotedPostsQuery(userId, startCountDate, Op.gt))
     const newLikes = (await getLikedPostsId(userId, startCountDate, Op.gt)).length
 
     let reports = 0
@@ -144,7 +151,7 @@ export default function notificationRoutes(app: Application) {
       })
     }
 
-    await Promise.all([newFollows, postMentions, newLikes, reports, awaitingAproval, newPostReblogs, newEmojiReactions])
+    await Promise.all([newFollows, postMentions, newLikes, reports, awaitingAproval, newPostReblogs, newEmojiReactions, newQuotes])
 
     res.send({
       notifications:
@@ -152,7 +159,9 @@ export default function notificationRoutes(app: Application) {
         (await postMentions) +
         (await newLikes) +
         (await newPostReblogs) +
-        (await newEmojiReactions).length,
+        (await newEmojiReactions).length +
+        (await newQuotes),
+
       reports: await reports,
       awaitingAproval: await awaitingAproval
     })
@@ -271,6 +280,21 @@ export default function notificationRoutes(app: Application) {
         },
         literal: Sequelize.literal(
           `posts.id IN (select id from posts where parentId in (select id from posts where userId = "${userId}"))`
+        )
+      }
+    }
+  }
+
+  async function getQuotedPostsQuery(userId: string, startCountDate: Date, operator: any, limit = false) {
+    return {
+      order: [['createdAt', 'DESC']],
+      limit: limit ? environment.postsPerPage : Number.MAX_SAFE_INTEGER,
+      where: {
+        createdAt: {
+          [operator]: startCountDate
+        },
+        literal: Sequelize.literal(
+          `quotedPostId in (SELECT id FROM posts WHERE userId= "${userId}")`
         )
       }
     }
