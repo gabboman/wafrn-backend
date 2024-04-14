@@ -53,8 +53,7 @@ export default function postsRoutes(app: Application) {
       const unjointedPost = await getUnjointedPosts([req.params.id], userId ? userId : 'NOT-LOGGED-IN')
       const post = unjointedPost.posts[0]
       if (post) {
-        const mentions = unjointedPost.mentions
-          .map((elem: any) => elem.userMentioned)
+        const mentions = unjointedPost.mentions.map((elem: any) => elem.userMentioned)
         if (post.userId === userId || mentions.includes(userId) || post.privacy !== 10) {
           res.send(unjointedPost)
           success = true

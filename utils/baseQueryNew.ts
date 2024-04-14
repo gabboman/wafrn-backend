@@ -17,7 +17,9 @@ import {
 } from '../db'
 import getPosstGroupDetails from './getPostGroupDetails'
 
-async function getQuotes(postIds: string[]): Promise<{ quoterPostId: string, quotedPostId: string, createdAt: Date }[]> {
+async function getQuotes(
+  postIds: string[]
+): Promise<{ quoterPostId: string; quotedPostId: string; createdAt: Date }[]> {
   return await Quotes.findAll({
     where: {
       quoterPostid: {
@@ -165,8 +167,8 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
       postIds.push(ancestor.id)
     })
   })
-  const quotes = await getQuotes(postIds);
-  const quotedPostsIds = quotes.map(quote => quote.quotedPostId)
+  const quotes = await getQuotes(postIds)
+  const quotedPostsIds = quotes.map((quote) => quote.quotedPostId)
   postIds = postIds.concat(quotedPostsIds)
   const quotedPosts = await Post.findAll({
     where: {

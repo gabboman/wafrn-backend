@@ -74,12 +74,12 @@ export default function notificationRoutes(app: Application) {
       .concat((await newEmojiReactions).map((react: any) => react.postId))
       .concat((await likes).map((like: any) => like.postId))
       .concat((await reblogs).map((reblog: any) => reblog.parentId))
-      .concat((await reblogs).map((reblog: any) => reblog.id));
+      .concat((await reblogs).map((reblog: any) => reblog.id))
     let userIds = (await reblogs)
       .map((rb: any) => rb.userId)
       .concat((await newEmojiReactions).map((react: any) => react.userId))
-      .concat((await follows).map((elem:any) => elem.followerId))
-      .concat((await likes).map((like: any) => like.userId ))
+      .concat((await follows).map((elem: any) => elem.followerId))
+      .concat((await likes).map((like: any) => like.userId))
       .concat([userId])
     const medias = getMedias(postIds)
     const posts = await Post.findAll({
@@ -188,7 +188,7 @@ export default function notificationRoutes(app: Application) {
           where: {
             userId: userId
           }
-        },
+        }
       ],
       where: {
         postId: {

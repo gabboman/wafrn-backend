@@ -28,7 +28,7 @@ export default function deletePost(app: Application) {
   app.delete('/api/deletePost', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     try {
-      const id = req.query.id as string;
+      const id = req.query.id as string
       const posterId = req.jwtData?.userId
       const user = await User.findByPk(posterId)
       if (id) {
@@ -88,7 +88,7 @@ export default function deletePost(app: Application) {
           environment.instanceUrl,
           new Date()
         )
-        if(postToDelete.privacy != 2) {
+        if (postToDelete.privacy != 2) {
           for await (const inboxChunk of _.chunk(inboxes, 50)) {
             await sendPostQueue.add(
               'sencChunk',
@@ -102,12 +102,10 @@ export default function deletePost(app: Application) {
               }
             )
           }
-  
         }
-        
+
         await deletePostCommon(id)
         success = true
-
       }
     } catch (error) {
       logger.error(error)

@@ -86,15 +86,13 @@ app.listen(PORT, environment.listenIp, () => {
   console.log('started app')
 
   if (environment.workers.mainThread) {
-    workerInbox.on('completed', (job) => {
-    })
+    workerInbox.on('completed', (job) => {})
 
     workerInbox.on('failed', (job, err) => {
       logger.warn(`${job?.id} has failed with ${err.message}`)
     })
 
-    workerPrepareSendPost.on('completed', (job) => {
-    })
+    workerPrepareSendPost.on('completed', (job) => {})
 
     workerPrepareSendPost.on('failed', (job, err) => {
       console.warn(`sending post ${job?.id} has failed with ${err.message}`)
@@ -104,11 +102,9 @@ app.listen(PORT, environment.listenIp, () => {
       console.warn(`update user ${job?.id} has failed with ${err.message}`)
     })
 
-    workerUpdateRemoteUsers.on('completed', (job) => {
-    })
+    workerUpdateRemoteUsers.on('completed', (job) => {})
 
-    workerSendPostChunk.on('completed', (job) => {
-    })
+    workerSendPostChunk.on('completed', (job) => {})
 
     workerSendPostChunk.on('failed', (job, err) => {
       console.warn(`sending post to some inboxes ${job?.id} has failed with ${err.message}`)

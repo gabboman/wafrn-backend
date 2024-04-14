@@ -57,10 +57,10 @@ async function getPetitionSigned(user: any, target: string): Promise<any> {
       throw new Error(`Invalid content type: ${contentType}`)
     }
     */
-   if(axiosResponse?.headers['content-type']?.includes('text/html')) {
-    logger.trace('Petition returned HTML. throwing exception')
-    throw new Error('Invalid content type')
-   }
+    if (axiosResponse?.headers['content-type']?.includes('text/html')) {
+      logger.trace('Petition returned HTML. throwing exception')
+      throw new Error('Invalid content type')
+    }
     res = axiosResponse.data
   } catch (error: any) {
     if (error.response?.status === 410) {

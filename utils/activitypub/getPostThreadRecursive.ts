@@ -147,7 +147,7 @@ async function getPostThreadRecursive(
       const mentionedUsersIds: string[] = []
       const tagsToAdd: any = []
       const emojis: any[] = []
-      const quotes: any[] = [];
+      const quotes: any[] = []
       try {
         if (!remoteUser.banned && !remoteUserServerBaned) {
           for await (const mention of fediMentions) {
@@ -179,27 +179,30 @@ async function getPostThreadRecursive(
         logger.info(error)
       }
       try {
-        if(postPetition.quoteUrl) {
+        if (postPetition.quoteUrl) {
           const postToQuote = await getPostThreadRecursive(user, postPetition.quoteUrl)
-          if(postToQuote && postToQuote.privacy != 10) {
+          if (postToQuote && postToQuote.privacy != 10) {
             quotes.push(postToQuote)
           }
-          if(!postToQuote) {
+          if (!postToQuote) {
             postToCreate.content = postToCreate.content + `<p>RE: ${postPetition.quoteUrl}</p>`
           }
           const postsToQuotePromise: any[] = []
-          postPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Link').forEach((quote: fediverseTag) => {
-            postsToQuotePromise.push(getPostThreadRecursive(user, quote.href));
-            postToCreate.content = postToCreate.content.replace(quote.name, '')
-          });
-          const quotesToAdd = await Promise.allSettled(postsToQuotePromise);
-          const quotesThatWillGetAdded = quotesToAdd.filter(elem => elem.status === 'fulfilled' && elem.value && elem.value.privacy !== 10)
-          quotesThatWillGetAdded.forEach(quot => {
-            if(quot.status === 'fulfilled' && ! quotes.map(q => q.id).includes(quot.value.id) ) {
+          postPetition.tag
+            ?.filter((elem: fediverseTag) => elem.type === 'Link')
+            .forEach((quote: fediverseTag) => {
+              postsToQuotePromise.push(getPostThreadRecursive(user, quote.href))
+              postToCreate.content = postToCreate.content.replace(quote.name, '')
+            })
+          const quotesToAdd = await Promise.allSettled(postsToQuotePromise)
+          const quotesThatWillGetAdded = quotesToAdd.filter(
+            (elem) => elem.status === 'fulfilled' && elem.value && elem.value.privacy !== 10
+          )
+          quotesThatWillGetAdded.forEach((quot) => {
+            if (quot.status === 'fulfilled' && !quotes.map((q) => q.id).includes(quot.value.id)) {
               quotes.push(quot.value)
             }
           })
-
         }
       } catch (error) {
         logger.info('Error processing quotes')

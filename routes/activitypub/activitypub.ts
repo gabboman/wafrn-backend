@@ -52,8 +52,8 @@ function activityPubRoutes(app: Application) {
         if (post) {
           const user = await User.findByPk(post.userId)
           if (user && user.banned) {
-            res.sendStatus(410);
-            return;
+            res.sendStatus(410)
+            return
           }
           // TODO corregir esto seguramente
           res.set({
@@ -82,8 +82,8 @@ function activityPubRoutes(app: Application) {
         const url = req.params.url.toLowerCase()
         const user = await getLocalUserByUrl(url)
         if (user && user.banned) {
-          res.sendStatus(410);
-          return;
+          res.sendStatus(410)
+          return
         }
         if (user && !user.banned) {
           const userForFediverse = {
@@ -150,8 +150,8 @@ function activityPubRoutes(app: Application) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
       if (user && user.banned) {
-        res.sendStatus(410);
-        return;
+        res.sendStatus(410)
+        return
       }
       if (user) {
         const followedNumber = await User.count({
@@ -220,8 +220,8 @@ function activityPubRoutes(app: Application) {
         const url = req.params.url.toLowerCase()
         const user = await getLocalUserByUrl(url)
         if (user && user.banned) {
-          res.sendStatus(410);
-          return;
+          res.sendStatus(410)
+          return
         }
         if (user) {
           const followersNumber = await User.count({
@@ -291,8 +291,8 @@ function activityPubRoutes(app: Application) {
         const url = req.params.url.toLowerCase()
         const user = await getLocalUserByUrl(url)
         if (user && user.banned) {
-          res.sendStatus(410);
-          return;
+          res.sendStatus(410)
+          return
         }
         if (user) {
           res.set({
@@ -324,8 +324,8 @@ function activityPubRoutes(app: Application) {
       const url = urlToSearch.toLowerCase()
       const user = await getLocalUserByUrl(url)
       if (user && user.banned) {
-        res.sendStatus(410);
-        return;
+        res.sendStatus(410)
+        return
       }
       if (user) {
         res.sendStatus(200)
@@ -342,8 +342,8 @@ function activityPubRoutes(app: Application) {
       const url = req.params.url.toLowerCase()
       const user = await getLocalUserByUrl(url)
       if (user && user.banned) {
-        res.sendStatus(410);
-        return;
+        res.sendStatus(410)
+        return
       }
       if (user) {
         res.sendStatus(200)

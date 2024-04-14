@@ -11,7 +11,7 @@ import { Op } from 'sequelize'
 import { createHash } from 'node:crypto'
 import { redisCache } from '../redis'
 import { getKey } from '../cacheGetters/getKey'
-import {SignedRequest} from '../../interfaces/fediverse/signedRequest'
+import { SignedRequest } from '../../interfaces/fediverse/signedRequest'
 const adminUser = environment.forceSync
   ? null
   : User.findOne({
@@ -54,7 +54,9 @@ export default async function checkFediverseSignature(req: SignedRequest, res: R
       }
       req.fediData = fediData
       const remoteKey = await getKey(remoteUserUrl, await adminUser)
-      success = verifyDigest(req.rawBody ? req.rawBody : '', req.headers.digest) || httpSignature.verifySignature(sigHead, remoteKey)
+      success =
+        verifyDigest(req.rawBody ? req.rawBody : '', req.headers.digest) ||
+        httpSignature.verifySignature(sigHead, remoteKey)
     } catch (error: any) {
       success = false
     }

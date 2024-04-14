@@ -265,12 +265,11 @@ async function inboxWorker(job: Job) {
             default: {
               logger.debug(`UNDO NOT IMPLEMENTED: ${body.object.type} attemping to delete post`)
               const postToDelete = await getPostThreadRecursive(user, req.body.object)
-              if(postToDelete) {
+              if (postToDelete) {
                 await deletePostCommon(postToDelete.id)
               }
               await signAndAccept(req, remoteUser, user)
               logger.debug(req.body)
-
             }
           }
           break
