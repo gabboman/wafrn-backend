@@ -27,6 +27,7 @@ import { object } from 'underscore'
 import { getUserIdFromRemoteId } from '../cacheGetters/getUserIdFromRemoteId'
 import { follow } from '../follow'
 import { getAllLocalUserIds } from '../cacheGetters/getAllLocalUserIds'
+import { deletePostCommon } from '../deletePost'
 
 async function inboxWorker(job: Job) {
   try {
@@ -228,17 +229,7 @@ async function inboxWorker(job: Job) {
                 }
               })
               if (postToDelete) {
-                const orphans = await Post.count({
-                  where: {
-                    parentId: postToDelete.id
-                  }
-                })
-                if (orphans === 0) {
-                  await postToDelete.destroy()
-                } else {
-                  // WAIT WHAT THIS SHOULD NOT BE POSSIBLE
-                  logger.warn('We are trying to delete a retoot... with children. WHAT?')
-                }
+                await deletePostCommon(postToDelete.id)
               }
               await signAndAccept(req, remoteUser, user)
               break
@@ -272,8 +263,14 @@ async function inboxWorker(job: Job) {
               break
             }
             default: {
-              logger.info(`UNDO NOT IMPLEMENTED: ${body.object.type}`)
-              logger.info(req.body)
+              logger.debug(`UNDO NOT IMPLEMENTED: ${body.object.type} attemping to delete post`)
+              const postToDelete = await getPostThreadRecursive(user, req.body.object)
+              if(postToDelete) {
+                await deletePostCommon(postToDelete.id)
+              }
+              await signAndAccept(req, remoteUser, user)
+              logger.debug(req.body)
+
             }
           }
           break
@@ -356,15 +353,7 @@ async function inboxWorker(job: Job) {
                     }
                   })
                   if (postToDelete) {
-                    const children = await postToDelete.getChildren()
-                    if (children && children.length > 0) {
-                      postToDelete.content = 'Post has been deleted in' + new Date().toString()
-                      postToDelete.setMedias([])
-                      postToDelete.setPostTags([])
-                      await postToDelete.save()
-                    } else {
-                      await postToDelete.destroy()
-                    }
+                    await deletePostCommon(postToDelete.id)
                   }
                   await signAndAccept(req, remoteUser, user)
                   break

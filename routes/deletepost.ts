@@ -9,6 +9,7 @@ import { activityPubObject } from '../interfaces/fediverse/activityPubObject'
 import _ from 'underscore'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { LdSignature } from '../utils/activitypub/rsa2017'
+import { deletePostCommon } from '../utils/deletePost'
 
 const sendPostQueue = new Queue('sendPostToInboxes', {
   connection: environment.bullmqConnection,
@@ -27,7 +28,7 @@ export default function deletePost(app: Application) {
   app.delete('/api/deletePost', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     let success = false
     try {
-      const id = req.query.id
+      const id = req.query.id as string;
       const posterId = req.jwtData?.userId
       const user = await User.findByPk(posterId)
       if (id) {
@@ -35,18 +36,6 @@ export default function deletePost(app: Application) {
           where: {
             id,
             userId: posterId
-          }
-        })
-        const children = await postToDelete.getDescendents()
-        postToDelete.removeMedias(await postToDelete.getMedias())
-        await PostTag.destroy({
-          where: {
-            postId: postToDelete.id
-          }
-        })
-        await UserLikesPostRelations.destroy({
-          where: {
-            postId: postToDelete.id
           }
         })
         const objectToSend: activityPubObject = {
@@ -99,35 +88,26 @@ export default function deletePost(app: Application) {
           environment.instanceUrl,
           new Date()
         )
-        for await (const inboxChunk of _.chunk(inboxes, 50)) {
-          await sendPostQueue.add(
-            'sencChunk',
-            {
-              objectToSend: { ...objectToSend, signature: bodySignature.signature },
-              petitionBy: user.dataValues,
-              inboxList: inboxChunk
-            },
-            {
-              priority: 50
-            }
-          )
-        }
-        await PostMentionsUserRelation.destroy({
-          where: {
-            postId: postToDelete.id
+        if(postToDelete.privacy != 2) {
+          for await (const inboxChunk of _.chunk(inboxes, 50)) {
+            await sendPostQueue.add(
+              'sencChunk',
+              {
+                objectToSend: { ...objectToSend, signature: bodySignature.signature },
+                petitionBy: user.dataValues,
+                inboxList: inboxChunk
+              },
+              {
+                priority: 50
+              }
+            )
           }
-        })
-        if (children.length === 0) {
-          await postToDelete.destroy()
-          success = true
-        } else {
-          postToDelete.content_warning = ''
-          postToDelete.content = '<p>This post has been deleted</p>'
-          await postToDelete.save()
-          success = true
+  
         }
-
+        
+        await deletePostCommon(id)
         success = true
+
       }
     } catch (error) {
       logger.error(error)
