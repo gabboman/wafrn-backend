@@ -181,8 +181,11 @@ async function getPostThreadRecursive(
       try {
         if(postPetition.quoteUrl) {
           const postToQuote = await getPostThreadRecursive(user, postPetition.quoteUrl)
-          if(postToQuote.privacy != 10) {
+          if(postToQuote && postToQuote.privacy != 10) {
             quotes.push(postToQuote)
+          }
+          if(!postToQuote) {
+            postToCreate.content = postToCreate.content + `<p>RE: ${postPetition.quoteUrl}</p>`
           }
           const postsToQuotePromise: any[] = []
           postPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Link').forEach((quote: fediverseTag) => {
