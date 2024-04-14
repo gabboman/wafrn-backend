@@ -10,11 +10,22 @@ import {
   QuestionPoll,
   QuestionPollAnswer,
   QuestionPollQuestion,
+  Quotes,
   User,
   UserEmojiRelation,
   UserLikesPostRelations
 } from '../db'
 import getPosstGroupDetails from './getPostGroupDetails'
+
+async function getQuotes(postIds: string[]): Promise<{ quoterPostId: string, quotedPostId: string, createdAt: Date }[]> {
+  return await Quotes.findAll({
+    where: {
+      quoterPostid: {
+        [Op.in]: postIds
+      }
+    }
+  })
+}
 
 async function getMedias(postIds: string[]) {
   return await Media.findAll({
@@ -132,7 +143,7 @@ async function getEmojis(input: { userIds: string[]; postIds: string[] }): Promi
 async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
   // we need a list of all the userId we just got from the post
   let userIds: string[] = []
-  const postIds: string[] = []
+  let postIds: string[] = []
   const posts = await Post.findAll({
     include: [
       {
@@ -182,7 +193,16 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
       }
     ]
   })
-
+  const quotes = await getQuotes(postIds);
+  const quotedPostsIds = quotes.map(quote => quote.quotedPostId)
+  postIds = postIds.concat(quotedPostsIds)
+  const quotedPosts = Post.findAll({
+    where: {
+      id: {
+        [Op.in]: quotedPostsIds
+      }
+    }
+  })
   const medias = getMedias(postIds)
   const tags = getTags(postIds)
   const likes = await getLikes(postIds)
@@ -196,7 +216,7 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
     }
   })
   const postWithNotes = getPosstGroupDetails(posts)
-  await Promise.all([emojis, users, polls, medias, tags, postWithNotes])
+  await Promise.all([emojis, users, polls, medias, tags, postWithNotes, quotedPosts])
   return {
     posts: await postWithNotes,
     emojiRelations: await emojis,
@@ -205,7 +225,9 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
     polls: await polls,
     medias: await medias,
     tags: await tags,
-    likes: likes
+    likes: likes,
+    quotes: quotes,
+    quotedPosts: await quotedPosts
   }
 }
 
