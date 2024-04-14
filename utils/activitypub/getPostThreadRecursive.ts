@@ -193,9 +193,9 @@ async function getPostThreadRecursive(
             postToCreate.content = postToCreate.content.replace(quote.name, '')
           });
           const quotesToAdd = await Promise.allSettled(postsToQuotePromise);
-          const quotesThatWillGetAdded = quotesToAdd.filter(elem => elem.status === 'fulfilled' && elem.value?.privacy !== 10)
+          const quotesThatWillGetAdded = quotesToAdd.filter(elem => elem.status === 'fulfilled' && elem.value && elem.value.privacy !== 10)
           quotesThatWillGetAdded.forEach(quot => {
-            if(quot.status === 'fulfilled') {
+            if(quot.status === 'fulfilled' && ! quotes.map(q => q.id).includes(quot.value.id) ) {
               quotes.push(quot.value)
             }
           })
