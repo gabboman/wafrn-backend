@@ -165,6 +165,17 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
       postIds.push(ancestor.id)
     })
   })
+  const quotes = await getQuotes(postIds);
+  const quotedPostsIds = quotes.map(quote => quote.quotedPostId)
+  postIds = postIds.concat(quotedPostsIds)
+  const quotedPosts = await Post.findAll({
+    where: {
+      id: {
+        [Op.in]: quotedPostsIds
+      }
+    }
+  })
+  userIds = userIds.concat(quotedPosts.map((q: any) => q.userId))
   const emojis = getEmojis({
     userIds,
     postIds
@@ -193,17 +204,6 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
       }
     ]
   })
-  const quotes = await getQuotes(postIds);
-  const quotedPostsIds = quotes.map(quote => quote.quotedPostId)
-  postIds = postIds.concat(quotedPostsIds)
-  const quotedPosts = await Post.findAll({
-    where: {
-      id: {
-        [Op.in]: quotedPostsIds
-      }
-    }
-  })
-  userIds = userIds.concat(quotedPosts.map((q: any) => q.userId))
   const medias = getMedias(postIds)
   const tags = getTags(postIds)
   const likes = await getLikes(postIds)
