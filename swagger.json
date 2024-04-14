@@ -352,10 +352,17 @@
         }
       }
     },
-    "/api/notificationsScroll": {
+    "/api/v2/notificationsScroll": {
       "get": {
         "description": "",
         "parameters": [
+          {
+            "name": "req",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "authorization",
             "in": "header",
@@ -377,7 +384,7 @@
         }
       }
     },
-    "/api/notificationsCount": {
+    "/api/v2/notificationsCount": {
       "get": {
         "description": "",
         "parameters": [
@@ -772,6 +779,9 @@
                   "federateWithThreads": {
                     "example": "any"
                   },
+                  "disableForceAltText": {
+                    "example": "any"
+                  },
                   "defaultPostEditorPrivacy": {
                     "example": "any"
                   },
@@ -908,6 +918,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
