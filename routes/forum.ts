@@ -3,7 +3,7 @@ import checkIpBlocked from '../utils/checkIpBlocked'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { Application, Request, Response } from 'express'
 import { Post, QuestionPoll, QuestionPollAnswer, QuestionPollQuestion, User, sequelize } from '../db'
-import { Op } from 'sequelize'
+import { Op, QueryTypes } from 'sequelize'
 import {
   getEmojis,
   getLikes,
@@ -27,15 +27,16 @@ export default function forumRoutes(app: Application) {
     })
     if (postsToGet) {
       if (postsToGet.hierarchyLevel === 1) {
+        let postIds = (
+          await sequelize.query(`SELECT DISTINCT postsId FROM postsancestors where ancestorId = "${postId}"`, {
+            type: QueryTypes.SELECT
+          })
+        ).map((elem: any) => elem.postsId)
         const fullPostsToGet = await Post.findAll({
           where: {
-            [Op.or]: [
-              {
-                id: postId
-              },
-              //IN THEORY this would be REAAAAAAALLY dangerous. but this is inside of an if. good luck with a post that is a scape stuff
-              sequelize.literal(`id IN (SELECT DISTINCT postsId FROM postsancestors where ancestorId = "${postId}")`)
-            ],
+            id: {
+              [Op.in]: postIds.concat([postId])
+            },
             privacy: {
               [Op.ne]: 10
             },
@@ -61,7 +62,6 @@ export default function forumRoutes(app: Application) {
             ]
           }
         })
-        let postIds = fullPostsToGet.map((elem: any) => elem.id)
         const quotes = await getQuotes(postIds)
         const quotedPostsIds = quotes.map((quote) => quote.quotedPostId)
         postIds = postIds.concat(quotedPostsIds)
@@ -128,7 +128,6 @@ export default function forumRoutes(app: Application) {
           quotes: quotes,
           quotedPosts: await quotedPosts
         })
-        //res.send(await getUnjointedPosts(postIds, userId))
       } else {
         const parent = await postsToGet.getAncestors({
           where: {
