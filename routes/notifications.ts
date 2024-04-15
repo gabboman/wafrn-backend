@@ -151,7 +151,16 @@ export default function notificationRoutes(app: Application) {
       })
     }
 
-    await Promise.all([newFollows, postMentions, newLikes, reports, awaitingAproval, newPostReblogs, newEmojiReactions, newQuotes])
+    await Promise.all([
+      newFollows,
+      postMentions,
+      newLikes,
+      reports,
+      awaitingAproval,
+      newPostReblogs,
+      newEmojiReactions,
+      newQuotes
+    ])
 
     res.send({
       notifications:
@@ -294,11 +303,11 @@ export default function notificationRoutes(app: Application) {
           [operator]: startCountDate
         },
         quotedPostId: {
-          [Op.notIn]: (await getMentionedPostsId(userId, startCountDate, operator)).map((mention: any) => mention.postId)
+          [Op.notIn]: (await getMentionedPostsId(userId, startCountDate, operator)).map(
+            (mention: any) => mention.postId
+          )
         },
-        literal: Sequelize.literal(
-          `quotedPostId IN (SELECT id FROM posts WHERE userId= "${userId}")`
-        )
+        literal: Sequelize.literal(`quotedPostId IN (SELECT id FROM posts WHERE userId= "${userId}")`)
       }
     }
   }
