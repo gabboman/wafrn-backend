@@ -72,7 +72,7 @@ export default function forumRoutes(app: Application) {
             }
           }
         })
-        let userIds = fullPostsToGet.map((pst: any) => userId)
+        let userIds = fullPostsToGet.map((pst: any) => pst.userId)
         userIds = userIds.concat(quotedPosts.map((q: any) => q.userId))
         const emojis = getEmojis({
           userIds,
