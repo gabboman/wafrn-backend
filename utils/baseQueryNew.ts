@@ -234,4 +234,4 @@ async function getUnjointedPosts(postIdsInput: string[], posterId: string) {
   }
 }
 
-export { getUnjointedPosts, getMedias }
+export { getUnjointedPosts, getMedias, getQuotes, getMentionedUserIds, getTags, getLikes, getEmojis  }
