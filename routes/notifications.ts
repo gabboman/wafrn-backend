@@ -41,7 +41,7 @@ export default function notificationRoutes(app: Application) {
       : new Date()
     const quotesDate = req.query?.quotesDate ? new Date(req.query.quotesDate as string) : new Date()
 
-    const newQuotes =  Quotes.findAll(await getQuotedPostsQuery(userId, quotesDate, Op.lt, true))
+    const newQuotes = await Quotes.findAll(await getQuotedPostsQuery(userId, quotesDate, Op.lt, true))
 
     const reblogQuery: any = await getReblogQuery(userId, reblogsDate)
     reblogQuery.where.createdAt = {
@@ -288,13 +288,16 @@ export default function notificationRoutes(app: Application) {
   async function getQuotedPostsQuery(userId: string, startCountDate: Date, operator: any, limit = false) {
     return {
       order: [['createdAt', 'DESC']],
-      limit: limit ? environment.postsPerPage : Number.MAX_SAFE_INTEGER,
+      limit: limit ? environment.postsPerPage : 50,
       where: {
         createdAt: {
           [operator]: startCountDate
         },
+        quotedPostId: {
+          [Op.notIn]: (await getMentionedPostsId(userId, startCountDate, operator)).map((mention: any) => mention.postId)
+        },
         literal: Sequelize.literal(
-          `quotedPostId in (SELECT id FROM posts WHERE userId= "${userId}")`
+          `quotedPostId IN (SELECT id FROM posts WHERE userId= "${userId}")`
         )
       }
     }
