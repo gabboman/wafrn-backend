@@ -8,7 +8,7 @@ import blockRoutes from './routes/blocks'
 import mediaRoutes from './routes/media'
 import postsRoutes from './routes/posts'
 import searchRoutes from './routes/search'
-import deletePost from './routes/deletepost'
+import deletePost from './routes/deletePost'
 import overrideContentType from './utils/overrideContentType'
 import { environment } from './environment'
 import frontend from './routes/frontend'
@@ -27,6 +27,7 @@ import statusRoutes from './routes/status'
 import dashboardRoutes from './routes/dashboard'
 import forumRoutes from './routes/forum'
 import { SignedRequest } from './interfaces/fediverse/signedRequest'
+import silencePostRoutes from './routes/silencePost'
 
 const swaggerJSON = require('./swagger.json')
 // rest of the code remains same
@@ -80,6 +81,7 @@ dashboardRoutes(app)
 listRoutes(app)
 frontend(app)
 forumRoutes(app)
+silencePostRoutes(app)
 statusRoutes(app)
 
 app.listen(PORT, environment.listenIp, () => {
