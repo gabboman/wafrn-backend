@@ -7,12 +7,9 @@ import { Post, SilencedPost } from '../db'
 import { redisCache } from '../utils/redis'
 
 export default function silencePostRoutes(app: Application) {
-  app.get('/api/v2/silencedPostList', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
-    const userId = req.jwtData?.userId as string
-    const silencedIds = await getMutedPosts(userId)
-    res.send(await getUnjointedPosts(silencedIds, userId))
-  })
-
+  
+  // to see your silenced posts we usethe dashboard endpoint with level 25
+  
   app.post('/api/v2/unsilencePost', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const userId = req.jwtData?.userId as string
     const idPostToUnsilence = req.body.postId
@@ -43,6 +40,7 @@ export default function silencePostRoutes(app: Application) {
           userId: userId
         }
       })
+      // we need to check that the user is not adding to the list a post that is not theirs. If they could do that they could theoretically deanonimize posts
       if (postToSilence) {
         await SilencedPost.create({
           userId: userId,

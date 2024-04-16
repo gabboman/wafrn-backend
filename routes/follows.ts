@@ -13,6 +13,7 @@ import { redisCache } from '../utils/redis'
 import getFollowedsIds from '../utils/cacheGetters/getFollowedsIds'
 import { getNotYetAcceptedFollowedids } from '../utils/cacheGetters/getNotYetAcceptedFollowedIds'
 import { getUserOptions } from '../utils/cacheGetters/getUserOptions'
+import { getMutedPosts } from '../utils/cacheGetters/getMutedPosts'
 
 export default function followsRoutes(app: Application) {
   app.post('/api/follow', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
@@ -67,6 +68,7 @@ export default function followsRoutes(app: Application) {
     })
   })
 
+  // TODO: should rename this to "get useful sstuff"
   app.get('/api/getFollowedUsers', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const followedUsers = getFollowedsIds(req.jwtData?.userId as string)
     const blockedUsers = getBlockedIds(req.jwtData?.userId as string)
@@ -75,7 +77,8 @@ export default function followsRoutes(app: Application) {
     let user = User.findByPk(req.jwtData?.userId, {
       attributes: ['banned']
     })
-    Promise.all([user, followedUsers, blockedUsers, user, notAcceptedFollows, options])
+    const silencedPosts = getMutedPosts(req.jwtData?.userId as string)
+    Promise.all([user, followedUsers, blockedUsers, user, notAcceptedFollows, options, silencedPosts])
     user = await user
     if (!user || user.banned) {
       res.sendStatus(401)
@@ -84,7 +87,8 @@ export default function followsRoutes(app: Application) {
         followedUsers: await followedUsers,
         blockedUsers: await blockedUsers,
         notAcceptedFollows: await notAcceptedFollows,
-        options: await options
+        options: await options,
+        silencedPosts: await silencedPosts
       })
     }
   })

@@ -30,6 +30,7 @@ import getNonFollowedLocalUsersIds from '../utils/cacheGetters/getNotFollowedLoc
 import getBlockedIds from '../utils/cacheGetters/getBlockedIds'
 import getPosstGroupDetails from '../utils/getPostGroupDetails'
 import { getUnjointedPosts } from '../utils/baseQueryNew'
+import { getMutedPosts } from '../utils/cacheGetters/getMutedPosts'
 
 export default function dashboardRoutes(app: Application) {
   app.get('/api/v2/dashboard', optionalAuthentication, async (req: AuthorizedRequest, res: Response) => {
@@ -122,6 +123,14 @@ export default function dashboardRoutes(app: Application) {
           ]
         }
         break
+      }
+      case 25: {
+
+        whereObject = {
+          id: {
+            [Op.in]: await getMutedPosts(posterId)
+          }
+        }
       }
     }
     // we get the list of posts
