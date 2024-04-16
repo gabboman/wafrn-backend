@@ -3,7 +3,7 @@ import { authenticateToken } from '../utils/authenticateToken'
 import AuthorizedRequest from '../interfaces/authorizedRequest'
 import { getMutedPosts } from '../utils/cacheGetters/getMutedPosts'
 import { getUnjointedPosts } from '../utils/baseQueryNew'
-import { SilencedPost } from '../db'
+import { Post, SilencedPost } from '../db'
 import { redisCache } from '../utils/redis'
 
 export default function silencePostRoutes(app: Application) {
@@ -35,12 +35,21 @@ export default function silencePostRoutes(app: Application) {
   app.post('/api/v2/silencePost', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const userId = req.jwtData?.userId as string
     const idPostToUnsilence = req.body.postId
+
     if (idPostToUnsilence) {
-      await SilencedPost.create({
-        userId: userId,
-        postId: idPostToUnsilence
+      const postToSilence = await Post.findOne({
+        where: {
+          id: idPostToUnsilence,
+          userId: userId
+        }
       })
-      await redisCache.del('mutedPosts:' + userId)
+      if (postToSilence) {
+        await SilencedPost.create({
+          userId: userId,
+          postId: idPostToUnsilence
+        })
+        await redisCache.del('mutedPosts:' + userId)
+      }
       res.send({ success: true })
     } else {
       res.send({
