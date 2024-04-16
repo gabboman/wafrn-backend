@@ -7,7 +7,7 @@ import { Post, SilencedPost } from '../db'
 import { redisCache } from '../utils/redis'
 
 export default function silencePostRoutes(app: Application) {
-  app.get('/api/v2/silencedPosts', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+  app.get('/api/v2/silencedPostList', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const userId = req.jwtData?.userId as string
     const silencedIds = await getMutedPosts(userId)
     res.send(await getUnjointedPosts(silencedIds, userId))
