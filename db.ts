@@ -350,6 +350,17 @@ const EmojiReaction = sequelize.define('emojiReaction', {
     allowNull: true
   },
   content: Sequelize.TEXT
+}, {
+  indexes: [
+    {
+      unique: true,
+      fields: [
+        {
+          attribute: 'remoteId',
+          length: 768
+        }
+      ]
+    },]
 })
 
 const EmojiCollection = sequelize.define('emojiCollections', {
