@@ -90,7 +90,8 @@ export default function dashboardRoutes(app: Application) {
       case 10: {
         // we get the list of posts twice woopsie. Should fix but this way is not going to be "that much"
         const dms = await Post.findAll({
-          attributes: ['id'],
+          order: [['createdAt', 'DESC']],
+          limit: POSTS_PER_PAGE,
           include: [
             {
               model: User,
@@ -98,11 +99,12 @@ export default function dashboardRoutes(app: Application) {
               where: {
                 id: posterId
               },
-              attributes: ['id']
+              attributes: []
             }
           ],
           where: {
-            privacy: 10
+            privacy: 10,
+            createdAt: { [Op.lt]: getStartScrollParam(req) }
           }
         })
 
@@ -125,7 +127,6 @@ export default function dashboardRoutes(app: Application) {
         break
       }
       case 25: {
-
         whereObject = {
           id: {
             [Op.in]: await getMutedPosts(posterId)
