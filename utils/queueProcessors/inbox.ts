@@ -453,6 +453,7 @@ async function inboxWorker(job: Job) {
         }
 
         // activities that we ignore:
+        case 'CacheFile':
         case 'View': {
           await signAndAccept(req, remoteUser, user)
           break
