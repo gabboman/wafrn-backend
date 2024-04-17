@@ -7,9 +7,8 @@ import { Post, SilencedPost } from '../db'
 import { redisCache } from '../utils/redis'
 
 export default function silencePostRoutes(app: Application) {
-  
   // to see your silenced posts we usethe dashboard endpoint with level 25
-  
+
   app.post('/api/v2/unsilencePost', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const userId = req.jwtData?.userId as string
     const idPostToUnsilence = req.body.postId
