@@ -86,7 +86,7 @@ async function getRemoteActor(actorUrl: string, user: any, level = 0, forceUpdat
       }
       const userToCreate = {
         url: `@${userPetition.preferredUsername}@${url.host}`,
-        name: userPetition.name,
+        name: userPetition.name ? userPetition.name : userPetition.preferredUsername,
         email: null,
         description: userPetition.summary,
         avatar: userPetition.icon?.url ? userPetition.icon.url : `${environment.mediaUrl}/uploads/default.webp`,
