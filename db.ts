@@ -338,30 +338,35 @@ const Emoji = sequelize.define('emojis', {
   external: Sequelize.BOOLEAN
 })
 
-const EmojiReaction = sequelize.define('emojiReaction', {
-  id: {
-    type: Sequelize.UUID,
-    defaultValue: Sequelize.UUIDV4,
-    allowNull: false,
-    primaryKey: true
+const EmojiReaction = sequelize.define(
+  'emojiReaction',
+  {
+    id: {
+      type: Sequelize.UUID,
+      defaultValue: Sequelize.UUIDV4,
+      allowNull: false,
+      primaryKey: true
+    },
+    remoteId: {
+      type: Sequelize.TEXT,
+      allowNull: true
+    },
+    content: Sequelize.TEXT
   },
-  remoteId: {
-    type: Sequelize.TEXT,
-    allowNull: true
-  },
-  content: Sequelize.TEXT
-}, {
-  indexes: [
-    {
-      unique: true,
-      fields: [
-        {
-          attribute: 'remoteId',
-          length: 768
-        }
-      ]
-    },]
-})
+  {
+    indexes: [
+      {
+        unique: true,
+        fields: [
+          {
+            attribute: 'remoteId',
+            length: 768
+          }
+        ]
+      }
+    ]
+  }
+)
 
 const EmojiCollection = sequelize.define('emojiCollections', {
   id: {
