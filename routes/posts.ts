@@ -243,7 +243,7 @@ export default function postsRoutes(app: Application) {
           }
         }
 
-        const content = req.body.content ? req.body.content.trim() : ''
+        let content = req.body.content ? req.body.content.trim() : ''
         const content_warning = req.body.content_warning ? req.body.content_warning.trim() : ''
         const mentionsToAdd: string[] = []
         let mediaToAdd: any[] = []
@@ -313,6 +313,38 @@ export default function postsRoutes(app: Application) {
               message: 'You can not mention an user that you have blocked or has blocked you'
             })
             return null
+          }
+          const usersMentioned = await User.findAll({
+            where: {
+              id: {
+                [Op.in]: mentionsToAdd
+              }
+            }
+          })
+          if (usersMentioned && usersMentioned.length > 0) {
+            if (mentionsInPost && mentionsInPost.length > 0) {
+              for (let index = 0; index < mentionsInPost.length; index++) {
+                const elem = mentionsInPost[index]
+                if (elem.attribs['data-id']) {
+                  const userMentioned = usersMentioned.find((usr: any) => elem.attribs['data-id'] === usr.id)
+                  if (userMentioned) {
+                    const url = userMentioned.url.startsWith('@')
+                      ? `${userMentioned.url.split('@')[1]}`
+                      : `${userMentioned.url}`
+                    const remoteId = userMentioned.url.startsWith('@')
+                      ? userMentioned.remoteId
+                      : `${environment.frontendUrl}/fediverse/blog/${userMentioned.url}`
+                    const toReplace = parsedAsHTML.html(elem)
+                    // '<span class="h-card" translate="no"><a href="https://dev2.wafrn.net/blog/admin" class="u-url mention">@<span>admin</span></a></span>'
+
+                    content = content.replaceAll(
+                      toReplace,
+                      `<span class="h-card" translate="no"><a href="${remoteId}" class="u-url mention">@<span>${url}</span></a></span>`
+                    )
+                  }
+                }
+              }
+            }
           }
         }
         let post: any

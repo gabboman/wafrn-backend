@@ -292,7 +292,7 @@ async function inboxWorker(job: Job) {
                     remoteId: body.id,
                     content: body.content,
                     userId: remoteUser.id,
-                    postId: postToBeLiked.id,
+                    postId: postToBeLiked.id
                   })
               if (body.tag) {
                 const emojiRemote = req.body.tag[0]

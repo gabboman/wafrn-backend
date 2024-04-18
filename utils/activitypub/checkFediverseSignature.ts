@@ -22,45 +22,41 @@ const adminUser = environment.forceSync
 
 export default async function checkFediverseSignature(req: SignedRequest, res: Response, next: NextFunction) {
   let success = false
-  let hostUrl = 'somewhere not specified'
-  const digest = req.headers.digest
-  const signature = req.headers.signature
-  if (digest && signature) {
-    try {
-      hostUrl = `petition without sighead ${req.header('host')}`
-      const sigHead = httpSignature.parseRequest(req, {
-        headers: ['(request-target)', 'digest', 'host', 'date']
+  let hostUrl = req.header('host') ? `petition without sighead ${req.header('host')}` : 'somewhere not specified'
+  try {
+    const sigHead = httpSignature.parseRequest(req, {
+      headers: ['(request-target)', 'digest', 'host', 'date']
+    })
+    const remoteUserUrl = sigHead.keyId.split('#')[0]
+    hostUrl = new URL(remoteUserUrl).host
+    let bannedHostInCache = await redisCache.get('server:' + hostUrl)
+    if (bannedHostInCache === null || bannedHostInCache === undefined) {
+      const newResult = await FederatedHost.findOne({
+        where: {
+          [Op.or]: [
+            sequelize.where(sequelize.fn('LOWER', sequelize.col('displayName')), 'LIKE', `${hostUrl.toLowerCase()}`)
+          ]
+        }
       })
-      const remoteUserUrl = sigHead.keyId.split('#')[0]
-      hostUrl = new URL(remoteUserUrl).host
-      let bannedHostInCache = await redisCache.get('server:' + hostUrl)
-      if (bannedHostInCache === null || bannedHostInCache === undefined) {
-        const newResult = await FederatedHost.findOne({
-          where: {
-            [Op.or]: [
-              sequelize.where(sequelize.fn('LOWER', sequelize.col('displayName')), 'LIKE', `${hostUrl.toLowerCase()}`)
-            ]
-          }
-        })
-        bannedHostInCache = newResult?.blocked.toString().toLowerCase()
-        redisCache.set('server:' + hostUrl, bannedHostInCache ? bannedHostInCache : 'false')
-      }
-      if (bannedHostInCache === 'true') {
-        return res.sendStatus(401)
-      }
-      const fediData = {
-        fediHost: hostUrl,
-        remoteUserUrl: remoteUserUrl
-      }
-      req.fediData = fediData
-      const remoteKey = await getKey(remoteUserUrl, await adminUser)
-      success =
-        verifyDigest(req.rawBody ? req.rawBody : '', req.headers.digest) ||
-        httpSignature.verifySignature(sigHead, remoteKey)
-    } catch (error: any) {
-      success = false
+      bannedHostInCache = newResult?.blocked.toString().toLowerCase()
+      redisCache.set('server:' + hostUrl, bannedHostInCache ? bannedHostInCache : 'false')
     }
+    if (bannedHostInCache === 'true') {
+      return res.sendStatus(401)
+    }
+    const fediData = {
+      fediHost: hostUrl,
+      remoteUserUrl: remoteUserUrl
+    }
+    req.fediData = fediData
+    const remoteKey = await getKey(remoteUserUrl, await adminUser)
+    success =
+      verifyDigest(req.rawBody ? req.rawBody : '', req.headers.digest) ||
+      httpSignature.verifySignature(sigHead, remoteKey)
+  } catch (error: any) {
+    success = false
   }
+
   if (!success) {
     logger.trace(`Failed to verify signature in petition from ${hostUrl}`)
     return res.sendStatus(401)
