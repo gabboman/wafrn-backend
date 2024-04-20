@@ -171,7 +171,7 @@ async function inboxWorker(job: Job) {
             }
             case 'Person': {
               if (body.id) {
-                getRemoteActor(body.id, user, 0, true)
+                await getRemoteActor(body.id, user, 0, true)
                 await signAndAccept(req, remoteUser, user)
               }
               break
@@ -423,6 +423,8 @@ async function inboxWorker(job: Job) {
         // TODO get list of users who where following old account
         // then make them follow the new one, sending petition
         case 'Move': {
+          logger.warn({message: 'moving user being ignored', object: req.body})
+          /*
           const newUser = await getRemoteActor(req.body.object, user)
           const followsToMove = await Follows.findAll({
             where: {
@@ -450,7 +452,8 @@ async function inboxWorker(job: Job) {
             })
             await Promise.allSettled(newFollows)
           }
-          await signAndAccept(req, remoteUser, user)
+          await signAndAccept(req, remoteUser, user)*/
+
           break
         }
 
