@@ -114,6 +114,7 @@ const User = sequelize.define(
     },
     remoteInbox: Sequelize.TEXT,
     remoteId: Sequelize.TEXT,
+    remoteMentionUrl: Sequelize.TEXT,
     banned: {
       type: Sequelize.BOOLEAN,
       defaultValue: false
