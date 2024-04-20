@@ -98,8 +98,8 @@ function activityPubRoutes(app: Application) {
             preferredUsername: user.url.toLowerCase(),
             name: user.name,
             summary: user.description,
-            url: `${environment.frontendUrl}/blog/${user.url.toLowerCase()}`,
-            manuallyApprovesFollowers: false,
+            url: `${environment.frontendUrl}/fediverse/blog/${user.url.toLowerCase()}`,
+            manuallyApprovesFollowers: user.manuallyAcceptsFollows,
             discoverable: true,
             published: user.createdAt,
             endpoints: {
