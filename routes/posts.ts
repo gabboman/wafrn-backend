@@ -334,12 +334,13 @@ export default function postsRoutes(app: Application) {
                     const remoteId = userMentioned.url.startsWith('@')
                       ? userMentioned.remoteId
                       : `${environment.frontendUrl}/fediverse/blog/${userMentioned.url}`
+                    const remoteUrl = userMentioned.remoteMentionUrl ? userMentioned.remoteMentionUrl : remoteId
                     const toReplace = parsedAsHTML.html(elem)
                     // '<span class="h-card" translate="no"><a href="https://dev2.wafrn.net/blog/admin" class="u-url mention">@<span>admin</span></a></span>'
 
                     content = content.replaceAll(
                       toReplace,
-                      `<span class="h-card" translate="no"><a href="${remoteId}" class="u-url mention">@<span>${url}</span></a></span>`
+                      `<span class="h-card" translate="no"><a href="${remoteUrl}" class="u-url mention">@<span>${url}</span></a></span>`
                     )
                   }
                 }
