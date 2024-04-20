@@ -45,7 +45,11 @@ async function processChunk(users: any[]) {
   const promises = users.map(async (actor: any) => getRemoteActorIdProcessor({
     data: { actorUrl: actor.remoteId, userId: (await adminUser).id, forceUpdate: true }
   } as Job))
-  await Promise.all(promises)
+  try {
+    await Promise.allSettled(promises)
+  } catch (error) {
+    console.log('error in one of the chonks')
+  }
   
 }
 
