@@ -38,6 +38,7 @@ async function updateAllUsers() {
     await processChunk(chunk)
     console.log('chunk finished')
   }
+  console.log('------FINISHED-----')
 }
 
 async function processChunk(users: any[]) {
