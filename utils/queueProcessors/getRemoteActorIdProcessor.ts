@@ -50,7 +50,7 @@ async function getRemoteActorIdProcessor(job: Job) {
         let userRes
         if (res) {
           userRes = await User.findByPk(res)
-          userRes.update({ userData })
+          userRes.update(userData)
           await userRes.save()
         } else {
           userRes = await User.create(userData)
