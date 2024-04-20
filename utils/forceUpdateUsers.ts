@@ -17,6 +17,7 @@ async function updateAllUsers() {
   adminUser = await adminUser;
   
   const allRemoteUsers = await User.findAll({
+    order: [['updatedAt', 'ASC']],
     include: [
       {
         model: FederatedHost,
