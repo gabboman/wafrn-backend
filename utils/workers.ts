@@ -38,7 +38,7 @@ const workerGetUser = new Worker('getRemoteActorId', async (job: Job) => await g
   metrics: {
     maxDataPoints: MetricsTime.ONE_WEEK * 2
   },
-  concurrency: environment.workers.low,
+  concurrency: environment.workers.high,
   lockDuration: 120000
 })
 
