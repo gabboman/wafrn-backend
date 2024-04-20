@@ -32,6 +32,7 @@ async function getRemoteActorIdProcessor(job: Job) {
           }
           federatedHost = await FederatedHost.create(federatedHostToCreate)
         }
+        const remoteMentionUrl = typeof userPetition.url === 'string' ? userPetition.url : ''
         const userData = {
           url: `@${userPetition.preferredUsername}@${url.host}`,
           name: userPetition.name ? userPetition.name : userPetition.preferredUsername,
@@ -45,7 +46,7 @@ async function getRemoteActorIdProcessor(job: Job) {
           remoteId: actorUrl,
           activated: true,
           federatedHostId: federatedHost.id,
-          remoteMentionUrl: userPetition.url,
+          remoteMentionUrl: remoteMentionUrl,
           updatedAt: new Date()
         }
         let userRes
