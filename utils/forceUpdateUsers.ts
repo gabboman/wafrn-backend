@@ -19,12 +19,12 @@ async function updateAllUsers() {
       }
     }
   })
-  allRemoteUsers.forEach(async (actor: any) => {
+  for await (const actor of allRemoteUsers) {
     console.log(actor.url)
     await getRemoteActorIdProcessor({
       data: { actorUrl: actor.remoteId, userId: adminUser.id, forceUpdate: true }
     } as Job)
-  })
+  }
 }
 
 updateAllUsers()
