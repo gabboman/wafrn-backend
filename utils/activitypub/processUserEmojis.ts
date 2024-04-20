@@ -1,4 +1,4 @@
-import { Emoji } from '../../db'
+import { Emoji, UserEmojiRelation } from '../../db'
 
 async function processUserEmojis(user: any, fediEmojis: any[]) {
   //await user.removeEmojis();
@@ -23,7 +23,11 @@ async function processUserEmojis(user: any, fediEmojis: any[]) {
       emojis.push(emojiToAdd)
     }
   }
-
+  await UserEmojiRelation.destroy({
+    where: {
+      userId: user.id
+    }
+  })
   return await user.setEmojis(emojis)
 }
 
