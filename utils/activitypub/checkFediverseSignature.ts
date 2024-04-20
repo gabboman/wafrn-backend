@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { FederatedHost, User, sequelize } from '../../db'
 import { environment } from '../../environment'
-import { getRemoteActor } from './getRemoteActor'
 import { logger } from '../logger'
 import crypto from 'crypto'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
