@@ -1,22 +1,10 @@
 import { User } from '../db'
-import { Queue } from 'bullmq'
+import { Job, Queue } from 'bullmq'
 import { environment } from '../environment'
 import { Op } from 'sequelize'
-import { getRemoteActor } from './activitypub/getRemoteActor'
+import { getRemoteActorIdProcessor } from './queueProcessors/getRemoteActorIdProcessor'
 
 async function updateAllUsers() {
-  const queue = new Queue('getRemoteActorId', {
-    connection: environment.bullmqConnection,
-    defaultJobOptions: {
-      removeOnComplete: true,
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 1000
-      },
-      removeOnFail: 25000
-    }
-  })
   console.log('lets a update all users that we caaaaaaaaan')
 
   const adminUser = await User.findOne({
@@ -33,10 +21,9 @@ async function updateAllUsers() {
   })
   allRemoteUsers.forEach(async (actor: any) => {
     console.log(actor.url)
-    await queue.add(
-      'getRemoteActorId',
-      { actorUrl: actor.url, userId: adminUser, forceUpdate: true }
-    )
+    await getRemoteActorIdProcessor({
+      data: { actorUrl: actor.remoteId, userId: adminUser.id, forceUpdate: true }
+    } as Job)
   })
 }
 
