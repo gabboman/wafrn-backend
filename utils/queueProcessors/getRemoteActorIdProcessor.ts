@@ -45,7 +45,8 @@ async function getRemoteActorIdProcessor(job: Job) {
           remoteId: actorUrl,
           activated: true,
           federatedHostId: federatedHost.id,
-          remoteMentionUrl: userPetition.url
+          remoteMentionUrl: userPetition.url,
+          updatedAt: new Date()
         }
         let userRes
         if (res) {
