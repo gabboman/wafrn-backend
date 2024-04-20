@@ -1,6 +1,6 @@
 export interface fediverseTag {
   href: string
-  name: string
+  name?: string
   type: string
   rel?: string
 }

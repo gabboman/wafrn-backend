@@ -62,11 +62,12 @@ async function postToJSONLD(post: any) {
     const user =
       (await User.findOne({ where: { id: userId } })) ||
       (await User.findOne({ where: { url: environment.deletedUser } }))
-
+    const url = user.url.startsWith('@') ? user.url : `@${user.url}@${environment.instanceUrl}`
+    const remoteId = user.url.startsWith('@') ? user.remoteId : `${environment.frontendUrl}/fediverse/blog/${user.url}`
     fediMentions.push({
       type: 'Mention',
-      name: user.url.startsWith('@') ? user.url : '@' + user.url + '@' + environment.frontendUrl,
-      href: user.remoteId ? user.remoteId : `${environment.frontendUrl}/blog/${user.url}`
+      name: url,
+      href: remoteId
     })
   }
 
