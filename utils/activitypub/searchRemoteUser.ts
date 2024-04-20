@@ -34,7 +34,7 @@ async function searchRemoteUser(searchTerm: string, user: any) {
       const links = remoteResponse.links
       for await (const responseLink of links) {
         if (responseLink.rel === 'self') {
-          users.push(await getRemoteActor(responseLink.href, user, 0, true))
+          users.push(await getRemoteActor(responseLink.href, user, true))
         }
       }
     } catch (error) {

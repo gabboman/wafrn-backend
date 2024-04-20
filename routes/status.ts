@@ -42,13 +42,6 @@ export default function statusRoutes(app: Application) {
         removeOnFail: 25000
       }
     })
-    const updateUsersQueue = new Queue('UpdateUsers', {
-      connection: environment.bullmqConnection,
-      defaultJobOptions: {
-        removeOnComplete: true,
-        removeOnFail: 1000
-      }
-    })
     const sendPostFailed = sendPostsQueue.getMetrics('failed')
     const sendPostSuccess = sendPostsQueue.getMetrics('completed')
     const sendPostAwaiting = sendPostsQueue.count()
@@ -58,9 +51,6 @@ export default function statusRoutes(app: Application) {
     const inboxFail = inboxQueue.getMetrics('failed')
     const inboxSuccess = inboxQueue.getMetrics('completed')
     const inboxAwaiting = inboxQueue.count()
-    const updateUserFail = updateUsersQueue.getMetrics('failed')
-    const updateUserSuccess = updateUsersQueue.getMetrics('completed')
-    const updateUserAwaiting = updateUsersQueue.count()
     await Promise.allSettled([
       sendPostFailed,
       sendPostSuccess,
@@ -68,12 +58,9 @@ export default function statusRoutes(app: Application) {
       prepareSendPostSuccess,
       inboxFail,
       inboxSuccess,
-      updateUserFail,
-      updateUserSuccess,
       sendPostAwaiting,
       prepareSendPostAwaiting,
-      inboxAwaiting,
-      updateUserAwaiting
+      inboxAwaiting
     ])
 
     res.send({
@@ -85,10 +72,7 @@ export default function statusRoutes(app: Application) {
       prepareSendPostAwaiting: await prepareSendPostAwaiting,
       inboxFail: await inboxFail,
       inboxSuccess: await inboxSuccess,
-      inboxAwaiting: await inboxAwaiting,
-      updateUserFail: await updateUserFail,
-      updateUserSuccess: await updateUserSuccess,
-      updateUserAwaiting: await updateUserAwaiting
+      inboxAwaiting: await inboxAwaiting
     })
   })
 }

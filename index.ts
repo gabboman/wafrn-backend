@@ -20,7 +20,7 @@ import adminRoutes from './routes/admin'
 import swagger from 'swagger-ui-express'
 import muteRoutes from './routes/mute'
 import blockUserServerRoutes from './routes/blockUserServer'
-import { workerInbox, workerUpdateRemoteUsers, workerSendPostChunk, workerPrepareSendPost } from './utils/workers'
+import { workerInbox, workerSendPostChunk, workerPrepareSendPost, workerGetUser } from './utils/workers'
 import { logger } from './utils/logger'
 import listRoutes from './routes/lists'
 import statusRoutes from './routes/status'
@@ -100,11 +100,10 @@ app.listen(PORT, environment.listenIp, () => {
       console.warn(`sending post ${job?.id} has failed with ${err.message}`)
     })
 
-    workerUpdateRemoteUsers.on('failed', (job, err) => {
-      console.warn(`update user ${job?.id} has failed with ${err.message}`)
+    workerGetUser.on('completed', (job) => {})
+    workerGetUser.on('failed', (job, err) => {
+      console.debug(`get user ${job?.id} has failed with ${err.message}`)
     })
-
-    workerUpdateRemoteUsers.on('completed', (job) => {})
 
     workerSendPostChunk.on('completed', (job) => {})
 
@@ -115,6 +114,10 @@ app.listen(PORT, environment.listenIp, () => {
     workerInbox.pause()
     workerPrepareSendPost.pause()
     workerSendPostChunk.pause()
-    workerUpdateRemoteUsers.pause()
+    // we do the getremoteactor here too
+    workerGetUser.on('completed', (job) => {})
+    workerGetUser.on('failed', (job, err) => {
+      console.debug(`get user ${job?.id} has failed with ${err.message}`)
+    })
   }
 })

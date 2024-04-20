@@ -256,7 +256,7 @@ async function addTagsToPost(post: any, tags: fediverseTag[]) {
   const res = await post.setPostTags([])
   return await PostTag.bulkCreate(
     tags.map((elem) => {
-      if(elem.name){
+      if (elem.name) {
         return {
           tagName: elem.name.replace('#', ''),
           postId: post.id
