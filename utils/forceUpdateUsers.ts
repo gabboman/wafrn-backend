@@ -5,7 +5,20 @@ import { Op } from 'sequelize'
 import { getRemoteActor } from './activitypub/getRemoteActor'
 
 async function updateAllUsers() {
+  const queue = new Queue('getRemoteActorId', {
+    connection: environment.bullmqConnection,
+    defaultJobOptions: {
+      removeOnComplete: true,
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 1000
+      },
+      removeOnFail: 25000
+    }
+  })
   console.log('lets a update all users that we caaaaaaaaan')
+
   const adminUser = await User.findOne({
     where: {
       url: environment.adminUser
@@ -20,7 +33,10 @@ async function updateAllUsers() {
   })
   allRemoteUsers.forEach(async (actor: any) => {
     console.log(actor.url)
-    await getRemoteActor(actor.remoteId, adminUser, true)
+    await queue.add(
+      'getRemoteActorId',
+      { actorUrl: actor.url, userId: adminUser, forceUpdate: true }
+    )
   })
 }
 
