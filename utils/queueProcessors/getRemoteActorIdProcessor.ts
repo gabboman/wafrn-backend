@@ -6,6 +6,7 @@ import { getFederatedHostIdFromUrl } from '../cacheGetters/getHostIdFromUrl'
 import { getPetitionSigned } from '../activitypub/getPetitionSigned'
 import { processUserEmojis } from '../activitypub/processUserEmojis'
 import { fediverseTag } from '../../interfaces/fediverse/tags'
+import { logger } from '../logger'
 
 // This function will return userid after processing it.
 async function getRemoteActorIdProcessor(job: Job) {
@@ -56,10 +57,15 @@ async function getRemoteActorIdProcessor(job: Job) {
           userRes = await User.create(userData)
         }
         res = userRes.id
-        await processUserEmojis(
-          userRes,
-          userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
-        )
+        try {
+          await processUserEmojis(
+            userRes,
+            userPetition.tag?.filter((elem: fediverseTag) => elem.type === 'Emoji')
+          )
+        } catch (error) {
+          logger.info({message: `Error processing emojis from user ${userRes.url}`, error: error})
+        }
+        
       }
     }
   }
