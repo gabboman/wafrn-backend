@@ -52,9 +52,9 @@ async function postToJSONLD(post: any) {
   const quotedPosts = await post.getQuoted()
     if(quotedPosts && quotedPosts.length > 0) {
       const mainQuotedPost = quotedPosts[0]
-      quotedPostString = mainQuotedPost.remoteId ? mainQuotedPost.remoteId : `${environment.frontendUrl}/fediverse/post/${mainQuotedPost.id}`
+      quotedPostString = mainQuotedPost.remotePostId ? mainQuotedPost.remotePostId : `${environment.frontendUrl}/fediverse/post/${mainQuotedPost.id}`
       quotedPosts.forEach((quotedPost: any) => {
-        const postUrl = quotedPost.remoteId ? quotedPost.remoteId : `${environment.frontendUrl}/fediverse/post/${quotedPost.id}`
+        const postUrl = quotedPost.remotePostId ? quotedPost.remotePostId : `${environment.frontendUrl}/fediverse/post/${quotedPost.id}`
         tagsAndQuotes = tagsAndQuotes + `<p>RE: <a href="${postUrl}">${postUrl}</a></p>`
         fediTags.push({
           type: 'Link',
