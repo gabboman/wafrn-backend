@@ -8,7 +8,7 @@ async function getUserIdFromRemoteId(remoteId: string): Promise<string> {
   if (cacheResult) {
     res = cacheResult
   } else {
-    const user = remoteId.startsWith(environment.instanceUrl)
+    const user = remoteId.startsWith(environment.frontendUrl)
       ? await User.findOne({
           attributes: ['id'],
           where: {
