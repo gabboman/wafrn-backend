@@ -9,9 +9,7 @@ import { fediverseTag } from '../../interfaces/fediverse/tags'
 
 // This function will return userid after processing it.
 async function getRemoteActorIdProcessor(job: Job) {
-  const deletedUser = await getUserIdFromRemoteId(
-    `https://${environment.instanceUrl}/fediverse/blog/${environment.deletedUser}`
-  )
+  
   const actorUrl: string = job.data.actorUrl
   const user = await User.findByPk(job.data.userId)
   const forceUpdate: boolean = job.data.forceUpdate
@@ -21,7 +19,7 @@ async function getRemoteActorIdProcessor(job: Job) {
     let federatedHost = await getHostFromCache(url.host)
     const hostBanned = federatedHost?.blocked
     if (hostBanned) {
-      res = deletedUser
+      res = await getDeletedUser()
     } else {
       const userPetition = await getPetitionSigned(user, actorUrl)
       if (userPetition) {
@@ -71,6 +69,12 @@ async function getRemoteActorIdProcessor(job: Job) {
 async function getHostFromCache(displayName: string): Promise<any> {
   const res = await FederatedHost.findByPk(await getFederatedHostIdFromUrl(displayName))
   return res
+}
+
+async function getDeletedUser() {
+  return await getUserIdFromRemoteId(
+    `https://${environment.instanceUrl}/fediverse/blog/${environment.deletedUser}`
+  )
 }
 
 export { getRemoteActorIdProcessor }
