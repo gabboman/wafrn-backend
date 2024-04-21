@@ -58,7 +58,7 @@ async function postToJSONLD(post: any) {
         tagsAndQuotes = tagsAndQuotes + `<p>RE: ${postUrl}</p>`
         fediTags.push({
           type: 'Link',
-          name: `RE: ${postUrl}`,
+          name: `RE: <a href="${postUrl}">${postUrl}</a>`,
           href: postUrl
         })
       })
