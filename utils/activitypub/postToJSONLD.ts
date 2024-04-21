@@ -118,7 +118,7 @@ async function postToJSONLD(post: any) {
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
       quoteUrl: quotedPostString,
-      _misksey_quote: quotedPostString,
+      //_misksey_quote: quotedPostString,
       quoteUri: quotedPostString,
       // conversation: conversationString,
       content: (processedContent + tagsAndQuotes).replaceAll('<br>', ''),
@@ -149,6 +149,14 @@ async function postToJSONLD(post: any) {
       */
     }
   }
+  const newObject: any = {}
+  const objKeys = Object.keys(postAsJSONLD.object);
+  objKeys.forEach(key => {
+    if(postAsJSONLD.object[key]) {
+      newObject[key] = postAsJSONLD.object[key]
+    }
+  })
+  postAsJSONLD.object = newObject
   if (post.content === '' && (await post.getPostTags()).length === 0 && (await post.getMedias()).length === 0) {
     postAsJSONLD = {
       '@context': 'https://www.w3.org/ns/activitystreams',
