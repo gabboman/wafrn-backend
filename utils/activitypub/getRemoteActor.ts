@@ -3,6 +3,7 @@ import { User } from '../../db'
 import { environment } from '../../environment'
 
 import { logger } from '../logger'
+import { getUserIdFromRemoteId } from '../cacheGetters/getUserIdFromRemoteId'
 
 const deletedUser = environment.forceSync
   ? undefined
@@ -27,15 +28,18 @@ const queueEvents = new QueueEvents('getRemoteActorId', {
   connection: environment.bullmqConnection
 })
 async function getRemoteActor(actorUrl: string, user: any, forceUpdate = false): Promise<any> {
-  let remoteUser = await deletedUser
+  let remoteUser;
   try {
     // we check its a string. A little bit dirty but could be worse
     actorUrl.startsWith(environment.frontendUrl + '/fediverse/blog/')
-    const job = await queue.add(
-      'getRemoteActorId',
-      { actorUrl: actorUrl, userId: user.id, forceUpdate: forceUpdate }
-    )
-    const userId = await job.waitUntilFinished(queueEvents)
+    let userId = await getUserIdFromRemoteId(actorUrl);
+    if(userId === '' || forceUpdate) {
+      const job = await queue.add(
+        'getRemoteActorId',
+        { actorUrl: actorUrl, userId: user.id, forceUpdate: forceUpdate }
+      )
+      userId = await job.waitUntilFinished(queueEvents)
+    }
     remoteUser = await User.findByPk(userId)
     if (!remoteUser || (remoteUser && remoteUser.banned)) {
       remoteUser = await deletedUser
