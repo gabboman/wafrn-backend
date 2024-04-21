@@ -33,7 +33,7 @@ async function getRemoteActor(actorUrl: string, user: any, forceUpdate = false):
     // we check its a string. A little bit dirty but could be worse
     actorUrl.startsWith(environment.frontendUrl + '/fediverse/blog/')
     let userId = await getUserIdFromRemoteId(actorUrl);
-    if(userId === '' || forceUpdate) {
+    if(userId === '') {
       const job = await queue.add(
         'getRemoteActorId',
         { actorUrl: actorUrl, userId: user.id, forceUpdate: forceUpdate }
@@ -51,7 +51,7 @@ async function getRemoteActor(actorUrl: string, user: any, forceUpdate = false):
   if(remoteUser.url !== environment.deletedUser) {
     const lastUpdate = new Date(remoteUser.updatedAt)
     const now = new Date()
-    if(now.getTime() - lastUpdate.getTime() > 24 * 3600 * 1000) {
+    if(now.getTime() - lastUpdate.getTime() > 24 * 3600 * 1000 || forceUpdate) {
       await queue.add(
         'getRemoteActorId',
         { actorUrl: actorUrl, userId: user.id, forceUpdate: true }
