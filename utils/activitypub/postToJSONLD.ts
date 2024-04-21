@@ -118,7 +118,7 @@ async function postToJSONLD(post: any) {
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
       quoteUrl: quotedPostString,
-      //_misksey_quote: quotedPostString,
+      _misksey_quote: quotedPostString,
       quoteUri: quotedPostString,
       // conversation: conversationString,
       content: (processedContent + tagsAndQuotes).replaceAll('<br>', ''),
