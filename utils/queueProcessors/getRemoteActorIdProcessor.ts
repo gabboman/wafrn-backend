@@ -11,7 +11,6 @@ import { fediverseTag } from '../../interfaces/fediverse/tags'
 async function getRemoteActorIdProcessor(job: Job) {
   
   const actorUrl: string = job.data.actorUrl
-  const user = await User.findByPk(job.data.userId)
   const forceUpdate: boolean = job.data.forceUpdate
   let res = await getUserIdFromRemoteId(actorUrl)
   if (res === '' || forceUpdate) {
@@ -21,6 +20,7 @@ async function getRemoteActorIdProcessor(job: Job) {
     if (hostBanned) {
       res = await getDeletedUser()
     } else {
+      const user = await User.findByPk(job.data.userId)
       const userPetition = await getPetitionSigned(user, actorUrl)
       if (userPetition) {
         if (!federatedHost) {
