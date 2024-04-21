@@ -55,10 +55,10 @@ async function postToJSONLD(post: any) {
       quotedPostString = mainQuotedPost.remoteId ? mainQuotedPost.remoteId : `${environment.frontendUrl}/fediverse/post/${mainQuotedPost.id}`
       quotedPosts.forEach((quotedPost: any) => {
         const postUrl = quotedPost.remoteId ? quotedPost.remoteId : `${environment.frontendUrl}/fediverse/post/${quotedPost.id}`
-        tagsAndQuotes = tagsAndQuotes + `<p>RE: ${postUrl}</p>`
+        tagsAndQuotes = tagsAndQuotes + `<p>RE: <a href="${postUrl}">${postUrl}</a></p>`
         fediTags.push({
           type: 'Link',
-          name: `RE: <a href="${postUrl}">${postUrl}</a>`,
+          name: `RE: ${postUrl}`,
           href: postUrl
         })
       })
