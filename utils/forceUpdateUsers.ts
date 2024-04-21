@@ -28,6 +28,9 @@ async function updateAllUsers() {
     ],
     where: {
       banned: false,
+      remoteMentionUrl: {
+        [Op.eq]: null
+      },
       url: {
         [Op.like]: '@%@%'
       }

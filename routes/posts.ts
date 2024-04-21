@@ -190,6 +190,7 @@ export default function postsRoutes(app: Application) {
     async (req: AuthorizedRequest, res: Response) => {
       let success = false
       const posterId = req.jwtData?.userId
+      const postToBeQuoted = await Post.findByPk(req.body.postToQuote)
       try {
         const parent = await Post.findByPk(req.body.parent, {
           include: [
@@ -205,10 +206,12 @@ export default function postsRoutes(app: Application) {
           res.send({ success: false, message: 'non existent parent' })
           return false
         }
-
-        // we get the privacy of the parent
-        const parentPrivacy = parent ? parent.privacy : 0
-        const bodyPrivacy = req.body.privacy ? req.body.privacy : 0
+        
+        // we get the privacy of the parent and quoted post. Set body privacy to the max one
+        const parentPrivacy: number = parent ? parent.privacy : 0
+        let bodyPrivacy: number = req.body.privacy ? req.body.privacy : 0
+        const quotedPostPrivacy: number = postToBeQuoted ? postToBeQuoted.privacy : 0
+        bodyPrivacy = Math.max(parentPrivacy, bodyPrivacy, quotedPostPrivacy)
         // we check that the user is not reblogging a post by someone who blocked them or the other way arround
         if (parent) {
           const postParentsUsers: string[] = parent.ancestors.map((elem: any) => elem.userId)
@@ -336,8 +339,6 @@ export default function postsRoutes(app: Application) {
                       : `${environment.frontendUrl}/fediverse/blog/${userMentioned.url}`
                     const remoteUrl = userMentioned.remoteMentionUrl ? userMentioned.remoteMentionUrl : remoteId
                     const toReplace = parsedAsHTML.html(elem)
-                    // '<span class="h-card" translate="no"><a href="https://dev2.wafrn.net/blog/admin" class="u-url mention">@<span>admin</span></a></span>'
-
                     content = content.replaceAll(
                       toReplace,
                       `<span class="h-card" translate="no"><a href="${remoteUrl}" class="u-url mention">@<span>${url}</span></a></span>`
@@ -353,18 +354,20 @@ export default function postsRoutes(app: Application) {
           post = await Post.findByPk(req.body.idPostToEdit)
           post.content = content
           post.content_warning = content_warning
-          post.privacy = parentPrivacy > bodyPrivacy ? parentPrivacy : bodyPrivacy
+          post.privacy = bodyPrivacy
           await post.save()
         } else {
           post = await Post.create({
             content,
             content_warning,
             userId: posterId,
-            privacy: parentPrivacy > bodyPrivacy ? parentPrivacy : bodyPrivacy,
+            privacy: bodyPrivacy,
             parentId: req.body.parent
           })
         }
-
+        if(postToBeQuoted) {
+          post.addQuoted(postToBeQuoted)
+        }
         post.setMedias(mediaToAdd.map((media: any) => media.id))
         post.setMentionPost(mentionsToAdd)
         success = !req.body.tags

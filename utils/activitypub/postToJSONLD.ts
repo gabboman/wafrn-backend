@@ -21,6 +21,7 @@ async function postToJSONLD(post: any) {
     mentionedUsers = dbMentions.filter((elem: any) => elem.remoteInbox).map((elem: any) => elem.remoteId)
   }
   let parentPostString = null
+  let quotedPostString = null
   const conversationString = `${environment.frontendUrl}/fediverse/conversation/${post.id}`
   if (post.parentId) {
     let dbPost = await Post.findOne({
@@ -47,11 +48,25 @@ async function postToJSONLD(post: any) {
   const mentions: string[] = (await post.getMentionPost()).map((elem: any) => elem.id)
   const fediMentions: fediverseTag[] = []
   const fediTags: fediverseTag[] = []
-  let finalTags = '<br>'
+  let tagsAndQuotes = '<br>'
+  const quotedPosts = await post.getQuoted()
+    if(quotedPosts && quotedPosts.length > 0) {
+      const mainQuotedPost = quotedPosts[0]
+      quotedPostString = mainQuotedPost.remoteId ? mainQuotedPost.remoteId : `${environment.frontendUrl}/fediverse/post/${mainQuotedPost.id}`
+      quotedPosts.forEach((quotedPost: any) => {
+        const postUrl = quotedPost.remoteId ? quotedPost.remoteId : `${environment.frontendUrl}/fediverse/post/${quotedPost.id}`
+        tagsAndQuotes = tagsAndQuotes + `<p>RE: ${postUrl}</p>`
+        fediTags.push({
+          type: 'Link',
+          name: `RE: ${postUrl}`,
+          href: postUrl
+        })
+      })
+    }
   for await (const tag of await post.getPostTags()) {
     const externalTagName = tag.tagName.replaceAll(' ', '-').replaceAll('"', "'")
     const link = `${environment.frontendUrl}/dashboard/search/${encodeURIComponent(tag.tagName)}`
-    finalTags = `${finalTags}  <a class="hashtag" data-tag="post" href="${link}" rel="tag ugc">#${externalTagName}</a>`
+    tagsAndQuotes = `${tagsAndQuotes}  <a class="hashtag" data-tag="post" href="${link}" rel="tag ugc">#${externalTagName}</a>`
     fediTags.push({
       type: 'Hashtag',
       name: `#${externalTagName}`,
@@ -102,8 +117,11 @@ async function postToJSONLD(post: any) {
       sensitive: !!post.content_warning || contentWarning,
       atomUri: `${environment.frontendUrl}/fediverse/post/${post.id}`,
       inReplyToAtomUri: parentPostString,
+      quoteUrl: quotedPostString,
+      _misksey_quote: quotedPostString,
+      quoteUri: quotedPostString,
       // conversation: conversationString,
-      content: (processedContent + finalTags).replaceAll('<br>', ''),
+      content: (processedContent + tagsAndQuotes).replaceAll('<br>', ''),
       attachment: postMedias
         ?.sort((a: any, b: any) => a.order - b.order)
         .map((media: any) => {
