@@ -1,7 +1,7 @@
 import { Emoji, UserEmojiRelation } from '../../db'
 
 async function processUserEmojis(user: any, fediEmojis: any[]) {
-  //await user.removeEmojis();
+  await user.removeEmojis();
   const emojis: any[] = []
   if (fediEmojis) {
     for await (const emoji of fediEmojis) {
