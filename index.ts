@@ -102,7 +102,7 @@ app.listen(PORT, environment.listenIp, () => {
 
     workerGetUser.on('completed', (job) => {})
     workerGetUser.on('failed', (job, err) => {
-      console.debug({message: `get user ${job?.id} has failed with ${err.message}`, data: job?.data})
+      console.debug({message: `get user ${job?.id} has failed with ${err.message}`, data: job?.data, error: err})
     })
 
     workerSendPostChunk.on('completed', (job) => {})
@@ -117,7 +117,7 @@ app.listen(PORT, environment.listenIp, () => {
     // we do the getremoteactor here too
     workerGetUser.on('completed', (job) => {})
     workerGetUser.on('failed', (job, err) => {
-      console.debug({message: `get user ${job?.id} has failed with ${err.message}`, data: job?.data})
+      console.debug({message: `get user ${job?.id} has failed with ${err.message}`, data: job?.data, error: err})
     })
   }
 })
