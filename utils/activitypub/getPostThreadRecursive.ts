@@ -221,7 +221,7 @@ async function getPostThreadRecursive(
 
       const newPost = existingPost ? existingPost : await Post.create(postToCreate)
       try {
-        if (!remoteUser.banned && !remoteUserServerBaned) {
+        if (!remoteUser.banned && !remoteUserServerBaned && fediEmojis) {
           processEmojis(newPost, fediEmojis)
         }
       } catch (error) {
