@@ -1,7 +1,13 @@
 import { Emoji, UserEmojiRelation } from '../../db'
 
 async function processUserEmojis(user: any, fediEmojis: any[]) {
-  await user.removeEmojis();
+  await UserEmojiRelation.destroy({
+    where: {
+      userId: user.id
+    }
+  });
+  user.setEmojis([])
+  await user.save()
   const emojis: any[] = []
   if (fediEmojis) {
     for await (const emoji of fediEmojis) {
@@ -23,11 +29,6 @@ async function processUserEmojis(user: any, fediEmojis: any[]) {
       emojis.push(emojiToAdd)
     }
   }
-  await UserEmojiRelation.destroy({
-    where: {
-      userId: user.id
-    }
-  })
   return await user.setEmojis(emojis)
 }
 
