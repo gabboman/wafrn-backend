@@ -115,6 +115,7 @@ app.listen(PORT, environment.listenIp, () => {
     workerPrepareSendPost.pause()
     workerSendPostChunk.pause()
     // we do the getremoteactor here too
+    workerGetUser.concurrency = environment.workers.low
     workerGetUser.on('completed', (job) => {})
     workerGetUser.on('failed', (job, err) => {
       console.debug({message: `get user ${job?.id} has failed with ${err.message}`, data: job?.data, error: err})
