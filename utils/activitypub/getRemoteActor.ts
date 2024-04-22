@@ -16,12 +16,12 @@ const queue = new Queue('getRemoteActorId', {
   connection: environment.bullmqConnection,
   defaultJobOptions: {
     removeOnComplete: true,
-    attempts: 3,
+    removeOnFail: true,
+    attempts: 2,
     backoff: {
       type: 'exponential',
       delay: 1000
     },
-    removeOnFail: 25000
   }
 })
 const queueEvents = new QueueEvents('getRemoteActorId', {
