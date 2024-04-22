@@ -54,7 +54,10 @@ async function getRemoteActor(actorUrl: string, user: any, forceUpdate = false):
     if(now.getTime() - lastUpdate.getTime() > 24 * 3600 * 1000 || forceUpdate) {
       await queue.add(
         'getRemoteActorId',
-        { actorUrl: actorUrl, userId: user.id, forceUpdate: true }
+        { actorUrl: actorUrl, userId: user.id, forceUpdate: true },
+        {
+          jobId: actorUrl
+        }
       )
     }
   }
