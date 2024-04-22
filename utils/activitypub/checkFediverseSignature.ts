@@ -38,7 +38,7 @@ export default async function checkFediverseSignature(req: SignedRequest, res: R
         }
       })
       bannedHostInCache = newResult?.blocked.toString().toLowerCase()
-      redisCache.set('server:' + hostUrl, bannedHostInCache ? bannedHostInCache : 'false')
+      redisCache.set('server:' + hostUrl, bannedHostInCache ? bannedHostInCache : 'false', 'EX', 300)
     }
     if (bannedHostInCache === 'true') {
       return res.sendStatus(401)

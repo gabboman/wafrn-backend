@@ -15,7 +15,7 @@ async function getallBlockedServers(): Promise<string[]> {
     })
     if (blockedServers) {
       res = blockedServers.map((elem: any) => elem.id)
-      await redisCache.set('allBlockedServers', JSON.stringify(res))
+      await redisCache.set('allBlockedServers', JSON.stringify(res), 'EX', 300)
     }
   }
   return res
