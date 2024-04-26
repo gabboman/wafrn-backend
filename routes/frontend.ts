@@ -79,8 +79,8 @@ async function getPostSEOCache(id: string) : Promise<{ title: string; descriptio
     if(post) {
       res.title = `${post.user.url.startsWith('@') ? 'External' : 'Wafrn'} post by ${sanitizeStringForSEO(post.user.url)}`.substring(0, 65)
       res.description = (post.content_warning ? `Post has content warning: ${sanitizeStringForSEO(post.content_warning)}` : sanitizeStringForSEO(post.content)).substring(0, 190)
-      const safeMedia = post.medias?.find((elem: any) => elem.NSFW === false)
-      res.img = safeMedia ? safeMedia.url : `${environment.frontendUrl}/assets/logo.png`
+      const safeMedia = post.medias?.find((elem: any) => elem.NSFW === false && !elem.url.toLowerCase().endsWith('mp4'))
+      res.img = safeMedia ? safeMedia.url : `${environment.frontendUrl}/assets/linkpreview.png`
       redisCache.set('postSeoCache:' + id, JSON.stringify(res), 'EX', 300)
     }
   } else {
@@ -100,14 +100,18 @@ function getIndexSeo(title: string, description: string, image: string) {
   const commentToReplace = '<!-- REMOVE THIS IN EXPRESS FOR SEO -->'
   indexWithSeo = indexWithSeo.replace(
     commentToReplace,
-    `<meta property="og:title" content="${sanitizedTitle}">
+    `
+    <meta name="og:title" content="${sanitizedTitle}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${sanitizedTitle}">
     <meta name="description" content="${sanitizedDescription}">
-    <meta property="og:description" content="${sanitizedDescription}">
+    <meta name="og:description" content="${sanitizedDescription}">
     <meta name="twitter:description" content="${sanitizedDescription}">
-    <meta property="og:image" content="${imgUrl}">
-    <meta name="twitter:image" content="${imgUrl}">`
+    <meta name="og:image" content="${imgUrl}">
+    <meta name="twitter:image" content="${imgUrl}">
+    <meta name="og:site_name" content="${environment.instanceUrl}">
+    <meta name="twitter:site" content="${environment.instanceUrl}">
+    `
   )
 
   return indexWithSeo
