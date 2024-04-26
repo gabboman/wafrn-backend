@@ -59,6 +59,7 @@ function sanitizeStringForSEO(unsanitized: string): string {
 
 
 async function getPostSEOCache(id: string) : Promise<{ title: string; description: string; img: string }> {
+  return environment.defaultSEOData; /*
   const resData = await redisCache.get('postSeoCache:' + id)
   let res = environment.defaultSEOData
   if (!resData) {
@@ -91,6 +92,7 @@ async function getPostSEOCache(id: string) : Promise<{ title: string; descriptio
     res = JSON.parse(resData)
   }
   return res;
+  */
 }
 
 function getIndexSeo(title: string, description: string, image: string) {
