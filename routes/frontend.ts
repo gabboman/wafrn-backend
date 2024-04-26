@@ -101,16 +101,16 @@ function getIndexSeo(title: string, description: string, image: string) {
   indexWithSeo = indexWithSeo.replace(
     commentToReplace,
     `
-    <meta name="og:title" content="${sanitizedTitle}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${sanitizedTitle}">
-    <meta name="description" content="${sanitizedDescription}">
-    <meta name="og:description" content="${sanitizedDescription}">
-    <meta name="twitter:description" content="${sanitizedDescription}">
-    <meta name="og:image" content="${imgUrl}">
-    <meta name="twitter:image" content="${imgUrl}">
-    <meta name="og:site_name" content="${environment.instanceUrl}">
-    <meta name="twitter:site" content="${environment.instanceUrl}">
+    <meta property="og:title" content="${sanitizedTitle}">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="${sanitizedTitle}">
+    <meta property="description" content="${sanitizedDescription}">
+    <meta property="og:description" content="${sanitizedDescription}">
+    <meta property="twitter:description" content="${sanitizedDescription}">
+    <meta property="og:image" content="${imgUrl}">
+    <meta property="twitter:image" content="${imgUrl}">
+    <meta property="og:site_name" content="${environment.instanceUrl}">
+    <meta property="twitter:site" content="${environment.instanceUrl}">
     `
   )
 
