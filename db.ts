@@ -337,6 +337,20 @@ const Emoji = sequelize.define('emojis', {
   name: Sequelize.STRING,
   url: Sequelize.TEXT,
   external: Sequelize.BOOLEAN
+}, {
+  indexes: [
+    {
+      unique: false,
+      fields: [
+        {
+          attribute: 'name',
+        },
+        {
+          attribute: 'external',
+        }
+      ]
+    }
+  ]
 })
 
 const EmojiReaction = sequelize.define(
