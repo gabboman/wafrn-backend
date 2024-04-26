@@ -28,6 +28,7 @@ import dashboardRoutes from './routes/dashboard'
 import forumRoutes from './routes/forum'
 import { SignedRequest } from './interfaces/fediverse/signedRequest'
 import silencePostRoutes from './routes/silencePost'
+import emojiRoutes from './routes/emojis'
 
 const swaggerJSON = require('./swagger.json')
 // rest of the code remains same
@@ -79,10 +80,11 @@ muteRoutes(app)
 blockUserServerRoutes(app)
 dashboardRoutes(app)
 listRoutes(app)
-frontend(app)
 forumRoutes(app)
 silencePostRoutes(app)
 statusRoutes(app)
+//emojiRoutes(app)
+frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {
   console.log('started app')
