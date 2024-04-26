@@ -13,9 +13,9 @@ const imageStorage = multer.diskStorage({
   }
 })
 
-function uploadHandler(extensionsRegex?: RegExp) {
+function uploadHandler(extensionsRegex?: RegExp, storage?: multer.StorageEngine) {
   return multer({
-    storage: imageStorage,
+    storage: storage ? storage : imageStorage,
     limits: {
       fileSize: environment.uploadLimit * 1024 * 1024 // 15 MB.
     },
