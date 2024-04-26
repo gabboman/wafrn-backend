@@ -68,7 +68,7 @@ export default function followsRoutes(app: Application) {
     })
   })
 
-  // TODO: should rename this to "get useful sstuff"
+  // TODO: Remove this function because new route provides everything.
   app.get('/api/getFollowedUsers', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
     const followedUsers = getFollowedsIds(req.jwtData?.userId as string)
     const blockedUsers = getBlockedIds(req.jwtData?.userId as string)
