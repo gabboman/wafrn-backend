@@ -88,5 +88,11 @@ export const environment = {
   // admin email wich you will recive things like "someone registred and you need to review this"
   adminEmail: 'my@email.com',
   // if the blocklist youre using turns out to be biased you can tell the script that loads the block host to do not block these hosts
-  ignoreBlockHosts: []
+  ignoreBlockHosts: [],
+  // default SEO data that will be used when trying to load server data
+  defaultSEOData: {
+    title: 'default title',
+    description: 'defaultDescription',
+    img: 'defaultImg'
+  }
 }
