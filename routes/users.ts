@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Blocks, Emoji, FederatedHost, Follows, Mutes, ServerBlock, User, UserOptions } from '../db'
+import { Blocks, Emoji, EmojiCollection, FederatedHost, Follows, Mutes, ServerBlock, User, UserOptions } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import generateRandomString from '../utils/generateRandomString'
@@ -22,6 +22,11 @@ import AuthorizedRequest from '../interfaces/authorizedRequest'
 import optionalAuthentication from '../utils/optionalAuthentication'
 import checkIpBlocked from '../utils/checkIpBlocked'
 import { redisCache } from '../utils/redis'
+import getFollowedsIds from '../utils/cacheGetters/getFollowedsIds'
+import getBlockedIds from '../utils/cacheGetters/getBlockedIds'
+import { getNotYetAcceptedFollowedids } from '../utils/cacheGetters/getNotYetAcceptedFollowedIds'
+import { getUserOptions } from '../utils/cacheGetters/getUserOptions'
+import { getMutedPosts } from '../utils/cacheGetters/getMutedPosts'
 
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 
@@ -469,6 +474,36 @@ export default function userRoutes(app: Application) {
 
     if (!success) {
       res.send({ success: false })
+    }
+  })
+
+  app.get('/api/my-ui-options', authenticateToken, async (req: AuthorizedRequest, res: Response) => {
+    const followedUsers = getFollowedsIds(req.jwtData?.userId as string)
+    const blockedUsers = getBlockedIds(req.jwtData?.userId as string)
+    const notAcceptedFollows = getNotYetAcceptedFollowedids(req.jwtData?.userId as string)
+    const options = getUserOptions(req.jwtData?.userId as string)
+    const localEmojis = EmojiCollection.findAll({
+      include: [
+        {model: Emoji}
+      ]
+    })
+    let user = User.findByPk(req.jwtData?.userId, {
+      attributes: ['banned']
+    })
+    const silencedPosts = getMutedPosts(req.jwtData?.userId as string)
+    Promise.all([user, followedUsers, blockedUsers, user, notAcceptedFollows, options, silencedPosts, localEmojis])
+    user = await user
+    if (!user || user.banned) {
+      res.sendStatus(401)
+    } else {
+      res.send({
+        followedUsers: await followedUsers,
+        blockedUsers: await blockedUsers,
+        notAcceptedFollows: await notAcceptedFollows,
+        options: await options,
+        silencedPosts: await silencedPosts,
+        emojis: await localEmojis
+      })
     }
   })
 }
