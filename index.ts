@@ -83,7 +83,7 @@ listRoutes(app)
 forumRoutes(app)
 silencePostRoutes(app)
 statusRoutes(app)
-//emojiRoutes(app)
+emojiRoutes(app)
 frontend(app)
 
 app.listen(PORT, environment.listenIp, () => {
