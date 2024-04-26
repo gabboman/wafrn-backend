@@ -696,6 +696,7 @@ export {
   Follows,
   Media,
   Emoji,
+  EmojiCollection,
   PostMentionsUserRelation,
   UserLikesPostRelations,
   FederatedHost,
