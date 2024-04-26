@@ -80,7 +80,7 @@ async function getPostSEOCache(id: string) : Promise<{ title: string; descriptio
       res.title = `${post.user.url.startsWith('@') ? 'External' : 'Wafrn'} post by ${sanitizeStringForSEO(post.user.url)}`.substring(0, 65)
       res.description = (post.content_warning ? `Post has content warning: ${sanitizeStringForSEO(post.content_warning)}` : sanitizeStringForSEO(post.content)).substring(0, 190)
       const safeMedia = post.medias?.find((elem: any) => elem.NSFW === false && !elem.url.toLowerCase().endsWith('mp4'))
-      res.img = safeMedia ? safeMedia.url : `${environment.frontendUrl}/assets/linkpreview.png`
+      res.img = safeMedia?.url
       redisCache.set('postSeoCache:' + id, JSON.stringify(res), 'EX', 300)
     }
   } else {
@@ -89,12 +89,15 @@ async function getPostSEOCache(id: string) : Promise<{ title: string; descriptio
   return res;
 }
 
-function getIndexSeo(title: string, description: string, image: string) {
+function getIndexSeo(title: string, description: string, image?: string) {
   const sanitizedTitle = title.replaceAll('"', "'")
   const sanitizedDescription = description.replaceAll('"', "'").substring(0, 500)
-  const imgUrl = image.toLowerCase().startsWith('https')
+  let imgUrl = '';
+  if (image) {
+    imgUrl = image.toLowerCase().startsWith('https')
     ? environment.externalCacheurl + encodeURIComponent(image)
     : environment.mediaUrl + image
+  }
   let indexWithSeo = fs.readFileSync(`${environment.frontedLocation}/index.html`).toString()
   // index html must have a section with this html comment that we will edit out to put the seo there
   const commentToReplace = '<!-- REMOVE THIS IN EXPRESS FOR SEO -->'
@@ -107,8 +110,8 @@ function getIndexSeo(title: string, description: string, image: string) {
     <meta property="description" content="${sanitizedDescription}">
     <meta property="og:description" content="${sanitizedDescription}">
     <meta property="twitter:description" content="${sanitizedDescription}">
-    <meta property="og:image" content="${imgUrl}">
-    <meta property="twitter:image" content="${imgUrl}">
+    ${imgUrl ? `<meta property="og:image" content="${imgUrl}">
+    <meta property="twitter:image" content="${imgUrl}">`: ''}
     <meta property="og:site_name" content="${environment.instanceUrl}">
     <meta property="twitter:site" content="${environment.instanceUrl}">
     `
