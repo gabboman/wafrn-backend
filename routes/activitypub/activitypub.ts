@@ -1,5 +1,5 @@
 import { Application, Request, Response } from 'express'
-import { User, Follows, Post, Media, UserLikesPostRelations } from '../../db'
+import { User, Follows, Post, Media, UserLikesPostRelations, Emoji } from '../../db'
 import checkFediverseSignature from '../../utils/activitypub/checkFediverseSignature'
 import { sequelize } from '../../db'
 import { Op } from 'sequelize'
@@ -110,7 +110,7 @@ function activityPubRoutes(app: Application) {
                   type: 'Image',
                   url: environment.mediaUrl + emoji.url,
                 },
-                id: environment.mediaUrl + emoji.url,
+                id: environment.frontendUrl + '/fediverse/emoji/' + emoji.id,
                 name: emoji.name,
                 type: 'Emoji',
                 updated: emoji.updatedAt
@@ -368,6 +368,32 @@ function activityPubRoutes(app: Application) {
       return404(res)
     }
     res.end()
+  })
+
+  app.get('/fediverse/emoji/:id', async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const emoji = await Emoji.findByPk(id)
+    if(emoji) {
+      res.set({
+        'content-type': 'application/activity+json'
+      })
+      res.send({
+        "@context":["https://www.w3.org/ns/activitystreams",
+        {
+          toot: "http://joinmastodon.org/ns#","Emoji":"toot:Emoji","focalPoint":{"@container":"@list","@id":"toot:focalPoint"}}],
+        id : environment.frontendUrl + '/fediverse/emoji/' + id,
+        type : "Emoji",
+        name : emoji.name,
+        updated : emoji.updatedAt,
+        icon : {
+          type : "Image",
+          mediaType :"image/png",
+          url : environment.mediaUrl + emoji.url
+        }
+      })
+    } else {
+      res.sendStatus(404)
+    }
   })
 
   app.get('/fediverse/accept/:id', (req: SignedRequest, res: Response) => {
