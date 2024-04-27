@@ -8,6 +8,8 @@ import { redisCache } from '../utils/redis'
 
 export default function frontend(app: Application) {
 
+  const defaultSeoData = environment.defaultSEOData
+
     // serve default angular application
     app.get(
       [
@@ -24,9 +26,6 @@ export default function frontend(app: Application) {
         '/profile/*'
       ],
       function (req, res) {
-        //res.status(200).sendFile('/', { root: environment.frontedLocation })
-        const defaultSeoData = environment.defaultSEOData
-
         res.send(getIndexSeo(defaultSeoData.title, defaultSeoData.description, defaultSeoData.img))
       }
     )
@@ -38,13 +37,16 @@ export default function frontend(app: Application) {
           if (postData) {
             res.send(getIndexSeo(postData.title, postData.description, postData.img))
           } else {
-            res.status(200).sendFile('/', { root: environment.frontedLocation })
+                    res.send(getIndexSeo(defaultSeoData.title, defaultSeoData.description, defaultSeoData.img))
+
           }
         } catch (error) {
-          res.status(200).sendFile('/', { root: environment.frontedLocation })
+                  res.send(getIndexSeo(defaultSeoData.title, defaultSeoData.description, defaultSeoData.img))
+
         }
       } else {
-        res.status(200).sendFile('/', { root: environment.frontedLocation })
+                res.send(getIndexSeo(defaultSeoData.title, defaultSeoData.description, defaultSeoData.img))
+
       }
     })
   
@@ -61,7 +63,7 @@ function sanitizeStringForSEO(unsanitized: string): string {
 
 async function getPostSEOCache(id: string) : Promise<{ title: string; description: string; img: string }> {
   const resData = undefined // await redisCache.get('postSeoCache:' + id)
-  let res = environment.defaultSEOData
+  let res = {... environment.defaultSEOData}
   if (!resData) {
     const post = await Post.findByPk(id, {
       attributes: ['content', 'id'],
