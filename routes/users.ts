@@ -168,9 +168,17 @@ export default function userRoutes(app: Application) {
             id: posterId
           }
         })
+        await user.removeEmojis(await user.getEmojis())
         if (req.body) {
+          const avaiableEmojis = await Emoji.findAll({
+            where: {
+              external: false
+            }
+          })
+          let userEmojis: any[] = []
           if (req.body.description) {
             user.description = req.body.description
+            userEmojis = userEmojis.concat(avaiableEmojis?.filter((emoji: any) => req.body.description.includes(emoji.name)))
           }
 
           if (req.body.federateWithThreads) {
@@ -235,6 +243,8 @@ export default function userRoutes(app: Application) {
 
           if (req.body.name) {
             user.name = req.body.name
+            userEmojis = userEmojis.concat(avaiableEmojis?.filter((emoji: any) => req.body.name.includes(emoji.name)))
+
           }
 
           if (req.file != null) {
@@ -244,6 +254,7 @@ export default function userRoutes(app: Application) {
               user.avatar = avatarURL
             }
           }
+          user.setEmojis(userEmojis)
           await user.save()
           success = true
         }

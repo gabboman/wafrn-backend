@@ -23,10 +23,10 @@ export default function emojiRoutes(app: Application) {
         '/api/admin/addEmoji',
         authenticateToken,
         adminToken,
-        uploadHandler(/\.(png|jpg|jpeg|gifv|gif|webp|zip)$/, emojiStorage).single('emoji'),
+        uploadHandler(/\.(zip)$/, emojiStorage).single('emoji'),
         async (req: AuthorizedRequest, res: Response) => {
           const file = req.file as Express.Multer.File
-          const packName = file.originalname.replaceAll('.zip','').replaceAll('.', '').replaceAll('/', '')
+          const packName = file.originalname.replaceAll('.zip','').replaceAll('.', '').replaceAll('/', '').replaceAll(' ', '_')
           const existingCollection = await EmojiCollection.findAll({
             where: {
               name: packName

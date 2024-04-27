@@ -81,6 +81,7 @@ function activityPubRoutes(app: Application) {
       if (!req.params.url?.startsWith('@')) {
         const url = req.params.url.toLowerCase()
         const user = await getLocalUserByUrl(url)
+        const emojis = await user.getEmojis()
         if (user && user.banned) {
           res.sendStatus(410)
           return
@@ -102,6 +103,19 @@ function activityPubRoutes(app: Application) {
             manuallyApprovesFollowers: user.manuallyAcceptsFollows,
             discoverable: true,
             published: user.createdAt,
+            tag: emojis.map((emoji: any) => {
+              return {
+                icon: {
+                  mediaType: `image/png`,
+                  type: 'Image',
+                  url: environment.mediaUrl + emoji.url,
+                },
+                id: environment.mediaUrl + emoji.url,
+                name: emoji.name,
+                type: 'Emoji',
+                updated: emoji.updatedAt
+              }
+            }),
             endpoints: {
               sharedInbox: `${environment.frontendUrl}/fediverse/sharedInbox`
             },
