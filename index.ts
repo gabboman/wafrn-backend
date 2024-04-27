@@ -29,6 +29,7 @@ import forumRoutes from './routes/forum'
 import { SignedRequest } from './interfaces/fediverse/signedRequest'
 import silencePostRoutes from './routes/silencePost'
 import emojiRoutes from './routes/emojis'
+import nocache from 'nocache'
 
 const swaggerJSON = require('./swagger.json')
 // rest of the code remains same
@@ -45,6 +46,7 @@ app.use(
   })
 )
 app.use(cors())
+app.use(nocache)
 app.set('trust proxy', 1)
 
 app.use('/api/apidocs', swagger.serve, swagger.setup(swaggerJSON))

@@ -45,11 +45,12 @@ export default function frontend(app: Application) {
       function (req, res) {
         //res.status(200).sendFile('/', { root: environment.frontedLocation })
         const defaultSeoData = environment.defaultSEOData
+
         res.send(getIndexSeo(defaultSeoData.title, defaultSeoData.description, defaultSeoData.img))
       }
     )
   // serve static angular files
-  app.get('*.*', express.static(environment.frontedLocation, { maxAge: '1s' }))
+  app.get('*.*', express.static(environment.frontedLocation))
 }
 
 function sanitizeStringForSEO(unsanitized: string): string {
