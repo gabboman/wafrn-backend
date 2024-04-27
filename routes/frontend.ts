@@ -8,24 +8,6 @@ import { redisCache } from '../utils/redis'
 
 export default function frontend(app: Application) {
 
-  app.get('/post/:id', async function (req, res) {
-    if (req.params?.id) {
-      try {
-        const postData = await getPostSEOCache(req.params.id)
-        if (postData) {
-          res.send(getIndexSeo(postData.title, postData.description, postData.img))
-        } else {
-          res.status(200).sendFile('/', { root: environment.frontedLocation })
-        }
-      } catch (error) {
-        res.status(200).sendFile('/', { root: environment.frontedLocation })
-      }
-    } else {
-      res.status(200).sendFile('/', { root: environment.frontedLocation })
-    }
-  })
-
-
     // serve default angular application
     app.get(
       [
@@ -49,6 +31,25 @@ export default function frontend(app: Application) {
         res.send(getIndexSeo(defaultSeoData.title, defaultSeoData.description, defaultSeoData.img))
       }
     )
+
+    app.get('/post/:id', async function (req, res) {
+      if (req.params?.id) {
+        try {
+          const postData = await getPostSEOCache(req.params.id)
+          if (postData) {
+            res.send(getIndexSeo(postData.title, postData.description, postData.img))
+          } else {
+            res.status(200).sendFile('/', { root: environment.frontedLocation })
+          }
+        } catch (error) {
+          res.status(200).sendFile('/', { root: environment.frontedLocation })
+        }
+      } else {
+        res.status(200).sendFile('/', { root: environment.frontedLocation })
+      }
+    })
+  
+  
   // serve static angular files
   app.get('*.*', express.static(environment.frontedLocation))
 }
