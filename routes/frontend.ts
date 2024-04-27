@@ -17,7 +17,6 @@ export default function frontend(app: Application) {
         '/blog/*',
         '/dashboard/*',
         '/dashboard',
-        '/post/*',
         '/login',
         '/register',
         '/privacy',
