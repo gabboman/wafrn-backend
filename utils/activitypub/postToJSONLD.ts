@@ -3,6 +3,7 @@ import { Post, User } from '../../db'
 import { environment } from '../../environment'
 import { fediverseTag } from '../../interfaces/fediverse/tags'
 import { activityPubObject } from '../../interfaces/fediverse/activityPubObject'
+import { emojiToAPTag } from './emojiToAPTag'
 
 async function postToJSONLD(post: any) {
   const tmpUser = await User.findByPk(post.userId)
@@ -93,6 +94,9 @@ async function postToJSONLD(post: any) {
     }
   })
 
+  const emojis = await post.getEmojis()
+
+
   const usersToSend = getToAndCC(post.privacy, mentionedUsers, stringMyFollowers)
   const actorUrl = `${environment.frontendUrl}/fediverse/blog/${localUser.url.toLowerCase()}`
   let postAsJSONLD: activityPubObject = {
@@ -134,7 +138,7 @@ async function postToJSONLD(post: any) {
             name: media.description
           }
         }),
-      tag: fediMentions.concat(fediTags)
+      tag: fediMentions.concat(fediTags).concat(emojis.map((emoji: any) =>emojiToAPTag(emoji)))
       /*
       replies: {
         id: `${environment.frontendUrl}/fediverse/post/${post.id}/replies`,

@@ -1,7 +1,7 @@
 import { environment } from "../../environment";
 import { fediverseTag } from "../../interfaces/fediverse/tags";
 
-function emojiToAPTag(emoji): fediverseTag {
+function emojiToAPTag(emoji: any): fediverseTag {
     return {
         icon: {
           mediaType: `image/png`,
@@ -13,5 +13,6 @@ function emojiToAPTag(emoji): fediverseTag {
         type: 'Emoji',
         updated: emoji.updatedAt
       }
-
 }
+
+export {emojiToAPTag}

@@ -152,8 +152,8 @@ async function getPostThreadRecursive(
         if (!remoteUser.banned && !remoteUserServerBaned) {
           for await (const mention of fediMentions) {
             let mentionedUser
-            if (mention.href.indexOf(environment.frontendUrl) !== -1) {
-              const username = mention.href.substring(`${environment.frontendUrl}/fediverse/blog/`.length)
+            if (mention.href?.indexOf(environment.frontendUrl) !== -1) {
+              const username = mention.href?.substring(`${environment.frontendUrl}/fediverse/blog/`.length) as string
               mentionedUser = await User.findOne({
                 where: {
                   [Op.or]: [
@@ -191,7 +191,7 @@ async function getPostThreadRecursive(
           postPetition.tag
             ?.filter((elem: fediverseTag) => elem.type === 'Link')
             .forEach((quote: fediverseTag) => {
-              postsToQuotePromise.push(getPostThreadRecursive(user, quote.href))
+              postsToQuotePromise.push(getPostThreadRecursive(user, quote.href as string))
               postToCreate.content = postToCreate.content.replace(quote.name, '')
             })
           const quotesToAdd = await Promise.allSettled(postsToQuotePromise)

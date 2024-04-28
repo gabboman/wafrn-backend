@@ -9,6 +9,7 @@ import { postToJSONLD } from '../../utils/activitypub/postToJSONLD'
 import { Queue } from 'bullmq'
 import { getLocalUserId } from '../../utils/cacheGetters/getLocalUserId'
 import { SignedRequest } from '../../interfaces/fediverse/signedRequest'
+import { emojiToAPTag } from '../../utils/activitypub/emojiToAPTag'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Cacher = require('cacher')
 const cacher = new Cacher()
@@ -103,19 +104,7 @@ function activityPubRoutes(app: Application) {
             manuallyApprovesFollowers: user.manuallyAcceptsFollows,
             discoverable: true,
             published: user.createdAt,
-            tag: emojis.map((emoji: any) => {
-              return {
-                icon: {
-                  mediaType: `image/png`,
-                  type: 'Image',
-                  url: environment.mediaUrl + emoji.url,
-                },
-                id: environment.frontendUrl + '/fediverse/emoji/' + emoji.id,
-                name: emoji.name,
-                type: 'Emoji',
-                updated: emoji.updatedAt
-              }
-            }),
+            tag: emojis.map((emoji: any) => emojiToAPTag(emoji)),
             endpoints: {
               sharedInbox: `${environment.frontendUrl}/fediverse/sharedInbox`
             },
