@@ -155,6 +155,11 @@ async function inboxWorker(job: Job) {
         case 'Update': {
           const body = req.body.object
           switch (body.type) {
+            //activities we ignore update
+            case 'Video': {
+              await signAndAccept(req, remoteUser, user)
+              break;
+            }
             case 'Question': {
               await loadPoll(body, await getPostThreadRecursive(user, body.id), user)
             }
