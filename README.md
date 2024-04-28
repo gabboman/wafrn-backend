@@ -2,6 +2,16 @@
 
 Wafrn is an opensource social network that connects with the fediverse. The frontend (not included in this repo) is tumblr-inspired. The "official" wafrn server is [app.wafrn.net](https://app.wafrn.net) but you can host your own if you're unhappy with my moderation style or simply and more probable, you would like to host your own stuff.
 
+- [WAFRN backend - Node.js REST API](#wafrn-backend---nodejs-rest-api)
+  - [What will you need](#what-will-you-need)
+      - [The domains](#the-domains)
+  - [First steps: update and install stuff](#first-steps-update-and-install-stuff)
+  - [Create a database](#create-a-database)
+  - [Create a user for wafrn and prepare node for the user](#create-a-user-for-wafrn-and-prepare-node-for-the-user)
+  - [Configuring apache](#configuring-apache)
+  - [Getting started with node and copying the code](#getting-started-with-node-and-copying-the-code)
+  - [Configuring the frontend](#configuring-the-frontend)
+
 ## What will you need
 
 Before trying to host your own wafrn, we advice you to please, very please, [join our matrix channel](https://matrix.to/#/!KFbQcLWJSAEcoKGxhl:matrix.org?via=matrix.org&via=t2bot.io) to get support, questions to the team and all those stuffs. Wafrn is an alpha software. kinda. And you WILL find bugs. Either during the use or while trying to follow this manual. So yet again, [please join our matrix chatroom](https://matrix.to/#/!KFbQcLWJSAEcoKGxhl:matrix.org?via=matrix.org&via=t2bot.io). We recomend the client element if you're new to this.
@@ -22,16 +32,16 @@ The frontend domain is the domain that people will use to find you in the fedi. 
 
 with the root user, do this command:
 
-```bash
-apt update && apt dist-upgrade
-apt install curl mysql-server mysql apache2 certbot python3-certbot-apache build-essential redis ffmpeg webp graphicsmagick tmux
+```shell
+sudo apt update && apt dist-upgrade
+sudo apt install curl mysql-server mysql apache2 certbot python3-certbot-apache build-essential redis ffmpeg webp graphicsmagick tmux
 ```
 
 ## Create a database
 
 With the root user, we log in into the database with the command mysql. Then we create a db, and an user and a password:
 
-```bash
+```shell
 mysql
 ```
 
@@ -46,13 +56,13 @@ GRANT ALL PRIVILEGES ON wafrn.* TO 'wafrn'@'localhost';
 You could install nodejs on the system level, but we do not recomend that. Instead, we advice for using nvm both in your machine if you ever do something, and in the server.
 Create a new system user. In this case, we are going to call it wafrn
 
-```bash
+```shell
 adduser wafrn
 ```
 
 Now we will add the wafrn user to the apache group so we can use apache to serve the image files and the static frontend
 
-```bash
+```shell
 usermod -aG www-data wafrn
 systemctl restart apache2
 ```
@@ -61,7 +71,7 @@ systemctl restart apache2
 
 We first have to enable some apache modules first, and change some details in the config file
 
-```bash
+```shell
 a2enmod proxy
 a2enmod headers
 a2enmod rewrite
@@ -70,7 +80,7 @@ systemctl restart apache2
 
 Then we will edit the file /etc/apache/apache2.conf and we will edit this:
 
-```
+```apache
 <Directory /var/www/>
         ......
 </Directory>
@@ -93,7 +103,7 @@ Then we will edit the file /etc/apache/apache2.conf and we will edit this:
 The fediverse does A LOT of petitions, and before wafrn starts lagging, apache defaults will be a bigger issue for us!
 Edit the file **/etc/apache2/mods_avaiable/mpm_worker.conf** and add this config
 
-```
+```apache
 <IfModule mpm_worker_module>
 ServerLimit 250
 StartServers 10
@@ -110,7 +120,7 @@ Now we will create the fediverse media cacher apache config
 
 We will create the file **/etc/apache2/sites-avaiable/YOUR-CACHE-DOMAIN.conf** with this content. The cacher by default will run in the port 3002, if you need another port, change it
 
-```
+```apache
 <VirtualHost *:80>
         ServerAdmin webmaster@localhost
         ServerName cache.wafrn.net #CHANGE THIS FOR YOUR CACHE DOMAIN
@@ -132,7 +142,7 @@ We will create the file **/etc/apache2/sites-avaiable/YOUR-CACHE-DOMAIN.conf** w
 And now we will create the apache config file for multimedia files. We recomend doing this instead of using the wafrn integrated one, because it can be affected by wafrn cpu usage.
 We create the file **/etc/apache2/sites-avaiable/YOUR-MEDIA-DOMAIN.conf** with this content:
 
-```
+```apache
 <VirtualHost *:80>
         ServerName media.wafrn.net # CHANGE THIS
         ServerAdmin webmaster@localhost
@@ -149,7 +159,7 @@ Finally, the big one: we create the file to serve both the frontend and the back
 
 We create the file **/etc/apache2/sites-avaiable/YOUR-FRONTEND-DOMAIN.conf** with this content. **TAKE A LOOK TO THE FILE, IT HAS IMPORTANT COMMENTS IN IT**. This might change in the future to something more user friendly but for now, we have this.
 
-```
+```apache
 <VirtualHost *:80>
                 ServerAdmin webmaster@localhost
         ServerName app.wafrn.net # CHANGE THIS
@@ -188,7 +198,7 @@ We create the file **/etc/apache2/sites-avaiable/YOUR-FRONTEND-DOMAIN.conf** wit
 
 **Log in as the wafrn user**. Once you're there, time to install nvm.
 
-```bash
+```shell
 curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 source ~/.profile
 nvm install node 18 #You could use 20 in theory.
@@ -196,13 +206,13 @@ nvm install node 18 #You could use 20 in theory.
 
 Once you have installed nvm and node 18 in the wafrn user of your server, we will install the angular cli on the user, then clone the repositories
 
-```bash
+```shell
 npm install -g @angular/cli
 ```
 
 Now we will clone the repos that we need, and create the folder where the frontend will be served:
 
-```bash
+```bashellsh
 mkdir front
 git clone https://github.com/gabboman/fediversemediacacher.git # the media cacher. its basically a proxy
 git clone https://github.com/gabboman/wafrn.git #this is the frontend
@@ -211,7 +221,7 @@ git clone https://github.com/gabboman/wafrn-backend.git # the backend.
 
 Now we have to get into each of the folders and install the dependencies. Just **go into each of the folders and do**
 
-```bash
+```shell
 npm install
 ```
 
@@ -219,16 +229,14 @@ npm install
 
 In the frontend folder, copy the environment file to environment.custom.ts
 
-```bash
+```shell
 cp src/environment/environment.prod src/environment/environment.custom.ts
 ```
 
 Now we will edit the file. The file has anotations,
 
-```
-
+```shell
 npm start
-
 ```
 
 > Written with [StackEdit](https://stackedit.io/).
