@@ -32,6 +32,7 @@ import { getUnjointedPosts } from '../utils/baseQueryNew'
 const cheerio = require('cheerio')
 import getFollowedsIds from '../utils/cacheGetters/getFollowedsIds'
 import { federatePostHasBeenEdited } from '../utils/activitypub/editPost'
+import { getAvaiableEmojis } from '../utils/getAvaiableEmojis'
 
 const prepareSendPostQueue = new Queue('prepareSendPost', {
   connection: environment.bullmqConnection,
@@ -250,6 +251,9 @@ export default function postsRoutes(app: Application) {
         const content_warning = req.body.content_warning ? req.body.content_warning.trim() : ''
         const mentionsToAdd: string[] = []
         let mediaToAdd: any[] = []
+        const avaiableEmojis = await getAvaiableEmojis()
+        // we parse the content and we search emojis:
+        const emojisToAdd = avaiableEmojis?.filter((emoji: any) => req.body.content.includes(emoji.name))
 
         // post content as html
         const parsedAsHTML = cheerio.load(content)
@@ -370,6 +374,7 @@ export default function postsRoutes(app: Application) {
         }
         post.setMedias(mediaToAdd.map((media: any) => media.id))
         post.setMentionPost(mentionsToAdd)
+        post.setEmojis(emojisToAdd)
         success = !req.body.tags
         if (req.body.tags) {
           const tagListString = req.body.tags

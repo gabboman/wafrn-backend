@@ -1,6 +1,6 @@
 import { Application, Response } from 'express'
 import { Op, Sequelize } from 'sequelize'
-import { Blocks, Emoji, EmojiCollection, FederatedHost, Follows, Mutes, ServerBlock, User, UserOptions } from '../db'
+import { Blocks, Emoji, EmojiCollection, FederatedHost, Follows, Mutes, ServerBlock, User, UserEmojiRelation, UserOptions } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
 
 import generateRandomString from '../utils/generateRandomString'
@@ -27,6 +27,7 @@ import getBlockedIds from '../utils/cacheGetters/getBlockedIds'
 import { getNotYetAcceptedFollowedids } from '../utils/cacheGetters/getNotYetAcceptedFollowedIds'
 import { getUserOptions } from '../utils/cacheGetters/getUserOptions'
 import { getMutedPosts } from '../utils/cacheGetters/getMutedPosts'
+import { getAvaiableEmojis } from '../utils/getAvaiableEmojis'
 
 const forbiddenCharacters = [':', '@', '/', '<', '>', '"']
 
@@ -168,13 +169,8 @@ export default function userRoutes(app: Application) {
             id: posterId
           }
         })
-        await user.removeEmojis(await user.getEmojis())
         if (req.body) {
-          const avaiableEmojis = await Emoji.findAll({
-            where: {
-              external: false
-            }
-          })
+          const avaiableEmojis = await getAvaiableEmojis()
           let userEmojis: any[] = []
           if (req.body.description) {
             user.description = req.body.description
@@ -254,7 +250,18 @@ export default function userRoutes(app: Application) {
               user.avatar = avatarURL
             }
           }
-          user.setEmojis(userEmojis)
+          await UserEmojiRelation.destroy({
+            where: {
+              userId: user.id
+            }
+          })
+          await UserEmojiRelation.destroy({
+            where: {
+              userId: user.id
+            }
+          })
+          await user.removeEmojis()
+          user.setEmojis([... new Set(userEmojis)])
           await user.save()
           success = true
         }
