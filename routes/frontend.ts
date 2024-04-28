@@ -6,6 +6,12 @@ import fs from 'fs'
 import * as DOMPurify from "isomorphic-dompurify";
 import { redisCache } from '../utils/redis'
 
+
+const cacheOptions = {
+  etag: false,
+  maxAge: '1'
+}
+
 export default function frontend(app: Application) {
 
   const defaultSeoData = environment.defaultSEOData
@@ -26,7 +32,7 @@ export default function frontend(app: Application) {
         '/profile/*'
       ],
       function (req, res) {
-        res.send(getIndexSeo(defaultSeoData.title, defaultSeoData.description, defaultSeoData.img))
+        res.send(getIndexSeo(defaultSeoData.title, defaultSeoData.description, defaultSeoData.img), )
       }
     )
 
@@ -52,7 +58,7 @@ export default function frontend(app: Application) {
   
   
   // serve static angular files
-  app.get('*.*', express.static(environment.frontedLocation))
+  app.get('*.*', express.static(environment.frontedLocation, cacheOptions ))
 }
 
 function sanitizeStringForSEO(unsanitized: string): string {
