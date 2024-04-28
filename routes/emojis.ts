@@ -7,6 +7,7 @@ import * as fs from 'fs-extra'
 import {Extract} from 'unzip-stream'
 import { Emoji, EmojiCollection } from "../db";
 import { logger } from "../utils/logger";
+import { wait } from "../utils/wait";
 const emojiStorage = multer.diskStorage({
     destination: '/tmp/',
     filename: (req, file, cb) => {
@@ -40,12 +41,13 @@ export default function emojiRoutes(app: Application) {
           } else {
             try {
               fs.createReadStream(file.destination + file.filename).pipe(Extract({ path: './uploads/emojipacks/' + packName }))
+              // TODO OH MY GOD FIX THIS AWFUL HACK
+              await wait(10000)
               const pack = await EmojiCollection.create({
                 name: packName
               })
               const fileFormats = /.(jpg|gif|png|webp)$/
               const emojinames = fs.readdirSync('./uploads/emojipacks/' + packName).filter(filename => filename.toLowerCase().match(fileFormats))
-              console.log(emojinames)
               const emojisToCreate = emojinames.map(elem => {
                 const emojiName = `:${elem.split('.')[0]}:`
                 return {
