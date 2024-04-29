@@ -29,6 +29,7 @@ import forumRoutes from './routes/forum'
 import { SignedRequest } from './interfaces/fediverse/signedRequest'
 import silencePostRoutes from './routes/silencePost'
 import emojiRoutes from './routes/emojis'
+import emojiReactRoutes from './routes/emojiReact'
 
 const swaggerJSON = require('./swagger.json')
 // rest of the code remains same
@@ -75,6 +76,7 @@ activityPubRoutes(app)
 wellKnownRoutes(app)
 cacheRoutes(app)
 likeRoutes(app)
+emojiReactRoutes(app)
 adminRoutes(app)
 muteRoutes(app)
 blockUserServerRoutes(app)

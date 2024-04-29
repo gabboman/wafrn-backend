@@ -1,3 +1,5 @@
+import { fediverseTag } from "./tags"
+
 export interface activityPubObject {
   '@context': string | any[]
   actor: string
@@ -7,4 +9,6 @@ export interface activityPubObject {
   type: string
   published?: Date | string
   object: any
+  tag?: fediverseTag[]
+  content?: string
 }
