@@ -40,28 +40,27 @@ export default function emojiRoutes(app: Application) {
             })
           } else {
             try {
-              fs.createReadStream(file.destination + file.filename).pipe(Extract({ path: './uploads/emojipacks/' + packName }))
-              // TODO OH MY GOD FIX THIS AWFUL HACK
-              await wait(10000)
-              const pack = await EmojiCollection.create({
-                name: packName
-              })
-              const fileFormats = /.(jpg|gif|png|webp)$/
-              const emojinames = fs.readdirSync('./uploads/emojipacks/' + packName).filter(filename => filename.toLowerCase().match(fileFormats))
-              const emojisToCreate = emojinames.map(elem => {
-                const emojiName = `:${elem.split('.')[0]}:`
-                return {
-                name: emojiName ,
-                external: false,
-                url: `/emojipacks/${packName}/${elem}`,
-                id: emojiName,
-                emojiCollectionId: pack.id
-              }})
-              const emojisCreated = await Emoji.bulkCreate(emojisToCreate)
-              res.send({
-                success: true,
-                message: 'Pack created succesfuly'
-              })
+              fs.createReadStream(file.destination + file.filename).on('end', async () => {
+                const pack = await EmojiCollection.create({
+                  name: packName
+                })
+                const fileFormats = /.(jpg|gif|png|webp)$/
+                const emojinames = fs.readdirSync('./uploads/emojipacks/' + packName).filter(filename => filename.toLowerCase().match(fileFormats))
+                const emojisToCreate = emojinames.map(elem => {
+                  const emojiName = `:${elem.split('.')[0]}:`
+                  return {
+                  name: emojiName ,
+                  external: false,
+                  url: `/emojipacks/${packName}/${elem}`,
+                  id: emojiName,
+                  emojiCollectionId: pack.id
+                }})
+                const emojisCreated = await Emoji.bulkCreate(emojisToCreate)
+                res.send({
+                  success: true,
+                  message: 'Pack created succesfuly'
+                })
+              }).pipe(Extract({ path: './uploads/emojipacks/' + packName }))
             } catch (error) {
               logger.info({message: 'Error when creating emoji pack', error: error})
               res.send({
