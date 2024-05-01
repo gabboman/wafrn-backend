@@ -12,6 +12,7 @@ import {
   PostReport,
   Quotes,
   User,
+  UserEmojiRelation,
   UserLikesPostRelations
 } from '../db'
 import { authenticateToken } from '../utils/authenticateToken'
@@ -67,13 +68,11 @@ export default function notificationRoutes(app: Application) {
     }
 
     const newEmojiReactions = getEmojiReactedPostsId(userId, emojiReactionDate, Op.lt, true)
-
     const follows = Follows.findAll({
       ...followsQuery,
       limit: environment.postsPerPage
     })
     const likes = getLikedPostsId(userId, likesDate, Op.lt, true)
-    await Promise.all([reblogs, mentions, follows, likes, mentionedPostsId, newEmojiReactions, newQuotes])
     const postIds = mentionedPostsId
       .concat((await newEmojiReactions).map((react: any) => react.postId))
       .concat((await likes).map((like: any) => like.postId))
@@ -105,8 +104,26 @@ export default function notificationRoutes(app: Application) {
       }
     })
     await Promise.all([medias, users])
+
+    const userEmojis = await UserEmojiRelation.findAll({
+      where: {
+        userId: {
+          [Op.in]: (await users).map((usr : any) => usr.id)
+        }
+      }
+    })
+
+    const emojis = await Emoji.findAll({
+      where: {
+        id: {
+          [Op.in]: (await newEmojiReactions).map((emojireact: any) => emojireact.emojiId).concat( userEmojis.map((usrEmjRel: any) => usrEmjRel.emojiId ) )
+        }
+      }
+    })
+    
     res.send({
       emojiReactions: await newEmojiReactions,
+      emojis: await emojis,
       users: await users,
       posts: await posts,
       reblogs: await reblogs,
