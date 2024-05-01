@@ -13,7 +13,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@bull-board/express": "^5.6.0",
     "@noble/ed25519": "^1.7.1",
     "@opera7133/mfmp": "^1.0.2-5",
     "@peertube/http-signature": "^1.7.0",
@@ -22,7 +21,7 @@
     "@types/jsonwebtoken": "^8.5.8",
     "axios": "^1.6.0",
     "bcrypt": "^5.0.0",
-    "body-parser": "^1.20.1",
+    "body-parser": "^1.20.2",
     "bullmq": "^3.13.4",
     "cacher": "^3.0.0",
     "cheerio": "^1.0.0-rc.12",
@@ -40,7 +39,7 @@
     "jsonld": "^8.1.1",
     "jsonwebtoken": "^9.0.0",
     "mariadb": "^2.5.5",
-    "mfm-js": "^0.23.3",
+    "mfm-js": "^0.24.0",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.9.4",
     "nodemailer": "^6.7.2",
@@ -61,6 +60,7 @@
     "unzip-stream": "^0.3.4"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.19.5",
     "@types/cors": "^2.8.12",
     "@types/dompurify": "^3.0.5",
     "@types/fs-extra": "^11.0.4",
