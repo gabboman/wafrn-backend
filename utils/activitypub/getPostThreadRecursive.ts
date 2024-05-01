@@ -16,8 +16,6 @@ import { logger } from '../logger'
 import { getRemoteActor } from './getRemoteActor'
 import { getPetitionSigned } from './getPetitionSigned'
 import { fediverseTag } from '../../interfaces/fediverse/tags'
-import { toHtml } from '@opera7133/mfmp'
-import * as mfm from 'mfm-js'
 import { loadPoll } from './loadPollFromPost'
 async function getPostThreadRecursive(
   user: any,
@@ -104,10 +102,7 @@ async function getPostThreadRecursive(
         privacy = 1
       }
 
-      let postTextContent =
-        '' + postPetition.source?.mediaType === 'text/x.misskeymarkdown'
-          ? toHtml(mfm.parse(postPetition.source.content))
-          : postPetition.content
+      let postTextContent = '' + postPetition.content
       if (postPetition.attachment && postPetition.attachment.length > 0 && !remoteUser.banned) {
         for await (const remoteFile of postPetition.attachment) {
           if (remoteFile.type !== 'Link') {
