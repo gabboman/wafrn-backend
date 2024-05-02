@@ -390,7 +390,11 @@ const EmojiCollection = sequelize.define('emojiCollections', {
     allowNull: false,
     primaryKey: true
   },
-  name: Sequelize.STRING
+  name: Sequelize.STRING,
+  comment: {
+    allowNull: true,
+    type: Sequelize.TEXT,
+  }
 })
 
 const Media = sequelize.define('medias', {
