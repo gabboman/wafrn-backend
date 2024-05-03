@@ -214,9 +214,9 @@ export default function userRoutes(app: Application) {
               optionValue: req.body.disableForceAltText
             })
           }
-          if(req.body.forceClassicLogo === false || req.body.forceClassicLogo === true) {
+          if(req.body.forceClassicLogo !== undefined && req.body.forceClassicLogo !== null) {
             const forceClassicKey = 'wafrn.forceClassicLogo';
-            const forceClassicNewValue = req.body.defaultPostEditorPrivacy
+            const forceClassicNewValue = req.body.forceClassicLogo === 'true'
             let dbForceClassic = await UserOptions.findOne({
               where: {
                 userId: posterId,
