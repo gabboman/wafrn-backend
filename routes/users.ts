@@ -214,7 +214,26 @@ export default function userRoutes(app: Application) {
               optionValue: req.body.disableForceAltText
             })
           }
-
+          if(req.body.forceClassicLogo === false || req.body.forceClassicLogo === true) {
+            const forceClassicKey = 'wafrn.forceClassicLogo';
+            const forceClassicNewValue = req.body.defaultPostEditorPrivacy
+            let dbForceClassic = await UserOptions.findOne({
+              where: {
+                userId: posterId,
+                optionName: forceClassicKey
+              }
+            })
+            if(dbForceClassic) {
+              dbForceClassic.optionValue = forceClassicNewValue
+            } else {
+              dbForceClassic = UserOptions.create({
+                userId: posterId,
+                optionName: forceClassicKey,
+                optionValue: forceClassicNewValue
+              })
+            }
+            await dbForceClassic.save()
+          }
           if (req.body.defaultPostEditorPrivacy) {
             const defaultPostEditorPrivacyKey = 'wafrn.defaultPostEditorPrivacy'
             const defaultPostEditorPrivacy = req.body.defaultPostEditorPrivacy
