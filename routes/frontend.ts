@@ -109,7 +109,7 @@ function getIndexSeo(title: string, description: string, image?: string) {
   }
   let indexWithSeo = fs.readFileSync(`${environment.frontedLocation}/index.html`).toString()
   // index html must have a section with this html comment that we will edit out to put the seo there
-  const commentToReplace = '<!-- REMOVE THIS IN EXPRESS FOR SEO -->'
+  const commentToReplace = /<!-- BEGIN REMOVE THIS IN EXPRESS FOR SEO -->.*(.*(\n))*.*<!-- END REMOVE THIS IN EXPRESS FOR SEO -->/gm
   indexWithSeo = indexWithSeo.replace(
     commentToReplace,
     `
