@@ -162,28 +162,32 @@ We create the file **/etc/apache2/sites-avaiable/YOUR-FRONTEND-DOMAIN.conf** wit
 ```apache
 <VirtualHost *:80>
                 ServerAdmin webmaster@localhost
-        ServerName app.wafrn.net # CHANGE THIS
+        ServerName app.wafrn.net # CHANGE THIS TO YOUR DOMAIN
         RewriteEngine     on
         ProxyRequests off
         ProxyPreserveHost on
-				#this will redirect all the /api/ petitions to the backend
-        ProxyPass /api/ http://localhost:5000/api/
+
+
+
+        ProxyPass /api/ http://localhost:5000/api/ # WE WILL ASSUME PORT 5000
         ProxyPassReverse /api/ http://localhost:5000/api/
-				#this will redirect all the /fediverse petitions to the fedi
+
         ProxyPass /fediverse/ http://localhost:5000/fediverse/
         ProxyPassReverse / /fediverse http://localhost:5000/fediverse/
-				#this is another fedi redirect
+
         ProxyPass /.well-known/ http://localhost:5000/.well-known/
         ProxyPassReverse /.well-known/ http://localhost:5000/.well-known
-				# another fedi things redirect
+
         ProxyPass /contexts/ http://localhost:5000/contexts/
         ProxyPassReverse /contexts/ http://localhost:5000/contexts/
-				# this one is for the posts preview. Currently a bit wonky
+
         ProxyPass /post/ http://localhost:5000/post/
         ProxyPassReverse /post/ http://localhost:5000/post/
-        Header set Access-Control-Allow-Origin "*"
-        # TAKE ATENTION TO THIS LINE. This line has some domains multiple times. make sure you edit them properly or images wont load
-        Header set Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval'  https://app.wafrn.net  ; img-src blob: https://media.wafrn.net cache.wafrn.net https://app.wafrn.net; media-src  blob: https://media.wafrn.net cache.wafrn.net https://app.wafrn.net;"
+
+	Header set Access-Control-Allow-Origin "*"
+  # next line can be ignored for single user instance. if you want users, to protect their privacy you need to set this up
+  # so someone can not do shady stuff with themes
+	Header set Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://YOURDOMAIN https://YOUR-CACHE-DOMAIN https://YOUR-MEDIA-DOMAIN; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://YOURDOMAIN; img-src 'self' https://YOUR-MEDIA-DOMAIN wafrncache.b-cdn.net; font-src 'self' https://YOUR-CACHE-DOMAIN https://YOUR-MEDIA-DOMAIN; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests; block-all-mixed-content"
         ErrorLog ${APACHE_LOG_DIR}/error_wafrn.log
         CustomLog ${APACHE_LOG_DIR}/wafrn_app.log combined
         # Possible values include: debug, info, notice, warn, error, crit,
@@ -201,7 +205,7 @@ We create the file **/etc/apache2/sites-avaiable/YOUR-FRONTEND-DOMAIN.conf** wit
 ```shell
 curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 source ~/.profile
-nvm install node 18 #You could use 20 in theory.
+nvm install node 22
 ```
 
 Once you have installed nvm and node 18 in the wafrn user of your server, we will install the angular cli on the user, then clone the repositories
