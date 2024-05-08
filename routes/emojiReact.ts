@@ -10,16 +10,22 @@ export default function emojiReactRoutes(app: Application) {
       let success = false
       const userId = req.jwtData?.userId
       const postId = req.body.postId
-      const emojiId = req.body.emojiId
+      const emojiName = req.body.emojiName
+      const undo = req.body.undo
+      if(undo) {
+        // TODO not yet implemented lol
+        res.sendStatus(500);
+        return;
+      }
   
       const user = User.findByPk(userId)
       const post = Post.findByPk(postId)
-      const emoji = Emoji.findByPk(emojiId)
+      const emoji = await Emoji.findByPk(emojiName) // our special emojis share name and id, remote ones should not
       const existing = EmojiReaction.findOne({
         where: {
             userId: userId,
             postId: postId,
-            emojiId: emojiId
+            emojiId: emoji.id
         }
       })
       try {
@@ -28,8 +34,8 @@ export default function emojiReactRoutes(app: Application) {
           const reaction = await EmojiReaction.create({
             userId: userId,
             postId: postId,
-            emojiId: emojiId,
-            content: (await emoji).name
+            emojiId: (await emoji) ? emoji.name : null,
+            content:  (await emoji) ? emoji.name : emojiName
           })
           await reaction.save()
           success = true
