@@ -105,7 +105,7 @@ export default function userRoutes(app: Application) {
               : `<h1>Welcome to ${environment.instanceUrl}</h1> To activate your account <a href="${
                   environment.instanceUrl
                 }/activate/${encodeURIComponent(req.body.email.toLowerCase())}/${activationCode}">click here!</a>`
-            const emailSent = sendActivationEmail(req.body.email.toLowerCase(), activationCode, mailHeader, mailBody)
+            const emailSent = environment.disableRequireSendEmail ? true : sendActivationEmail(req.body.email.toLowerCase(), activationCode, mailHeader, mailBody)
             await Promise.all([userWithEmail, emailSent])
             success = true
             await redisCache.del('allLocalUserIds')

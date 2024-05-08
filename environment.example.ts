@@ -81,6 +81,8 @@ export const environment = {
       from: 'from_mail'
     }
   },
+  // you dont have an smtp server and you want to do a single user instance? set this to true!
+  disableRequireSendEmail: false,
   // if someone is trying to scrap your place you can send a funny message in some petitions (attacks to the frontend)
   blockedIps: ['RANODM_IP'],
   // do you want to manually review registrations or have them open? We advice to leave this one to true
