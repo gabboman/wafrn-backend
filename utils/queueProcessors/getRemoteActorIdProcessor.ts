@@ -1,5 +1,5 @@
 import { Job } from 'bullmq'
-import { FederatedHost, User } from '../../db'
+import { FederatedHost, User, sequelize } from '../../db'
 import { environment } from '../../environment'
 import { getUserIdFromRemoteId } from '../cacheGetters/getUserIdFromRemoteId'
 import { getFederatedHostIdFromUrl } from '../cacheGetters/getHostIdFromUrl'
@@ -50,9 +50,27 @@ async function getRemoteActorIdProcessor(job: Job) {
         }
         let userRes
         if (res) {
-          userRes = await User.findByPk(res)
-          userRes.update(userData)
-          await userRes.save()
+          if(res !== await getDeletedUser()) {
+            const existingUsers = await User.findAll({
+              where: {
+                url: sequelize.where(sequelize.fn('LOWER', sequelize.col('url')), 'LIKE', userData.url.toLowerCase())
+              }
+            })
+
+              userRes = await User.findByPk(res)
+              if(userRes.id !== existingUsers[0]?.id) {
+                const existingUser = existingUsers[0]
+                existingUser.activated = 0;
+                existingUser.remoteId = `${existingUser.remoteId}_OVERWRITTEN_ON${new Date().getTime()}`
+                existingUser.url = `${existingUser.url}_OVERWRITTEN_ON${new Date().getTime()}`
+                await existingUser.save();
+
+              }
+              userRes.update(userData)
+              await userRes.save()
+            
+          }
+          
         } else {
           userRes = await User.create(userData)
         }
